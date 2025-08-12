@@ -101,7 +101,7 @@ body {
 
 /* 가운데 폰 화면 */
 .app {
-  width: min(100%, 470px); /* 폰 폭 같은 느낌 */
+  width: min(100%, 480px); /* 폰 폭 같은 느낌 */
   background: #fff; /* 본문은 흰색 */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   border-radius: 18px;
