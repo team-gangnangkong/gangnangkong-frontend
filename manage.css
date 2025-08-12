@@ -10,6 +10,207 @@ body {
   background: #fef2f2;
 }
 
+/* styles.css */
+:root {
+  --bg: #f7f8fc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #8b95a1;
+  --accent: #ff5b61; /* 관리자 빨강 */
+  --badge-bg: #ffe9eb; /* 연한 핑크 */
+  --badge-text: #ff5b61; /* 뱃지 글자 */
+  --tab: #a1a8b3;
+  --tab-active: #ff5b61;
+  --radius-lg: 18px;
+  --shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR',
+    Roboto, 'Segoe UI', Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* 앱 프레임 (모바일 미리보기 느낌) */
+.app {
+  max-width: 420px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 20px;
+}
+
+/* 상단 안전영역 */
+.safe-top {
+  height: 16px;
+} /* 필요 없으면 0으로 */
+
+/* 헤더 */
+.header {
+  padding: 8px 0 12px;
+}
+.greet {
+  font-size: clamp(22px, 5vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin: 6px 0 18px;
+}
+.accent {
+  color: var(--accent);
+}
+
+/* 섹션 제목 줄 */
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.title-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 16px;
+}
+.title-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff6b72;
+  background: #ffe9eb;
+  border-radius: 999px;
+}
+.title-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sort-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* 탭 */
+.tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #eef0f5;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+.tab {
+  position: relative;
+  background: none;
+  border: 0;
+  padding: 8px 0;
+  cursor: default;
+  color: var(--tab);
+  font-weight: 700;
+  font-size: 15px;
+}
+.tab .count {
+  margin-left: 4px;
+  font-weight: 800;
+}
+.tab.is-active {
+  color: var(--text);
+}
+.tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--tab-active);
+}
+
+/* 리스트 */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.card {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: 18px 14px 16px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  margin: 0 88px 8px 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+.card-date {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* 상태 뱃지 */
+.badge {
+  position: absolute;
+  right: 14px;
+  top: 18px;
+  font-size: 14px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+.badge-pending {
+  background: var(--badge-bg);
+  color: var(--badge-text);
+}
+
+/* 하단 홈 인디케이터(아이폰 느낌) */
+.home-indicator {
+  width: 150px;
+  height: 5px;
+  border-radius: 999px;
+  background: #cfd4dc;
+  margin: 18px auto 0;
+}
+
+/* 다크모드 살짝 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0d12;
+    --card: #12151b;
+    --text: #eef1f6;
+    --muted: #9aa3b2;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  }
+  .tabs {
+    border-color: #1f2430;
+  }
+  .home-indicator {
+    background: #2b3140;
+  }
+}
+
 /* 바깥 */
 .viewport {
   min-height: 100dvh;

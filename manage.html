@@ -9,7 +9,74 @@
   <body>
     <div class="viewport">
       <div class="app">
-        <p>아직 없다</p>
+        <header class="header">
+          <h1 class="greet">
+            안녕하세요, <span class="accent">관리자</span>님
+          </h1>
+
+          <div class="section-title">
+            <div class="title-left">
+              <span class="title-icon">
+                <!-- 종/스피커 느낌 아이콘 -->
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M3 10v4h3l4 4V6L6 10H3zm13 2a4 4 0 0 0-2.7-3.77v7.54A4 4 0 0 0 16 12zm-2.7-8.95A10 10 0 0 1 22 12a10 10 0 0 1-8.7 9.95v-2.06A8 8 0 0 0 20 12a8 8 0 0 0-6.7-7.89V3.05z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </span>
+              <span>소리 관리하기</span>
+            </div>
+            <button class="sort-btn" type="button">최근순</button>
+          </div>
+
+          <!-- 탭 -->
+          <nav class="tabs" role="tablist">
+            <button class="tab is-active" role="tab">
+              미해결<span class="count">5</span>
+            </button>
+            <button class="tab" role="tab">
+              해결중<span class="count">4</span>
+            </button>
+            <button class="tab" role="tab">
+              해결완료<span class="count">10</span>
+            </button>
+          </nav>
+        </header>
+
+        <!-- 리스트 -->
+        <section class="list">
+          <!-- 카드 -->
+          <article class="card">
+            <h3 class="card-title">모란역 3호선 쓰레기</h3>
+            <time class="card-date">2025.08.26</time>
+            <span class="badge badge-pending">미해결</span>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title">성남 중앙 도서관 책 부족</h3>
+            <time class="card-date">2025.08.26</time>
+            <span class="badge badge-pending">미해결</span>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title">모란역 3호선 쓰레기</h3>
+            <time class="card-date">2025.08.26</time>
+            <span class="badge badge-pending">미해결</span>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title">모란역 3호선 쓰레기</h3>
+            <time class="card-date">2025.08.26</time>
+            <span class="badge badge-pending">미해결</span>
+          </article>
+
+          <article class="card">
+            <h3 class="card-title">모란역 3호선 쓰레기</h3>
+            <time class="card-date">2025.08.26</time>
+            <span class="badge badge-pending">미해결</span>
+          </article>
+        </section>
       </div>
     </div>
     <script src="manage.js"></script>
