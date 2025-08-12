@@ -17,8 +17,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* ← 중앙 대신 위에서 시작 */
-  padding: 14vh 16px 6vh; /* ← 위쪽 여백으로 로고 위치 조절 */
+  justify-content: flex-start;
+  padding: 14vh 16px 6vh;
   gap: 24px;
   min-height: 100%;
 }
@@ -43,10 +43,9 @@ body {
 /* 캐릭터(로고 기준 비율 위치) */
 .index-char {
   position: absolute;
-  top: -18%; /* ↑ 로고 높이 대비 위로 18%만큼 살짝 올림 */
-  right: -8%; /* → 로고 너비 대비 오른쪽으로 8%만큼 살짝 튀어나오게 */
-  /* left: 100%; */
-  transform: translate(10%, -45%); /* ← 여기! transform으로 */
+  top: -18%;
+  right: -8%;
+  transform: translate(10%, -45%);
   width: clamp(40px, 8vw, 66px);
   aspect-ratio: 66 / 89;
   background: url('index-char.png') center/contain no-repeat;
@@ -58,7 +57,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 15px; /* 버튼 간격 */
-  margin-top: 30px; /* 로고에서 버튼까지의 여백 (화면 높이 기준) */
+  margin-top: 30px; /* 로고에서 버튼까지의 여백  */
   padding-bottom: 8vh; /* 바닥에서 얼마나 띄우기 */
 }
 
@@ -88,29 +87,29 @@ body {
   color: #949393;
   border: 0;
   background: transparent;
+  cursor: pointer;
 }
 
-/* 바깥 배경(여백 색) */
+/* 바깥 여백 색 */
 .viewport {
-  min-height: 100dvh; /* 주소창 변동에도 안전 */
+  min-height: 100dvh;
   display: flex;
-  justify-content: center; /* 가로 중앙 */
+  justify-content: center;
   align-items: stretch;
-  background: #fef2f2; /* 좌우 여백 색 (원하는 색으로) */
+  background: #fef2f2;
 }
 
 /* 가운데 폰 화면 */
 .app {
-  width: min(100%, 480px); /* 폰 폭 같은 느낌 */
-  background: #fff; /* 본문은 흰색 */
+  width: min(100%, 480px); /* 가운데 나타날 화면 가로 */
+  background: #fff;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   border-radius: 18px;
-  overflow: hidden; /* 모서리 라운드 안 벗어나게 */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* 모바일에선 여백 없이 꽉 차게(그림처럼) */
 @media (max-width: 600px) {
   .app {
     width: 100%;
@@ -119,15 +118,14 @@ body {
   }
 }
 
-/* 네 기존 .container는 높이만 맞춰주면 됨 */
 .container {
   min-height: 100%;
 }
 
-/* 큰 화면에서 캐릭터 미세 조정 */
+/* 미세 조정 */
 @media (min-width: 1025px) {
   .logo-wrap {
-    width: 300px; /* 큰 화면에서 고정 크기 */
+    width: 300px;
     width: clamp(340px, 22%, 340px);
   }
   .index-char {
@@ -139,7 +137,7 @@ body {
 }
 @media (min-width: 600px) and (max-width: 1024px) {
   .logo-wrap {
-    width: 300px; /* 큰 화면에서 고정 크기 */
+    width: 300px;
     width: clamp(340px, 22%, 340px);
   }
   .index-char {
@@ -152,7 +150,7 @@ body {
 
 @media (max-width: 599px) {
   .logo-wrap {
-    width: 300px; /* 큰 화면에서 고정 크기 */
+    width: 300px;
     width: clamp(348px, 22%, 340px);
   }
   .index-char {
