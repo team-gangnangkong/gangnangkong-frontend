@@ -37,7 +37,7 @@ body {
   width: 100%;
   /* width: clamp(280px, 45vw, 320px); */
   aspect-ratio: 288 / 82;
-  background: url('index-logo.png') center/contain no-repeat;
+  background: url('/image/index-logo.png') center/contain no-repeat;
 }
 
 /* 캐릭터(로고 기준 비율 위치) */
@@ -48,7 +48,7 @@ body {
   transform: translate(10%, -45%);
   width: clamp(40px, 8vw, 66px);
   aspect-ratio: 66 / 89;
-  background: url('index-char.png') center/contain no-repeat;
+  background: url('/image/index-char.png') center/contain no-repeat;
 }
 
 /* 버튼 묶음 */

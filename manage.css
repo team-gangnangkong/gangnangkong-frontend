@@ -4,13 +4,13 @@
 html,
 body {
   height: 100%;
+  overflow: hidden;
 }
 body {
   margin: 0;
   background: #fef2f2;
 }
 
-/* styles.css */
 :root {
   --bg: #f7f8fc;
   --card: #ffffff;
@@ -34,21 +34,8 @@ body {
 }
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR',
-    Roboto, 'Segoe UI', Arial, sans-serif;
   color: var(--text);
   background: var(--bg);
-}
-
-/* 앱 프레임 (모바일 미리보기 느낌) */
-.app {
-  max-width: 420px;
-  min-height: 100dvh;
-  margin: 0 auto;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  padding: 0 16px 20px;
 }
 
 /* 상단 안전영역 */
@@ -58,13 +45,17 @@ body {
 
 /* 헤더 */
 .header {
-  padding: 8px 0 12px;
+  padding: 70px 0 12px;
+  flex: 0 0 auto;
+  padding-bottom: 12px;
+  margin-bottom: -20px;
 }
+
 .greet {
-  font-size: clamp(22px, 5vw, 28px);
+  font-size: clamp(25px, 5vw, 28px);
   font-weight: 800;
   letter-spacing: -0.3px;
-  margin: 6px 0 18px;
+  margin: 20px 0 30px;
 }
 .accent {
   color: var(--accent);
@@ -81,8 +72,8 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 650;
+  font-size: 17.6px;
 }
 .title-icon {
   width: 28px;
@@ -91,12 +82,12 @@ body {
   align-items: center;
   justify-content: center;
   color: #ff6b72;
-  background: #ffe9eb;
+  background: #ffffff;
   border-radius: 999px;
 }
 .title-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
 }
 
 .sort-btn {
@@ -104,7 +95,7 @@ body {
   border: 0;
   background: transparent;
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 550;
   font-size: 14px;
 }
 
@@ -123,7 +114,7 @@ body {
   padding: 8px 0;
   cursor: default;
   color: var(--tab);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 15px;
 }
 .tab .count {
@@ -150,24 +141,139 @@ body {
   flex-direction: column;
   gap: 14px;
   padding-top: 6px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 6px;
 }
 
 .card {
   position: relative;
   background: var(--card);
   border-radius: var(--radius-lg);
-  padding: 18px 14px 16px;
+  padding: 18px 7px 8px;
   box-shadow: var(--shadow);
 }
+
 .card-title {
-  margin: 0 88px 8px 0;
-  font-size: 18px;
-  font-weight: 800;
+  margin: 0 8px 5px 0;
+  font-size: 15px;
+  font-weight: 1500;
   letter-spacing: -0.2px;
 }
+
 .card-date {
   color: var(--muted);
   font-size: 14px;
+}
+
+/* 숫자 색(아이콘도 같이 상속받게) */
+.detail-stats {
+  color: var(--accent);
+}
+
+/* 아이콘 크기/색/두께 */
+.stat svg {
+  width: 18px; /* 아이콘 크기 */
+  height: 18px;
+  display: block;
+  stroke: currentColor; /* .detail-stats의 color를 상속 → #F97171 */
+  fill: none; /* 채우기 없음 */
+  stroke-width: 1.5; /* 선 두께 */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 해결중 카드 전용 스타일 */
+.card-image {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  height: 130px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.district-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.card-memo {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.card > .badge.badge-progress {
+  display: none;
+}
+.card-image .badge.badge-progress.top-right {
+  display: inline-flex;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.card-meta .card-memo,
+.card-meta .card-date {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.card-meta .card-memo {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+}
+
+.card-meta .dot {
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.status-trigger {
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+.status-item {
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  padding: 5px 10px !important;
+  color: #626466 !important;
+}
+
+.status-menu {
+  padding: 3px 0 !important;
+  width: 15px !important;
+  text-align: center !important;
+  color: #8b95a1 !important;
+}
+
+/* detail-view 좌우 패딩과 맞춰 주세요 */
+.detail-view {
+  --side-pad: 25px;
+}
+
+/* 좋아요/댓글 아래 구분선: 풀블리드 */
+.detail-divider {
+  height: 8px;
+  background: #eef0f5;
+  margin: 15px calc(var(--side-pad) * -1); /* 좌우 패딩만큼 음수 마진 */
+  width: calc(100% + var(--side-pad) * 2); /* 전체 너비 보정 */
 }
 
 /* 상태 뱃지 */
@@ -180,35 +286,99 @@ body {
   border-radius: 999px;
   padding: 8px 12px;
 }
+
 .badge-pending {
-  background: var(--badge-bg);
-  color: var(--badge-text);
+  background: rgb(254, 242, 242);
+  color: #f87171;
+  font-weight: 600;
+  font-size: 0.87rem;
+  border-radius: 10px;
 }
 
-/* 하단 홈 인디케이터(아이폰 느낌) */
-.home-indicator {
-  width: 150px;
-  height: 5px;
-  border-radius: 999px;
-  background: #cfd4dc;
-  margin: 18px auto 0;
+.badge.top-right {
+  position: absolute;
+  top: 8px;
+  right: 8px;
 }
 
-/* 다크모드 살짝 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b0d12;
-    --card: #12151b;
-    --text: #eef1f6;
-    --muted: #9aa3b2;
-    --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-  }
-  .tabs {
-    border-color: #1f2430;
-  }
-  .home-indicator {
-    background: #2b3140;
-  }
+.badge-progress {
+  background: rgb(254, 226, 226);
+  color: #f87171;
+  font-weight: 600;
+  font-size: 0.87rem;
+  border-radius: 10px;
+}
+
+.badge-done {
+  background: #f87171;
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.87rem;
+  border-radius: 10px;
+}
+
+/* 메타 라인 개별 색/두께/크기 조정 */
+.detail-view .meta .detail-author {
+  color: #9aa3b2; /* 이름 색 */
+  font-weight: 550; /* 굵기 조절 */
+  font-size: 15px; /* 필요하면 크기도 */
+}
+
+.detail-view .meta .detail-date {
+  color: #949ba5; /* 날짜 색 */
+  font-weight: 580; /* 원하면 굵기 */
+  font-size: 14px;
+}
+
+/* 동그라미 색까지 바꾸고 싶다면 */
+.detail-view .meta-dot {
+  background: #c3c5c8;
+}
+
+/* 저장하기 버튼 활성화 */
+.memo-save-btn.disabled {
+  background: #fef2f2;
+  color: #f87171;
+  cursor: not-allowed;
+}
+.memo-save-btn.active {
+  background: #f87171;
+  color: #fff;
+}
+
+.meta-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 6px;
+}
+.meta-line .separator {
+  opacity: 0.5;
+}
+
+.detail-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 가운데 정렬 */
+  gap: 8px;
+  margin-bottom: 25px;
+  padding-top: 8px; /* 상단 여백: 숫자 조절 가능 */
+}
+.detail-back {
+  position: absolute;
+  left: 0; /* 뒤로가기 버튼은 왼쪽 고정 */
+  background: none;
+  border: 0;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.detail-view {
+  padding-left: 9px !important; /* 기존 16px → 8px */
+  padding-right: 9px !important;
 }
 
 /* 바깥 */
@@ -225,9 +395,13 @@ body {
   width: min(100%, 480px);
   background: #fff;
   border-radius: 18px;
+  height: 100dvh;
+  margin: 0 auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   display: flex;
+  /* max-width: 420px; */
+  padding: 0 16px 20px;
   flex-direction: column;
 }
 
