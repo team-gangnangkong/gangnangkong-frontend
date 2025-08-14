@@ -55,7 +55,7 @@ body {
   font-size: clamp(25px, 5vw, 28px);
   font-weight: 800;
   letter-spacing: -0.3px;
-  margin: 20px 0 30px;
+  margin: 20px 5px 30px;
 }
 .accent {
   color: var(--accent);
@@ -106,6 +106,7 @@ body {
   border-bottom: 1px solid #eef0f5;
   padding-bottom: 6px;
   margin-bottom: 10px;
+  margin-left: 9px;
 }
 .tab {
   position: relative;
@@ -161,6 +162,7 @@ body {
   font-size: 15px;
   font-weight: 1500;
   letter-spacing: -0.2px;
+  word-break: keep-all;
 }
 
 .card-date {
@@ -205,8 +207,14 @@ body {
   font-size: 12px;
 }
 
+.badge-inline {
+  position: static; /* 이미지 위 오버레이가 아니므로 static */
+  white-space: nowrap; /* ← 핵심: 줄바꿈 금지 */
+  flex-shrink: 0;
+}
+
 .card-memo {
-  color: var(--muted);
+  color: gray;
   font-size: 14px;
   margin-bottom: 6px;
 }
@@ -216,6 +224,10 @@ body {
 }
 .card-image .badge.badge-progress.top-right {
   display: inline-flex;
+}
+
+.card-meta .card-memo:empty + .dot {
+  display: none;
 }
 
 .card-meta {
@@ -263,17 +275,44 @@ body {
   color: #8b95a1 !important;
 }
 
+/* 제목 줄에 뱃지를 오른쪽 끝으로 */
+.card-title-row {
+  display: grid;
+  grid-template-columns: 1fr auto; /* 제목이 남는폭 다 먹고, 배지는 내용폭만 */
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* 제목 줄 안의 뱃지는 absolute 해제(기존 .badge 규칙 오버라이드) */
+.card-title-row .badge,
+.badge.in-title {
+  position: static;
+  right: auto;
+  top: auto;
+  display: inline-flex; /* 깔끔하게 센터 정렬 */
+  padding: 6px 12px; /* 카드에서 쓰는 크기 유지 */
+  border-radius: 11px;
+  font-weight: 600;
+  font-size: 0.87rem;
+  /* 색상은 기존 .badge-pending 규칙을 그대로 사용 */
+}
+
 /* detail-view 좌우 패딩과 맞춰 주세요 */
 .detail-view {
   --side-pad: 25px;
 }
 
 /* 좋아요/댓글 아래 구분선: 풀블리드 */
-.detail-divider {
+/* .detail-divider {
   height: 8px;
   background: #eef0f5;
-  margin: 15px calc(var(--side-pad) * -1); /* 좌우 패딩만큼 음수 마진 */
-  width: calc(100% + var(--side-pad) * 2); /* 전체 너비 보정 */
+  margin: 15px calc(var(--side-pad) * -1); 
+  width: calc(100% + var(--side-pad) * 2); 
+} */
+
+.card.is-done .card-body {
+  padding: 5px 14px 10px;
 }
 
 /* 상태 뱃지 */

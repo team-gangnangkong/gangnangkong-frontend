@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------- 정렬(최근순/오래된순) ----------
   const sortBtn = document.querySelector('.sort-btn');
   const cardsOriginal = Array.from(VIEW.list.querySelectorAll('.card'));
-  let isLatestFirst = true; // 기본이 최근순(=최신이 위)
+  let isLatestFirst = true;
 
   function sortCards() {
     const cards = Array.from(VIEW.list.querySelectorAll('.card')); // 현재 DOM 기준
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (sortBtn) {
-    sortBtn.textContent = '최신순'; // 초기 라벨(최근순)
+    sortBtn.textContent = '최신순';
     sortBtn.addEventListener('click', () => {
       isLatestFirst = !isLatestFirst;
       sortBtn.textContent = isLatestFirst ? '최신순' : '오래된순';
@@ -38,9 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  sortCards();
-
-  // ---------- 탭 카운트 & 필터 ----------
+  // ---------- 컨테이너 개수 카운트 ----------
   function updateCounts() {
     const p = VIEW.list.querySelectorAll('.badge-pending').length;
     const g = VIEW.list.querySelectorAll('.badge-progress').length;
@@ -91,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCounts();
   applyTabFilter();
 
-  // ---------- 상세 화면 스타일(필요 시 1회 주입) ----------
+  // ---------- 관리하기 페이지 css----------
   (function injectStyles() {
     const id = 'detail-view-style';
     if (document.getElementById(id)) return;
@@ -114,23 +112,23 @@ document.addEventListener('DOMContentLoaded', () => {
         display:none; min-width:120px; z-index:1000;
       }
       .status-menu.open{ display:block; }
-      .status-item{ padding:10px 14px; font-weight:700; font-size:14px; color:#374151; cursor:pointer; }
+      .status-item{ padding:10px 14px; font-weight:700; font-size:15px; color:#374151; cursor:pointer; }
       .status-item:hover{ background:#f7f8fc; }
-      .detail-photo{margin-top:7px; width:100%;border-radius:12px;height:180px;aspect-ratio:auto;object-fit:cover; aspect-ratio:16/9; object-fit:cover;}
-      .detail-loc{display:inline-flex; align-items:center; gap:5px; margin-top:8px; padding:6px 10px; border-radius:999px; background:#eef0f5; color:#6b7280; font-size:12.5px; font-weight:500;}
+      .detail-photo{margin-top:14px; width:100%;border-radius:12px;height:220px;aspect-ratio:auto;object-fit:cover; aspect-ratio:16/9; object-fit:cover;}
+      .detail-loc{display:inline-flex; align-items:center; gap:5px; margin-top:8px; padding:8px 12px; border-radius:999px; background:#eef0f5; color:#6b7280; font-size:12.6px; font-weight:500;}
       .detail-loc .loc-icon{display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; color:#9aa3b2;}
       .detail-loc svg{width:16px; height:16px;}
-      .detail-body{margin:6px 0 5px; font-size:14px; line-height:1.6; color:var(--text);}
-      .detail-stats{margin-top:6px; display:flex; justify-content:flex-end; gap:18px; color: var(--accent);}
+      .detail-body{margin:10px 0 5px; font-size:15px; line-height:1.6; color:var(--text);}
+      .detail-stats{margin-top:18px; display:flex; justify-content:flex-end; gap:18px; color: var(--accent);}
       .stat{display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:14px;}
       .stat svg{width:18px; height:18px; display:block;}
-      .detail-divider{width:100%; height:6px; background:#eef0f5; margin:15px 0;}
+      .detail-divider{width:100%; height:7px; background:#eef0f5; margin:29px 0;}
       .memo-wrap{margin-top:5px;}
       .memo-title{font-weight:700; margin-bottom:7px;}
       .memo-textarea{
         width:100%; min-height:120px; border:0; border-radius:12px;
         padding:10px; font-size:15px; line-height:1.6;font-family:"맑은 고딕";
-        background:#f7f8fc; color:var(--text);
+        background:#f3f4f6; color:var(--text);
         box-shadow: inset 0 0 0 1px #eef0f5;
       }
       .memo-textarea::placeholder{ color:gray; font-size:13px;font-family:"맑은 고딕";}
@@ -151,14 +149,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------- 더미 데이터 ----------
   const AUTHORS = [
     '최가을',
-    '이봄',
-    '김여름',
-    '박겨울',
-    '정하늘',
-    '문별',
+    '유지민',
+    '김민정',
+    '조진세',
+    '서민정',
+    '엄지윤',
     '안우진',
-    '서담',
-    '배하린',
+    '이은우',
+    '이재인',
   ];
   const pickAuthor = () => AUTHORS[Math.floor(Math.random() * AUTHORS.length)];
 
@@ -168,6 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
     '휠체어 타고 다니기가 너무 제한적이에요': '/image/wheelchair.png',
     '놀이터에 그네 망가졌어요 고쳐주세요': '/image/playground.jpg',
     '위례 신도시 쓰레기 무단투기 심해요': '/image/trash.jpg',
+    '공중화장실이 너무 낡았어요': '/image/toilet.jpg',
+    '망가진 가로등 수리 좀 해주세요': '/image/dark.jpg',
+    '하수구 막힘': '/image/drain.jpg',
+    '길거리에 포트홀 무서워요': '/image/hole.jpg',
   };
 
   const DETAIL_TEXT = {
@@ -181,6 +183,14 @@ document.addEventListener('DOMContentLoaded', () => {
       '아이들이 많이 놀고 좋아하는 그네의 줄이 하나가 끊어졌네요. 저기에 위험하게 메달리는 아이들도 있고 아이들이 안전하게 놀 수 있도록 얼른 고쳐주시면 좋겠어요',
     '위례 신도시 쓰레기 무단투기 심해요':
       '쓰레기 버리지 말라고 경고문이 붙어져있는데도 무단투기 된 쓰레기가 너무 많습니다. 악취도 심하고 위생이 걱정됩니다. 적절히 조치를 취해주세요',
+    '공중화장실이 너무 낡았어요':
+      '역 근처 공중화장실인데 너무 낡았고 냄새도 나요... 급하거나 근처에 갈 화장실이 없을 때 가고싶어도 위생 때문에 참고 안 가게 돼요 쾌적하게 이용할 수 있도록 해주세요',
+    '망가진 가로등 수리 좀 해주세요':
+      '골목 사이사이에 꺼진 가로등이 너무 많아서 늦은 시간에 지나가기 무서워요 골목으로 가는 게 지름길이라 저기로 안 가면 한참 돌아가야하는데 망가진 거라면 얼른 수리해주셨으면 좋갰어요',
+    '하수구 막힘':
+      '하수구에 낙엽이랑 쓰레기가 잔뜩 끼어서 비 올 때마다 막히고 주변에 물이 고여요 조치를 취하지 않으면 나중에는 홍수나 물난리가 생길 수도 있을 것 같아요',
+    '길거리에 포트홀 무서워요':
+      '포트홀 때문에 도로에서 운전하기가 무서워요 바퀴 빠지면 사고가 날 수도 있고 이거 피하려고 차선 바꾸다가 다른 차랑 사고가 날 뻔한 적도 있어요 보수공사 신속하게 진행해주시면 좋겠어요',
   };
 
   const normalizeTitle = (t = '') =>
@@ -276,15 +286,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('article');
     card.className = 'card';
     card.dataset.wid = id;
-    const dotHtml = memoContent ? '<span class="dot">•</span>' : '';
 
     card.innerHTML = `
     <div class="card-image" style="background-image: url('${imageUrl}')">
       <span class="district-label">${district}</span>
-      <span class="badge badge-progress top-right">해결중</span>
     </div>
-    <div class="card-body" style="padding:14px;">
-      <h3 class="card-title">${title}</h3>
+    <div class="card-body" style="padding:14px 14px 10px;">
+      <div class="card-title-row">
+        <h3 class="card-title">${title}</h3>
+        <span class="badge badge-progress in-title">해결중</span>
+      </div>
       <div class="card-meta">
         <span class="card-memo">${memoContent || ''}</span>
         <span class="dot">•</span>
@@ -296,6 +307,60 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function createSimpleCard({ id, title, date, status = '미해결' }) {
+    if (status === '미해결') {
+      const memos = loadMemos();
+      const memoContent = memos[title] || '';
+      const imageUrl = resolveImage(title);
+      const district = resolveDistrict(title);
+
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.dataset.wid = id;
+
+      card.innerHTML = `
+  <div class="card-image" style="background-image: url('${imageUrl}')">
+    <span class="district-label">${district}</span>
+  </div>
+  <div class="card-body" style="padding:14px 14px 10px;">
+    <div class="card-title-row">
+      <h3 class="card-title">${title}</h3>
+      <span class="badge badge-pending in-title"style="font-weight:600">미해결</span>
+    </div>
+    <div class="card-meta">
+      <span class="card-memo">${memoContent || ''}</span>
+      <span class="dot">•</span>
+      <time class="card-date">${date}</time>
+    </div>
+  </div>
+`;
+
+      return card;
+    }
+
+    if (status === '해결완료') {
+      const memoContent = (loadMemos()[title] || '').trim();
+      const hasMemo = !!memoContent;
+
+      const card = document.createElement('article');
+      card.className = 'card is-done';
+      card.dataset.wid = id;
+      card.innerHTML = `
+    <div class="card-body" style="padding:16px 14px 18px;">
+      <div class="card-title-row">
+        <h3 class="card-title">${title}</h3>
+        <span class="badge badge-done in-title">해결완료</span>
+      </div>
+      <div class="card-meta">
+        ${
+          hasMemo
+            ? `<span class="card-memo">${memoContent}</span><span class="dot">•</span>`
+            : ''
+        }
+        <time class="card-date">${date}</time>
+      </div>
+    </div>`;
+      return card;
+    }
     const badgeClass =
       status === '해결완료'
         ? 'badge-done'
@@ -306,7 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('article');
     card.className = 'card';
     card.dataset.wid = id;
-
     card.innerHTML = `
     <h3 class="card-title">${title}</h3>
     <time class="card-date">${date}</time>
@@ -315,27 +379,152 @@ document.addEventListener('DOMContentLoaded', () => {
     return card;
   }
 
-  // ---------- 리스트 뱃지/카운트 동기화 ----------
-  function syncBadgeAndCounts(id, status) {
-    const card = document.querySelector(`.list .card[data-wid="${id}"]`);
-    if (!card) return;
+  function seedExtraCards() {
+    const items = [
+      {
+        title: '공중화장실이 너무 낡았어요',
+        date: '2025.07.21',
+        status: '해결완료',
+      },
+      {
+        title: '망가진 가로등 수리 좀 해주세요',
+        date: '2025.06.18',
+        status: '해결중',
+      },
+      { title: '하수구 막힘', date: '2025.08.10', status: '해결중' },
+      {
+        title: '길거리에 포트홀 무서워요',
+        date: '2025.05.26',
+        status: '해결중',
+      },
+    ];
 
-    const title = card.querySelector('.card-title')?.textContent.trim() || '';
-    const date = card.querySelector('.card-date')?.textContent.trim() || '';
+    const statusMap = loadStatusMap();
+    const counts = loadCounts();
+    const memos = loadMemos();
+
+    const LIKE_PRESET = {
+      '공중화장실이 너무 낡았어요': 18,
+      '망가진 가로등 수리 좀 해주세요': 27,
+      '하수구 막힘': 13,
+      '길거리에 포트홀 무서워요': 22,
+    };
+
+    items.forEach((item, idx) => {
+      const id = String(VIEW.list.querySelectorAll('.card').length + idx);
+
+      // 카드 생성
+      const make =
+        item.status === '해결중'
+          ? createProgressCard
+          : (args) => createSimpleCard({ ...args, status: '해결완료' });
+
+      if (MEMO_PRESET[item.title] && !memos[item.title]) {
+        memos[item.title] = MEMO_PRESET[item.title];
+      }
+      if (!counts[item.title]) {
+        counts[item.title] = {
+          likes: LIKE_PRESET[item.title] ?? 15,
+          comments: 0,
+        };
+      }
+
+      const card = make({ id, title: item.title, date: item.date });
+      VIEW.list.appendChild(card);
+
+      // 새로고침 유지
+      statusMap[id] = item.status;
+    });
+
+    saveStatusMap(statusMap);
+    saveCounts(counts);
+    saveMemos(memos);
+  }
+
+  function upgradeInitialPendingCards() {
+    Array.from(VIEW.list.querySelectorAll('.card')).forEach((c) => {
+      const badge = c.querySelector('.badge');
+      const isPending = badge?.classList.contains('badge-pending');
+      if (!isPending) return;
+
+      const id = c.dataset.wid;
+      const title = c.querySelector('.card-title')?.textContent.trim() || '';
+      const date = c.querySelector('.card-date')?.textContent.trim() || '';
+      const newCard = createSimpleCard({ id, title, date, status: '미해결' });
+      c.replaceWith(newCard);
+    });
+  }
+
+  // ---------- 리스트 카운트 동기화 ----------
+  function syncBadgeAndCounts(id, status) {
+    const oldCard = document.querySelector(`.list .card[data-wid="${id}"]`);
+    if (!oldCard) return;
+
+    const title =
+      oldCard.querySelector('.card-title')?.textContent.trim() || '';
+    const date = oldCard.querySelector('.card-date')?.textContent.trim() || '';
 
     if (status === '해결중') {
       const newCard = createProgressCard({ id, title, date });
-      card.replaceWith(newCard);
+      oldCard.replaceWith(newCard);
     } else if (status === '해결완료') {
       const newCard = createSimpleCard({ id, title, date, status: '해결완료' });
-      card.replaceWith(newCard);
+      oldCard.replaceWith(newCard);
     } else {
       const newCard = createSimpleCard({ id, title, date, status: '미해결' });
-      card.replaceWith(newCard);
+      oldCard.replaceWith(newCard);
     }
 
+    const map = loadStatusMap();
+    map[id] = status;
+    saveStatusMap(map);
+
     updateCounts();
-    applyTabFilter(); // 현재 탭 기준으로 보이기/숨기기 반영
+    applyTabFilter();
+  }
+
+  // ---------- 초기 프리셋 ----------
+  const PRESET_PROGRESS_TITLES = new Set([
+    '망가진 가로등 수리 좀 해주세요',
+    '하수구 막힘',
+    '길거리에 포트홀 무서워요',
+  ]);
+  const MEMO_PRESET = {
+    '공중화장실이 너무 낡았어요': '2025년 3월 공사 완료',
+    '망가진 가로등 수리 좀 해주세요': '낙후 가로등 수리 예정',
+    '하수구 막힘': '배관 고압세척 진행 예정',
+    '길거리에 포트홀 무서워요': '보수 공사 진행 예정',
+  };
+
+  const PRESET_DONE_TITLES = new Set(['공중화장실이 너무 낡았어요']);
+
+  function applyInitialStatusPresets() {
+    const saved = loadStatusMap();
+
+    document.querySelectorAll('.list .card').forEach((c) => {
+      const id = c.dataset.wid;
+      if (saved[id]) return;
+
+      const title = c.querySelector('.card-title')?.textContent.trim() || '';
+      const date = c.querySelector('.card-date')?.textContent.trim() || '';
+
+      if (PRESET_DONE_TITLES.has(title)) {
+        const newCard = createSimpleCard({
+          id,
+          title,
+          date,
+          status: '해결완료',
+        });
+        c.replaceWith(newCard);
+        saved[id] = '해결완료';
+      } else if (PRESET_PROGRESS_TITLES.has(title)) {
+        const newCard = createProgressCard({ id, title, date });
+        c.replaceWith(newCard);
+        saved[id] = '해결중';
+      }
+    });
+
+    saveStatusMap(saved);
   }
 
   // ---------- 상세 뷰 ----------
@@ -346,7 +535,17 @@ document.addEventListener('DOMContentLoaded', () => {
   VIEW.detail.className = 'detail-view';
   VIEW.detail.innerHTML = `
     <div class="detail-head">
-      <button class="detail-back" type="button" aria-label="뒤로가기">‹</button>
+      <button class="detail-back" type="button" aria-label="뒤로가기"><button class="detail-back" type="button" aria-label="뒤로가기">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+    <path d="M15 6 L9 12 L15 18" 
+          fill="none" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+  </svg>
+</button>
+</button>
       <div style="font-weight:650; font-size:1.1rem;">관리하기</div>
     </div>
     <div class="meta">
@@ -441,24 +640,15 @@ document.addEventListener('DOMContentLoaded', () => {
       obj[title] = memoEl.value.trim();
       saveMemos(obj);
 
-      const oldCard = document.querySelector(`.list .card[data-wid="${id}"]`);
-      const isProgress = !!oldCard?.querySelector('.card-image'); // 이미지가 있으면 '해결중' 카드
-      if (isProgress) {
-        const newCard = createProgressCard({ id, title, date });
-        oldCard.replaceWith(newCard);
-      }
-      // 사용자가 이번에 드롭다운에서 고른 상태가 있으면 그 탭으로 전환
       if (selectedStatus) {
+        syncBadgeAndCounts(id, selectedStatus);
+
         const tabs = document.querySelectorAll('.tab');
         tabs.forEach((t) => t.classList.remove('is-active'));
-
-        // '미해결' / '해결중' / '해결완료' 텍스트를 포함하는 탭 찾기
         const targetTab = Array.from(tabs).find((t) =>
           t.textContent.includes(selectedStatus)
         );
         targetTab?.classList.add('is-active');
-
-        // 리스트 필터 적용 + 스크롤 최상단
         applyTabFilter();
         VIEW.list.scrollTop = 0;
       }
@@ -469,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveBtn.classList.remove('active');
     saveBtn.classList.add('disabled');
 
-    // 해결단계 드롭다운 (id 기준)
+    // 해결단계 드롭다운
     const trigger = VIEW.detail.querySelector('.status-trigger');
     const menu = VIEW.detail.querySelector('.status-menu');
     const setTrigger = ({
@@ -497,11 +687,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const li = e.target.closest('.status-item');
       if (!li) return;
 
-      const value = li.dataset.value; // '미해결' | '해결중' | '해결완료'
-      selectedStatus = value; // 저장 버튼에서 참고할 값
-
-      // 리스트의 카드 모양/뱃지 업데이트
-      syncBadgeAndCounts(id, value);
+      const value = li.dataset.value;
+      selectedStatus = value;
 
       // 드롭다운 트리거에 라벨 반영 + 강조색
       setTrigger({ label: value, caret: '▾', isSet: true });
@@ -557,9 +744,12 @@ document.addEventListener('DOMContentLoaded', () => {
     VIEW.list.style.display = '';
   }
 
-  VIEW.detail
-    .querySelector('.detail-back')
-    ?.addEventListener('click', backToList);
+  VIEW.detail.addEventListener('click', (e) => {
+    const backBtn = e.target.closest('.detail-back');
+    if (backBtn) {
+      backToList();
+    }
+  });
 
   // 카드 클릭 → 상세 열기
   VIEW.list.addEventListener('click', (e) => {
@@ -570,4 +760,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const date = card.querySelector('.card-date')?.textContent.trim() || '';
     showDetail({ id, title, date });
   });
+  seedExtraCards();
+  applyInitialStatusPresets();
+  upgradeInitialPendingCards();
+  sortCards();
+  updateCounts();
+  applyTabFilter();
 });
