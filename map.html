@@ -3,14 +3,149 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="upgrade-insecure-requests"
+    />
+
     <title>Document</title>
     <link rel="stylesheet" href="map.css" />
   </head>
   <body>
     <div class="viewport">
       <div class="app">
+        <!-- 페이지 내용 -->
         <main class="app-content">
-          <!-- 페이지 내용 -->
+          <div id="map" class="map"></div>
+
+          <!-- 지도 위 UI -->
+          <div class="map-ui">
+            <!-- 검색바 -->
+            <label class="search-bar" for="search-input">
+              <svg
+                class="search-ico"
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="7"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="16.65"
+                  y1="16.65"
+                  x2="21"
+                  y2="21"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="#87171"
+                  stroke-linecap="round"
+                />
+              </svg>
+
+              <input
+                id="search-input"
+                type="search"
+                placeholder="위치를 검색해 보세요"
+                readonly
+              />
+            </label>
+
+            <!-- 내 위치 버튼 -->
+            <button id="mypos-btn" class="mypos-fab" aria-label="내 위치">
+              <!-- 너가 준 SVG 그대로 -->
+              <svg
+                width="37"
+                height="37"
+                viewBox="0 0 36 36"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <rect width="36" height="36" rx="7" fill="white" />
+                <path
+                  class="gps-dot"
+                  d="M17.0001 27.95V26.95C14.9167 26.7167 13.1291 25.8543 11.6371 24.363C10.1451 22.8717 9.28272 21.084 9.05005 19H8.05005C7.76672 19 7.52939 18.904 7.33805 18.712C7.14672 18.52 7.05072 18.2827 7.05005 18C7.04939 17.7173 7.14539 17.48 7.33805 17.288C7.53072 17.096 7.76805 17 8.05005 17H9.05005C9.28339 14.9167 10.1461 13.129 11.6381 11.637C13.1301 10.145 14.9174 9.28266 17.0001 9.04999V8.04999C17.0001 7.76666 17.0961 7.52932 17.2881 7.33799C17.4801 7.14666 17.7174 7.05066 18.0001 7.04999C18.2827 7.04932 18.5204 7.14532 18.7131 7.33799C18.9057 7.53066 19.0014 7.76799 19.0001 8.04999V9.04999C21.0834 9.28332 22.8711 10.146 24.3631 11.638C25.8551 13.13 26.7174 14.9173 26.9501 17H27.9501C28.2334 17 28.4711 17.096 28.6631 17.288C28.8551 17.48 28.9507 17.7173 28.9501 18C28.9494 18.2827 28.8537 18.5203 28.6631 18.713C28.4724 18.9057 28.2347 19.0013 27.9501 19H26.9501C26.7167 21.0833 25.8544 22.871 24.3631 24.363C22.8717 25.855 21.0841 26.7173 19.0001 26.95V27.95C19.0001 28.2333 18.9041 28.471 18.7121 28.663C18.5201 28.855 18.2827 28.9507 18.0001 28.95C17.7174 28.9493 17.4801 28.8537 17.2881 28.663C17.0961 28.4723 17.0001 28.2347 17.0001 27.95ZM18.0001 25C19.9334 25 21.5834 24.3167 22.9501 22.95C24.3167 21.5833 25.0001 19.9333 25.0001 18C25.0001 16.0667 24.3167 14.4167 22.9501 13.05C21.5834 11.6833 19.9334 11 18.0001 11C16.0667 11 14.4167 11.6833 13.0501 13.05C11.6834 14.4167 11.0001 16.0667 11.0001 18C11.0001 19.9333 11.6834 21.5833 13.0501 22.95C14.4167 24.3167 16.0667 25 18.0001 25ZM18.0001 22C16.9001 22 15.9584 21.6083 15.1751 20.825C14.3917 20.0417 14.0001 19.1 14.0001 18C14.0001 16.9 14.3917 15.9583 15.1751 15.175C15.9584 14.3917 16.9001 14 18.0001 14C19.1001 14 20.0417 14.3917 20.8251 15.175C21.6084 15.9583 22.0001 16.9 22.0001 18C22.0001 19.1 21.6084 20.0417 20.8251 20.825C20.0417 21.6083 19.1001 22 18.0001 22Z"
+                  fill="#4B5563"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <!-- 검색 전용 화면 -->
+          <div id="searchView" class="search-view" hidden>
+            <header class="search-top">
+              <button id="searchBack" class="icon-btn" aria-label="뒤로가기">
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <path
+                    d="M15 18l-6-6 6-6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
+              <div class="search-input-wrap">
+                <svg
+                  class="search-ico"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    cx="11"
+                    cy="11"
+                    r="7"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <line
+                    x1="16.65"
+                    y1="16.65"
+                    x2="21"
+                    y2="21"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <input
+                  id="searchFull"
+                  type="text"
+                  inputmode="search"
+                  enterkeyhint="search"
+                  placeholder="위치를 검색해 보세요"
+                  autocomplete="off"
+                />
+                <button id="searchClear" class="clear-btn" aria-label="지우기">
+                  ✕
+                </button>
+              </div>
+            </header>
+
+            <main class="search-body">
+              <p id="searchHint" class="hint">
+                구체적인 단어로 위치를 찾아보세요.
+              </p>
+              <ul id="searchList" class="search-list"></ul>
+            </main>
+          </div>
+          <!-- 선택한 장소 정보 시트 -->
+          <div id="placeSheet" class="place-sheet" hidden>
+            <div class="place-sheet__body">
+              <div class="title" id="ps-name">장소명</div>
+              <div class="addr" id="ps-addr">주소</div>
+            </div>
+            <button id="placePickBtn" class="pick-btn">선택하기</button>
+          </div>
         </main>
 
         <!-- 하단바 -->
@@ -82,6 +217,8 @@
       </div>
     </div>
 
-    <script src="map.js"></script>
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=31f2a998f3401f3977505d440b37a84c&libraries=services&autoload=false"></script>
+
+    <script src="map.js" defer></script>
   </body>
 </html>

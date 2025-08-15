@@ -10,6 +10,339 @@ body {
   background: #fef2f2;
 }
 
+/* 콘텐츠 영역이 남는 높이를 차지하도록 */
+.app-content {
+  flex: 1;
+  min-height: 0; /* flex overflow 방지 */
+}
+
+/* 맵: 하단바 높이(95px) + 안전영역까지 빼고 꽉 채움 */
+.map {
+  width: 100%;
+  height: calc(100dvh - 95px);
+}
+
+:root {
+  --accent: #ff5b61;
+  --muted: #9ca3af;
+}
+
+/* 지도 위 UI 컨테이너 */
+.map-ui {
+  position: absolute;
+  inset: 0;
+  bottom: 95px; /* 하단바 위로 */
+  pointer-events: none; /* 기본은 클릭 막고 */
+  z-index: 1500;
+}
+.mypos-fab {
+  pointer-events: auto;
+  z-index: 1001;
+  touch-action: manipulation;
+}
+
+/* 검색바 */
+.search-bar {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 50px;
+  height: 50px;
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  pointer-events: auto; /* 이 요소만 클릭 허용 */
+}
+.search-ico {
+  flex: 0 0 auto;
+  color: #f87171;
+}
+
+.search-ico circle,
+.search-ico line {
+  stroke-width: 3px;
+}
+
+.search-bar input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 14px;
+  color: #111;
+}
+.search-bar input::placeholder {
+  color: #616367;
+}
+
+/* 내 위치 FAB */
+.mypos-fab {
+  position: absolute;
+  right: 29px;
+  bottom: 58px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto; /* 버튼 클릭 가능 */
+}
+.mypos-fab svg {
+  display: block;
+}
+.mypos-fab .gps-dot {
+  fill: #4b5563;
+}
+.mypos-fab.active .gps-dot {
+  fill: var(--accent);
+} /* 클릭 시 빨강 */
+
+/* 페이지 전환 토글 */
+#searchView {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  background: #fbfbfc;
+  overflow: hidden;
+  flex-direction: column;
+  z-index: 1200;
+}
+#searchView[hidden] {
+  display: none;
+}
+.app.searching .map,
+.app.searching .map-ui,
+.app.searching .bottom-nav {
+  display: none;
+}
+
+/* 검색 상단/입력 UI(간단 스타일) */
+.search-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: max(14px, env(safe-area-inset-top)) 14px 10px 10px;
+  background: #f9fafb;
+  margin-top: 37px;
+  margin-bottom: 5px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 주소 검색 뒤로 가기 버튼 필요시 display:grid */
+.icon-btn {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: #f9fafb;
+  display: none;
+  place-items: center;
+  margin-right: 5px;
+  margin-left: -10px;
+}
+.search-input-wrap {
+  flex: 1;
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 12px;
+  color: #7d8087;
+  height: 48px;
+  margin-left: 10px;
+  margin-right: 10px;
+  padding-left: 12px;
+}
+
+.search-ico {
+  color: #f87171;
+}
+#searchFull {
+  flex: 1;
+  height: 50px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 15px;
+}
+.clear-btn {
+  border: 0;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  display: none;
+  cursor: pointer;
+}
+.search-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0px 14px calc(24px + env(safe-area-inset-bottom));
+}
+.hint {
+  margin: 200px 0 0;
+  text-align: center;
+  color: #a1a1aa;
+  font-size: 14px;
+}
+.search-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.search-list li {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.06);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.search-list .name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.search-list .addr {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* ========== 선택 바텀시트 ========== */
+.place-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 0; /* 모서리 없음 = 꽉차게 */
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06);
+  padding: 16px 16px 22px;
+  z-index: 1100;
+}
+
+.app.pick-mode .map-ui {
+  bottom: 0;
+}
+.place-sheet[hidden] {
+  display: none;
+}
+
+.place-sheet__body {
+  padding: 4px 4px 10px;
+}
+.place-sheet .title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.place-sheet .addr {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.pick-btn {
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #f87171;
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* 상태 전환: pick-mode일 때 하단바 숨기고 시트 보이기 */
+.app.pick-mode .bottom-nav {
+  display: none;
+}
+.app.pick-mode #placeSheet {
+  display: block;
+}
+
+/* 버튼 그룹이 맵 우하단에 나란히 붙도록(바텀시트보다 위!) */
+.map-fab-wrap {
+  position: absolute;
+  right: 30px;
+  bottom: 48px; /* 기본 위치 */
+  display: flex;
+  gap: 8px;
+  z-index: 1510;
+  pointer-events: auto;
+}
+
+/* 선택하기 시트가 열렸을 때 위치 변경 */
+.app.pick-mode .map-fab-wrap {
+  right: 23px;
+  bottom: 165px;
+}
+
+.map-fab {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #4b5563;
+  background: #fff;
+}
+
+/* 래퍼 안으로 들어가면 절대배치 제거 */
+.map-fab-wrap .mypos-fab {
+  position: static;
+  right: auto;
+  bottom: auto;
+}
+
+.map-fab:hover {
+  color: #f87171;
+}
+
+#mypos-btn svg path {
+  fill: #4b5563;
+}
+#mypos-btn:hover svg path {
+  fill: #f87171;
+}
+
+/* 혹시 rect 색이 변하면 고정 */
+#mypos-btn svg rect {
+  fill: #ffffff;
+}
+
+/* 새 목록 버튼: 기본은 숨김 → pick-mode일 때만 표시 */
+#openSearchBtn {
+  display: none;
+  color: #4b5563;
+  background-color: transparent;
+  border: none;
+}
+#openSearchBtn:hover,
+#openSearchBtn:active {
+  color: #f87171;
+}
+.app.pick-mode #openSearchBtn {
+  display: block;
+}
+
+.mypos-fab {
+  display: block;
+}
+
 /* 하단바 */
 .bottom-nav {
   position: absolute;
