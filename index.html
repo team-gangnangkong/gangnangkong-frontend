@@ -30,37 +30,35 @@
               </svg>
               카카오로 3초 만에 시작하기
             </button>
-            <a href="manage.html" class="admin-login">관리자 로그인</a>
+            <a href="manage.html" class="admin-login">관리자 로그인</a></p>
           </div>
         </div>
       </div>
     </div>
 
     <script>
-      async function checkLogin() {
-        try {
-          const res = await fetch('http://localhost:8080/users/me', {
-            method: 'GET',
-            credentials: 'include',
-          });
+async function checkLogin() {
+  try {
+    const res = await fetch("http://localhost:8080/users/me", {
+      method: "GET",
+      credentials: "include" 
+    });
 
-          if (res.ok) {
-            //로그인 성공시
-            const user = await res.json();
-            console.log('로그인된 사용자:', user);
-            window.location.href = 'map.html';
-          } else {
-            //실패시 초기화면으로
-            window.location.href = 'index.html';
-          }
-        } catch (err) {
-          // 실패시 콘솔창에 실패 찍힘
-          console.error('로그인 확인 실패:', err);
-          window.location.href = 'index.html';
-        }
-      }
-      checkLogin();
-    </script>
+    if (res.ok) { //로그인 성공시
+      const user = await res.json();
+      console.log("로그인된 사용자:", user);
+      window.location.href = "map.html";
+    } else { //실패시 초기화면으로
+      window.location.href = "index.html";
+    }
+  } catch (err) { // 실패시 콘솔창에 실패 찍힘
+    console.error("로그인 확인 실패:", err);
+    window.location.href = "index.html";
+  }
+}
+checkLogin();
+
+</script>
     <script src="index.js" defer></script>
   </body>
 </html>
