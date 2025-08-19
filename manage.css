@@ -5,6 +5,7 @@ html,
 body {
   height: 100%;
   overflow: hidden;
+  font-family: '맑은 고딕' !important;
 }
 body {
   margin: 0;
@@ -406,6 +407,7 @@ body {
   border: 0;
   font-size: 22px;
   cursor: pointer;
+  color: #0f172a;
 }
 
 .detail-view {
