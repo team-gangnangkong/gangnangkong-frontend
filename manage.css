@@ -45,7 +45,7 @@ body {
 
 /* 헤더 */
 .header {
-  padding: 70px 0 12px;
+  padding: 45px 0 12px;
   flex: 0 0 auto;
   padding-bottom: 12px;
   margin-bottom: -20px;
@@ -296,10 +296,6 @@ body {
   font-size: 0.87rem;
 }
 
-.detail-view {
-  --side-pad: 25px;
-}
-
 /* 좋아요/댓글 아래 구분선: 풀블리드 */
 /* .detail-divider {
   height: 8px;
@@ -401,7 +397,7 @@ body {
   justify-content: center; /* 가운데 정렬 */
   gap: 8px;
   margin-bottom: 25px;
-  padding-top: 8px; /* 상단 여백: 숫자 조절 가능 */
+  padding-top: 5px !important; /* 상단 여백: 숫자 조절 가능 */
 }
 .detail-back {
   position: absolute;
@@ -415,6 +411,16 @@ body {
 .detail-view {
   padding-left: 9px !important;
   padding-right: 9px !important;
+  --side-pad: 25px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.detail-view::-webkit-scrollbar {
+  display: none;
 }
 
 /* 바깥 */

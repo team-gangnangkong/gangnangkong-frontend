@@ -730,6 +730,8 @@ document.addEventListener('DOMContentLoaded', () => {
     VIEW.header.style.display = 'none';
     VIEW.list.style.display = 'none';
     VIEW.detail.style.display = 'block';
+
+    VIEW.detail.scrollTop = 0;
   }
 
   function backToList() {
