@@ -5,6 +5,9 @@
 html,
 body {
   height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 body {
   margin: 0;
@@ -75,7 +78,7 @@ body {
   user-select: none;
 }
 .kakao-btn:hover {
-  background: #fdd835;
+  background: #fad73e;
 }
 .kakao-icon {
   width: 22px;

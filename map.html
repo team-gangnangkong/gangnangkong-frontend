@@ -59,7 +59,6 @@
 
             <!-- 내 위치 버튼 -->
             <button id="mypos-btn" class="mypos-fab" aria-label="내 위치">
-              <!-- 너가 준 SVG 그대로 -->
               <svg
                 width="37"
                 height="37"
@@ -138,6 +137,7 @@
               <ul id="searchList" class="search-list"></ul>
             </main>
           </div>
+
           <!-- 선택한 장소 정보 시트 -->
           <div id="placeSheet" class="place-sheet" hidden>
             <div class="place-sheet__body">
@@ -146,8 +146,28 @@
             </div>
             <button id="placePickBtn" class="pick-btn">선택하기</button>
           </div>
-        </main>
 
+          <!-- 클러스터 목록 패널 -->
+          <section id="clusterPanel" class="cluster-panel" hidden>
+            <div class="cp-grip" aria-hidden="true"></div>
+            <header class="cp-head">
+              <strong class="cp-title"
+                ><span id="cp-badge" class="cp-badge">민원</span> 총
+                <span id="cp-count">0</span>건</strong
+              >
+              <button
+                id="cp-close"
+                type="button"
+                class="cp-close"
+                aria-label="닫기"
+              >
+                ✕
+              </button>
+            </header>
+            <div id="cp-list" class="cp-list"></div>
+          </section>
+
+          
         <!-- 하단바 -->
         <footer class="bottom-nav">
           <a href="map.html" class="nav-item active">

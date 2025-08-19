@@ -1,17 +1,25 @@
+const API_BASE = 'https://YOUR-BACKEND.DOMAIN'; // 배포 백엔드
+const LOGIN_PATH = '/oauth2/authorization/kakao'; // 팀에서 쓰는 실제 경로로
+const ME_PATH = '/api/user/me';
+
 document.addEventListener('DOMContentLoaded', () => {
-  const kakaoLoginBtn = document.getElementById('kakao-login-btn');
-  const adminLoginBtn = document.querySelector('.admin-login');
-
-  const API_BASE = 'http://localhost:8080'; // 배포 시 변경
-
-  // 카카오 로그인 버튼 클릭 시
-  kakaoLoginBtn.addEventListener('click', () => {
-    window.location.href = `${API_BASE}/auth/kakao/login`;
+  document.getElementById('kakao-login-btn').addEventListener('click', () => {
+    location.href = `${API_BASE}${LOGIN_PATH}`;
   });
-
-  // 관리자 로그인 버튼 클릭 시
-  adminLoginBtn.addEventListener('click', (e) => {
+  document.querySelector('.admin-login')?.addEventListener('click', (e) => {
     e.preventDefault();
-    window.location.href = 'manage.html';
+    location.href = 'manage.html';
   });
+  checkLogin();
 });
+
+async function checkLogin() {
+  try {
+    const res = await fetch(`${API_BASE}${ME_PATH}`, {
+      credentials: 'include',
+    });
+    if (res.ok) location.replace('map.html'); // 로그인 상태면 바로 이동
+  } catch (_) {
+    /* 네트워크 실패는 무시하고 현재 페이지 유지 */
+  }
+}

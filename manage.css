@@ -454,4 +454,7 @@ body {
     border-radius: 0;
     box-shadow: none;
   }
+  .header {
+    padding-top: 30px;
+  }
 }
