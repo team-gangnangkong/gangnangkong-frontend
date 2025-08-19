@@ -263,8 +263,8 @@ async function init() {
   const getAllPoints = () => POINTS;
 
   // ==== 아이콘 파일 경로 ====
-  const POS_URL = '/image/positive.png';
-  const NEG_URL = '/image/negative.png';
+  const POS_URL = './image/positive.png';
+  const NEG_URL = './image/negative.png';
 
   let _stickyMoodPin = null;
   let _stickyKey = null;
