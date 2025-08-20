@@ -121,14 +121,6 @@ body {
   flex-direction: column;
 }
 
-@media (max-width: 600px) {
-  .app {
-    width: 100%;
-    border-radius: 0;
-    box-shadow: none;
-  }
-}
-
 .container {
   min-height: 100%;
 }
@@ -140,7 +132,6 @@ body {
     width: clamp(340px, 22%, 340px);
   }
   .index-char {
-    transform: translate(14%, -45%);
     top: -43%;
     right: 24%;
     width: clamp(60px, 22%, 90px);
@@ -152,7 +143,6 @@ body {
     width: clamp(340px, 22%, 340px);
   }
   .index-char {
-    transform: translate(14%, -45%);
     top: -45%;
     right: 23%;
     width: clamp(58px, 22%, 80px);
@@ -160,14 +150,21 @@ body {
 }
 
 @media (max-width: 599px) {
+  .kakao-btn {
+    height: 60px;
+  }
   .logo-wrap {
     width: 300px;
     width: clamp(348px, 22%, 340px);
   }
   .index-char {
-    transform: translate(14%, -45%);
     top: -50%;
     right: 20%;
     width: clamp(60px, 22%, 96px);
+  }
+  .app {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
   }
 }

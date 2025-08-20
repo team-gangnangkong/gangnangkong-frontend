@@ -5,7 +5,6 @@ html,
 body {
   height: 100%;
   overflow: hidden;
-  font-family: '맑은 고딕' !important;
 }
 body {
   margin: 0;
@@ -50,11 +49,12 @@ body {
   flex: 0 0 auto;
   padding-bottom: 12px;
   margin-bottom: -20px;
+  font-weight: bold;
 }
 
 .greet {
   font-size: clamp(25px, 5vw, 28px);
-  font-weight: 800;
+  font-weight: 1200;
   letter-spacing: -0.3px;
   margin: 20px 5px 30px;
 }
@@ -363,6 +363,10 @@ body {
   font-size: 14px;
 }
 
+.detail-date .like-count .comment-count {
+  font-family: '맑은고딕';
+}
+
 /* 동그라미 색까지 바꾸고 싶다면 */
 .detail-view .meta-dot {
   background: #c3c5c8;
@@ -458,5 +462,8 @@ body {
   }
   .header {
     padding-top: 30px;
+  }
+  .greet {
+    font-weight: 1500;
   }
 }
