@@ -30,7 +30,7 @@ body {
 .logo-wrap {
   position: relative;
   width: clamp(280px, 38vw, 420px);
-  margin-bottom: 18vh;
+  margin-bottom: 17vh;
   margin-top: 27vh;
   margin-inline: auto;
 }

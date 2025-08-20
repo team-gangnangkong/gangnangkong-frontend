@@ -1,25 +1,25 @@
-// const API_BASE = 'https://YOUR-BACKEND.DOMAIN'; // 배포 백엔드
-// const LOGIN_PATH = '/oauth2/authorization/kakao'; // 팀에서 쓰는 실제 경로로
-// const ME_PATH = '/api/user/me';
+const API_BASE = 'http://localhost:8080'; // 배포 백엔드
+const LOGIN_PATH = '/oauth2/authorization/kakao';
+const ME_PATH = '/api/user/me';
 
-// document.addEventListener('DOMContentLoaded', () => {
-//   document.getElementById('kakao-login-btn').addEventListener('click', () => {
-//     location.href = `${API_BASE}${LOGIN_PATH}`;
-//   });
-//   document.querySelector('.admin-login')?.addEventListener('click', (e) => {
-//     e.preventDefault();
-//     location.href = 'manage.html';
-//   });
-//   checkLogin();
-// });
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('kakao-login-btn').addEventListener('click', () => {
+    location.href = `${API_BASE}${LOGIN_PATH}`;
+  });
+  document.querySelector('.admin-login')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    location.href = 'manage.html';
+  });
+  checkLogin();
+});
 
-// async function checkLogin() {
-//   try {
-//     const res = await fetch(`${API_BASE}${ME_PATH}`, {
-//       credentials: 'include',
-//     });
-//     if (res.ok) location.replace('map.html'); // 로그인 상태면 바로 이동
-//   } catch (_) {
-//     /* 네트워크 실패는 무시하고 현재 페이지 유지 */
-//   }
-// }
+async function checkLogin() {
+  try {
+    const res = await fetch(`${API_BASE}${ME_PATH}`, {
+      credentials: 'include',
+    });
+    if (res.ok) location.replace('map.html'); // 로그인 상태면 바로 이동
+  } catch (_) {
+    /* 네트워크 실패는 무시하고 현재 페이지 유지 */
+  }
+}
