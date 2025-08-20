@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="index.css" />
+    <title>위치 검색</title>
+    <style>
+      /* 검색창 */
+      .search-wrap {
+        padding: 30px 18px;
+        background: #fff;
+        position: relative;
+      }
+      .search-bar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        border-radius: 10px;
+        background: #f3f4f6;
+        padding: 8px 12px;
+        gap: 7px;
+      }
+      .search-bar input {
+        border: none;
+        background: transparent;
+        outline: none;
+        width: 100%;
+        font-size: 16px;
+        padding: 2px 0;
+        color: #333;
+      }
+      .search-icon {
+        color: #f87171;
+        font-size: 20px;
+      }
+
+      /* 중앙 placeholder */
+      .empty-placeholder {
+        width: 100%;
+        height: calc(92vh - 55px); /* 검색창 영역 제외, 필요시 조정 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .empty-placeholder span {
+        color: #aeb3bb;
+        font-size: 16px;
+        letter-spacing: -0.2px;
+        text-align: center;
+        /* 사용자 환경에 따라 위 아래 마진 추가 조정 가능 */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="viewport">
+      <div class="app">
+        <div class="container">
+          <!-- 검색창 -->
+          <div class="search-wrap">
+            <div class="search-bar">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="26"
+                height="26"
+                viewBox="0 0 26 26"
+                fill="none"
+              >
+                <path
+                  d="M10.2917 17.3333C8.32361 17.3333 6.65817 16.6516 5.29533 15.288C3.9325 13.9244 3.25072 12.259 3.25 10.2917C3.24928 8.32433 3.93106 6.65889 5.29533 5.29533C6.65961 3.93178 8.32506 3.25 10.2917 3.25C12.2583 3.25 13.9241 3.93178 15.2891 5.29533C16.6541 6.65889 17.3355 8.32433 17.3333 10.2917C17.3333 11.0861 17.2069 11.8354 16.9542 12.5396C16.7014 13.2437 16.3583 13.8667 15.925 14.4083L21.9917 20.475C22.1903 20.6736 22.2896 20.9264 22.2896 21.2333C22.2896 21.5403 22.1903 21.7931 21.9917 21.9917C21.7931 22.1903 21.5403 22.2896 21.2333 22.2896C20.9264 22.2896 20.6736 22.1903 20.475 21.9917L14.4083 15.925C13.8667 16.3583 13.2438 16.7014 12.5396 16.9542C11.8354 17.2069 11.0861 17.3333 10.2917 17.3333ZM10.2917 15.1667C11.6458 15.1667 12.7971 14.6929 13.7453 13.7453C14.6936 12.7978 15.1674 11.6466 15.1667 10.2917C15.1659 8.93678 14.6922 7.78592 13.7453 6.83908C12.7985 5.89225 11.6473 5.41811 10.2917 5.41667C8.93606 5.41522 7.7852 5.88936 6.83908 6.83908C5.89297 7.78881 5.41883 8.93967 5.41667 10.2917C5.4145 11.6437 5.88864 12.7949 6.83908 13.7453C7.78953 14.6958 8.94039 15.1696 10.2917 15.1667Z"
+                  fill="#EF4444"
+                />
+              </svg>
+              <input type="text" placeholder="위치를 검색해 보세요" />
+            </div>
+          </div>
+          <!-- 중앙 placeholder 메시지 -->
+          <div class="empty-placeholder">
+            <span>구체적인 단어로 위치를 찾아보세요.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

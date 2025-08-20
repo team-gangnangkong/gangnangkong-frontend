@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>마이페이지</title>
+    <link rel="stylesheet" href="index.css" />
+    <style>
+      .mypage-title {
+        font-weight: 700;
+        font-size: 22px;
+        padding: 26px 0 14px 23px;
+      }
+      .profile-card {
+        background: #fafbfc;
+        border-radius: 13px;
+        margin: 23px 17px;
+        padding: 24px 20px 17px 20px;
+        box-shadow: 0 1px 7px 0 rgba(166, 150, 133, 0.04);
+      }
+      .profile-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 9px;
+        cursor: pointer;
+      }
+
+      .profile-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #ececec url("./image/index-char.png") center/cover no-repeat;
+        border: 2.5px solid #fff;
+      }
+      .profile-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #232529;
+      }
+      .history-title {
+        font-size: 15px;
+        color: #b5b7ba;
+        font-weight: 600;
+        margin-bottom: 12px;
+        margin-top: 18px;
+      }
+      .like-history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .like-history-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .like-history-label {
+        width: 62px;
+        font-size: 15px;
+        color: #232529;
+      }
+      .like-bar-bg {
+        flex: 1;
+        height: 17px;
+        border-radius: 10px;
+        position: relative;
+        margin-right: 13px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+      }
+      .like-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        background: linear-gradient(90deg, #fee2e2 0%, #ef4444 100%), #d9d9d9;
+        display: flex;
+        align-items: center;
+        transition: width 0.4s;
+      }
+      .like-bar-icon {
+        font-size: 15px;
+        margin-left: 8px;
+        color: #ef4444;
+        vertical-align: middle;
+      }
+      .like-count {
+        font-size: 16px;
+        font-weight: bold;
+        color: #ef4444;
+        margin-left: 4px;
+        vertical-align: middle;
+      }
+      /* 내 민원 */
+      .section-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 17px 7px 17px;
+        font-size: 17px;
+        font-weight: 700;
+        color: #232529;
+      }
+      .my-community-more {
+        font-size: 13px;
+        color: #adb0b5;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 6px;
+        text-decoration: none;
+      }
+      .request-list {
+        margin: 0 0 0 0;
+        padding: 0 18px 0 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      .request-card {
+        background: #fafbfc;
+        border-radius: 13px;
+        box-shadow: 0 0.5px 0 rgba(95, 95, 99, 0.03);
+        padding: 15px 16px 13px 16px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .request-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 7px;
+      }
+      .request-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #232529;
+        flex: 1 1 auto;
+      }
+      .tag-status {
+        font-size: 13px;
+        font-weight: 700;
+        padding: 4px 12px 3px 12px;
+        border-radius: 9px;
+        letter-spacing: -0.2px;
+        margin-left: 4px;
+        display: inline-block;
+      }
+      .status-working {
+        background: #fee2e2;
+        color: #ef4444;
+      }
+      .status-not {
+        background: #fef2f2;
+        color: #ef4444;
+      }
+      .status-done {
+        background: #f87171;
+        color: #fff;
+      }
+      .request-desc {
+        margin-left: 2px;
+        font-size: 14px;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 1px;
+        margin-top: 4px;
+        font-weight: 500;
+      }
+      .request-desc svg {
+        margin-right: 3px;
+      }
+      @media (max-width: 430px) {
+        .app {
+          max-width: 100vw;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="viewport">
+      <div class="app">
+        <div class="mypage-title">마이페이지</div>
+        <div class="profile-card">
+          <div class="profile-row">
+            <div class="profile-avatar"></div>
+            <div class="profile-name">최가을</div>
+            <div
+              tabindex="0"
+              role="button"
+              aria-label="프로필수정"
+              style="cursor: pointer"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="21"
+                viewBox="0 0 20 21"
+                fill="none"
+              >
+                <path
+                  d="M7.5 5.85205L12.5 10.8521L7.5 15.8521"
+                  stroke="#6B7280"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <div class="history-title">나의 공감 히스토리</div>
+          <div class="like-history-list">
+            <div class="like-history-row">
+              <div class="like-history-label">8월 1주</div>
+              <span class="like-bar-icon">👍🏻</span>
+              <div class="like-bar-bg">
+                <div class="like-bar-fill" style="width: 28%"></div>
+              </div>
+              <span class="like-count">6</span>
+            </div>
+            <div class="like-history-row">
+              <div class="like-history-label">8월 2주</div>
+              <span class="like-bar-icon">👍🏻</span>
+              <div class="like-bar-bg">
+                <div class="like-bar-fill" style="width: 59%"></div>
+              </div>
+              <span class="like-count">12</span>
+            </div>
+            <div class="like-history-row">
+              <div class="like-history-label">8월 3주</div>
+              <span class="like-bar-icon">👍🏻</span>
+              <div class="like-bar-bg">
+                <div class="like-bar-fill" style="width: 0"></div>
+              </div>
+              <span class="like-count">0</span>
+            </div>
+            <div class="like-history-row">
+              <div class="like-history-label">8월 4주</div>
+              <span class="like-bar-icon">👍🏻</span>
+              <div class="like-bar-bg">
+                <div class="like-bar-fill" style="width: 80%"></div>
+              </div>
+              <span class="like-count">15</span>
+            </div>
+          </div>
+        </div>
+        <!-- 내가 작성한 민원 -->
+        <div class="section-title-row">
+          <span>내가 작성한 민원</span>
+          <a class="my-community-more" href="#">더보기</a>
+        </div>
+        <div class="request-list">
+          <!-- 민원 카드 1 -->
+          <div class="request-card">
+            <div class="request-title-row">
+              <div class="request-title">모란역 3번 출구 쓰레기</div>
+              <span class="tag-status status-working">해결중</span>
+            </div>
+            <div class="request-desc">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                fill="none"
+              >
+                <path
+                  d="M12.24 3.09c1.1 1.1 1.73 2.59 1.76 4.14.02 1.56-.56 3.06-1.62 4.2l-.14.14-2.82 2.83c-.36.35-.85.56-1.36.57-.51.02-1-.17-1.37-.5l-.1-.1-2.83-2.83C2.63 10.45 2 8.92 2 7.33c0-1.59.63-3.12 1.76-4.24A6.05 6.05 0 0 1 8 1.33a6.05 6.05 0 0 1 4.24 1.76zM8 5.33c-.26 0-.52.05-.77.16-.24.1-.46.27-.63.44-.18.18-.33.38-.43.62-.11.23-.17.48-.17.73s.06.5.17.73c.1.24.25.44.43.62.17.17.39.34.63.44.25.11.5.16.77.16.53 0 1.04-.21 1.41-.58.36-.37.58-.88.58-1.41 0-.53-.22-1.03-.58-1.41A1.95 1.95 0 0 0 8 5.33z"
+                  fill="#9CA3AF"
+                />
+              </svg>
+              수정구 산성대로 지하 100
+            </div>
+          </div>
+          <div class="request-card">
+            <div class="request-title-row">
+              <div class="request-title">모란역 3번 출구 쓰레기</div>
+              <span class="tag-status status-not">미해결</span>
+            </div>
+            <div class="request-desc">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                fill="none"
+              >
+                <path
+                  d="M12.24 3.09c1.1 1.1 1.73 2.59 1.76 4.14.02 1.56-.56 3.06-1.62 4.2l-.14.14-2.82 2.83c-.36.35-.85.56-1.36.57-.51.02-1-.17-1.37-.5l-.1-.1-2.83-2.83C2.63 10.45 2 8.92 2 7.33c0-1.59.63-3.12 1.76-4.24A6.05 6.05 0 0 1 8 1.33a6.05 6.05 0 0 1 4.24 1.76zM8 5.33c-.26 0-.52.05-.77.16-.24.1-.46.27-.63.44-.18.18-.33.38-.43.62-.11.23-.17.48-.17.73s.06.5.17.73c.1.24.25.44.43.62.17.17.39.34.63.44.25.11.5.16.77.16.53 0 1.04-.21 1.41-.58.36-.37.58-.88.58-1.41 0-.53-.22-1.03-.58-1.41A1.95 1.95 0 0 0 8 5.33z"
+                  fill="#9CA3AF"
+                />
+              </svg>
+              수정구 산성대로 지하 100
+            </div>
+          </div>
+          <div class="request-card">
+            <div class="request-title-row">
+              <div class="request-title">모란역 3번 출구 쓰레기</div>
+              <span class="tag-status status-done">해결완료</span>
+            </div>
+            <div class="request-desc">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                fill="none"
+              >
+                <path
+                  d="M12.24 3.09c1.1 1.1 1.73 2.59 1.76 4.14.02 1.56-.56 3.06-1.62 4.2l-.14.14-2.82 2.83c-.36.35-.85.56-1.36.57-.51.02-1-.17-1.37-.5l-.1-.1-2.83-2.83C2.63 10.45 2 8.92 2 7.33c0-1.59.63-3.12 1.76-4.24A6.05 6.05 0 0 1 8 1.33a6.05 6.05 0 0 1 4.24 1.76zM8 5.33c-.26 0-.52.05-.77.16-.24.1-.46.27-.63.44-.18.18-.33.38-.43.62-.11.23-.17.48-.17.73s.06.5.17.73c.1.24.25.44.43.62.17.17.39.34.63.44.25.11.5.16.77.16.53 0 1.04-.21 1.41-.58.36-.37.58-.88.58-1.41 0-.53-.22-1.03-.58-1.41A1.95 1.95 0 0 0 8 5.33z"
+                  fill="#9CA3AF"
+                />
+              </svg>
+              수정구 산성대로 지하 100
+            </div>
+          </div>
+
+          <!-- 하단바 -->
+          <footer class="bottom-nav">
+            <a href="map.html" class="nav-item">
+              <svg
+                width="25"
+                height="25"
+                viewBox="0 0 24 24"
+                fill="#aaa"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M12 2c-4.418 0-8 3.134-8 7 0 5.5 8 13 8 13s8-7.5 8-13c0-3.866-3.582-7-8-7zm0 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+                />
+              </svg>
+              <span>지도</span>
+            </a>
+            <a href="community.html" class="nav-item active">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="#aaa"
+                aria-hidden="true"
+              >
+                <g transform="translate(24,0) scale(-1,1)">
+                  <path
+                    d="M12 2C6.48 2 2 6 2 10.5c0 2.07.9 3.98 2.39 5.44L4 22l5.02-2.36c1.01.23 2.05.36 3.13.36 5.52 0 10-4.02 10-9.5S17.52 2 12 2z"
+                  />
+                  <rect
+                    x="7"
+                    y="9"
+                    width="10"
+                    height="1.8"
+                    rx="0.9"
+                    fill="white"
+                  />
+                  <rect
+                    x="7"
+                    y="12.5"
+                    width="8"
+                    height="1.8"
+                    rx="0.9"
+                    fill="white"
+                  />
+                </g>
+              </svg>
+              <span>소통</span>
+            </a>
+            <a href="mypage.html" class="nav-item">
+              <svg
+                width="25"
+                height="25"
+                fill="#aaa"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10ZM4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6v1H4v-1Z"
+                />
+              </svg>
+              <span>내 활동</span>
+            </a>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .querySelector(".profile-row")
+        .addEventListener("click", function () {
+          window.location.href = "profile-edit.html";
+        });
+    </script>
+  </body>
+</html>

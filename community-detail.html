@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="index.css" />
+    <title>커뮤니티 상세</title>
+    <style>
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 17px 0 13px 0;
+        border-bottom: 1px solid #ececec;
+        position: relative;
+        background: #fff;
+      }
+      .header .back-arrow {
+        position: absolute;
+        left: 18px;
+        font-size: 23px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #222;
+      }
+      .community-title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .content-area {
+        padding: 0 0 20px 0;
+      }
+      .badge-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 15px 18px 6px 18px;
+      }
+      .badge-divider {
+        width: 1.5px;
+        height: 23px;
+        background: #e3e3e7;
+        margin-right: 4px;
+        border-radius: 3px;
+      }
+      .nickname {
+        color: #8d8f90;
+        font-size: 15px;
+        font-weight: 500;
+        margin-right: 7px;
+        display: flex;
+        align-items: center;
+      }
+      .profile-dot {
+        display: inline-block;
+        width: 23px;
+        height: 23px;
+        border-radius: 50%;
+        background: #ececec
+          url("https://randomuser.me/api/portraits/women/65.jpg") center/cover
+          no-repeat;
+        margin-right: 5px;
+      }
+      .date {
+        color: #8d8f90;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .main-content {
+        padding: 0 18px 15px 18px;
+      }
+      .post-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #222;
+        margin-top: 4px;
+      }
+      .like-button-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 7px;
+      }
+      .like-btn {
+        background: #f87171;
+        color: #fef2f2;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 16px;
+        padding: 7px 29px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .like-btn:hover {
+        background: #e35f5f;
+      }
+      .post-img-wrap {
+        margin: 20px;
+        border-radius: 11px;
+        overflow: hidden;
+        background: #f3f4f6;
+        width: 100%;
+      }
+      .post-img {
+        width: 100%;
+        aspect-ratio: 360/168;
+        object-fit: cover;
+        display: block;
+      }
+
+      .location-status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 9px;
+        margin-top: 0;
+        width: 100%;
+      }
+
+      .location-bar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 14px;
+        color: #7d8694;
+        background: #f7f7f8;
+        border-radius: 12px;
+        padding: 7px 15px;
+        font-weight: 500;
+        /* box-shadow: none; */
+      }
+
+      .status-badge {
+        background: #fee2e2;
+        color: #ef4444;
+        font-size: 12px;
+        border-radius: 10px;
+        padding: 4px 12px;
+        font-weight: 700;
+        margin-left: 9px;
+      }
+
+      .post-desc {
+        font-size: 15px;
+        font-weight: 400;
+        color: #555;
+        border-radius: 10px;
+        padding: 12px 11px;
+        margin: 0 0 8px 0;
+        line-height: 1.8;
+        word-break: keep-all;
+      }
+      .post-footer-row {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        justify-content: flex-end;
+        font-size: 15px;
+        color: #f87171;
+        padding: 3px 7px 1px 0;
+        font-weight: 500;
+      }
+
+      /* 좋아요, 댓글 컨테이너 */
+      .bottom-info-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px; /* 좋아요/댓글 간격 */
+        margin-top: 4px;
+        margin-bottom: 2px;
+        padding-right: 11px; /* 우측 여백 이미지처럼 */
+      }
+
+      /* 댓글이 없을 때 */
+      .no-comment {
+        min-height: 120px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #b3b5bd;
+        font-size: 16px;
+        letter-spacing: -0.2px;
+        text-align: center;
+        background: #fafbfc;
+      }
+
+      .comment-title {
+        padding: 0 0 0 23px;
+        margin-top: 9px;
+        margin-bottom: 10px;
+        font-size: 15px;
+        color: #555;
+        font-weight: 600;
+        background: #fff;
+      }
+      .comment-input-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 12px 14px 14px 14px;
+        background: #fff;
+        border-radius: 0 0 16px 16px;
+        box-sizing: border-box;
+        border-top: 1.5px solid #f4f4f5;
+        position: relative;
+        margin-top: 30px;
+      }
+      .comment-profile-dot {
+        width: 33px;
+        height: 33px;
+        border-radius: 50%;
+        background: #ececec url("./image/index-char.png") center/cover no-repeat;
+        margin-right: 5px;
+        flex-shrink: 0;
+      }
+      .comment-input {
+        flex: 1;
+        font-size: 15px;
+        border: none;
+        background: #f4f4f7;
+        border-radius: 10px;
+        padding: 11px 15px;
+        outline: none;
+      }
+      .comment-send-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #cbcbcb;
+        font-size: 24px;
+        margin-left: 5px;
+      }
+
+      .comment-send-btn:hover {
+        color: #f87171;
+      }
+
+      /* 반응형 */
+      @media (max-width: 430px) {
+        .app {
+          max-width: 100vw;
+        }
+        .post-img,
+        .post-img-wrap {
+          border-radius: 0;
+        }
+      }
+
+      /* 근처 다른 이슈 Carousel */
+      .related-section {
+        background: #fff;
+        padding: 11px 0 13px 0;
+        border-radius: 13px;
+        margin-top: 20px;
+        box-shadow: 0 0.5px 0 rgba(95, 95, 99, 0.03);
+      }
+      .related-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px 5px 18px;
+        font-size: 15px;
+        color: #232529;
+        font-weight: 700;
+      }
+      /* 카드리스트 */
+      .card-list {
+        background: #fff;
+        display: flex;
+        gap: 16px;
+        padding: 10px 10px 10px 20px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-width: 100%;
+        /* 부드러운 맥/모바일 스크롤 */
+        -webkit-overflow-scrolling: touch;
+      }
+      .card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        width: 240px;
+        min-width: 230px;
+        max-width: 260px;
+        flex-shrink: 0;
+        padding-bottom: 10px; /* 하단 여백 */
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .card-img-wrap {
+        width: 100%;
+        aspect-ratio: 1.45 / 1;
+        overflow: hidden;
+        border-radius: 13px 13px 0 0;
+        position: relative;
+      }
+
+      .card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .badge {
+        position: absolute;
+        top: 9px;
+        left: 11px;
+        background: #222;
+        color: #fff;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 9px;
+        z-index: 2;
+        letter-spacing: -0.01em;
+      }
+
+      .card-arrow {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 100%;
+        padding: 2px;
+        z-index: 2;
+      }
+
+      .card-content {
+        padding: 12px 13px 0 13px;
+      }
+
+      .card-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .card-title {
+        font-family: Pretendard, sans-serif;
+        font-size: 15.5px;
+        font-style: normal;
+        font-weight: 700;
+        line-height: 1.36;
+        margin: 5px 0 3px 0;
+        color: #232323;
+        letter-spacing: -0.01em;
+      }
+
+      .card-like {
+        display: flex;
+        border-radius: 12px;
+        color: #f87171;
+        font-weight: 600;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        padding: 3px 9px 3px 5px;
+        z-index: 2;
+      }
+
+      .card-desc {
+        color: #6b7280; /* Gray-400 */
+        font-family: Pretendard, sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 1.5px;
+      }
+
+      .card-desc svg {
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="viewport">
+      <div class="app">
+        <!-- 상단 헤더 -->
+        <div class="header">
+          <div class="back-arrow">&#8592;</div>
+          <div class="community-title">커뮤니티</div>
+        </div>
+        <!-- 배지/유저/날짜 row -->
+        <div class="badge-row">
+          <div class="badge-divider"></div>
+          <div class="nickname"><span class="profile-dot"></span>최가을</div>
+          <span class="date">2025.08.04</span>
+        </div>
+        <div class="content-area">
+          <div class="main-content">
+            <!-- 타이틀 & 공감버튼 -->
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <span class="post-title">모란역 3번 출구 쓰레기</span>
+              <button class="like-btn">
+                <!-- 공감 버튼 -->
+                <img
+                  src="./image/fluent-emoji_thumbs-up-light.svg"
+                  alt="좋아요"
+                />
+                공감해요
+              </button>
+            </div>
+            <!-- 이미지 -->
+            <div class="post-img-wrap">
+              <img
+                src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=360&q=80"
+                alt="쓰레기"
+                class="post-img"
+              />
+            </div>
+            <!-- 위치, 상태 -->
+            <div class="location-status-row">
+              <div class="location-bar">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="none"
+                >
+                  <path
+                    d="M12.2427 3.09087C13.3443 4.19229 13.9743 5.67894 13.9995 7.23648C14.0248 8.79401 13.4433 10.3003 12.378 11.4369L12.2427 11.5769L9.41404 14.4049C9.05512 14.7636 8.57329 14.9724 8.06614 14.9891C7.55899 15.0058 7.06445 14.8291 6.6827 14.4949L6.5867 14.4049L3.75737 11.5762C2.63215 10.451 2 8.92484 2 7.33353C2 5.74222 2.63215 4.21609 3.75737 3.09087C4.8826 1.96564 6.40873 1.3335 8.00004 1.3335C9.59135 1.3335 11.1175 1.96564 12.2427 3.09087ZM8.00004 5.33353C7.73739 5.33353 7.47732 5.38526 7.23467 5.48577C6.99202 5.58628 6.77154 5.7336 6.58582 5.91932C6.40011 6.10504 6.25279 6.32552 6.15228 6.56817C6.05177 6.81082 6.00004 7.07089 6.00004 7.33353C6.00004 7.59618 6.05177 7.85625 6.15228 8.0989C6.25279 8.34155 6.40011 8.56203 6.58582 8.74775C6.77154 8.93346 6.99202 9.08078 7.23467 9.18129C7.47732 9.2818 7.73739 9.33353 8.00004 9.33353C8.53047 9.33353 9.03918 9.12282 9.41425 8.74775C9.78932 8.37267 10 7.86397 10 7.33353C10 6.8031 9.78932 6.29439 9.41425 5.91932C9.03918 5.54425 8.53047 5.33353 8.00004 5.33353Z"
+                    fill="#9CA3AF"
+                  />
+                </svg>
+                수정구 산성대로 지하 100
+              </div>
+              <span class="status-badge">해결중</span>
+            </div>
+
+            <!-- 본문 -->
+            <div class="post-desc">
+              쓰레기가 너무 많아 악취가 심하고 눈살이 너무 찌푸려 지는 경향이
+              있어요. 출퇴근길마다 쓰레기들이 넘쳐서 바닥에 쌓여 있어요...
+              냄새도 심하고 위생이 걱정돼요. 자주 비워주시면 좋겠어요 😢
+            </div>
+
+            <div class="bottom-info-row">
+              <!-- 좋아요 -->
+              <span class="card-like">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="19"
+                  height="18"
+                  viewBox="0 0 19 18"
+                  fill="none"
+                >
+                  <path
+                    d="M15.665 7.1625C15.3425 6.78 14.8775 6.5625 14.375 6.5625H11.3525V4.5C11.3525 3.36 10.43 2.4375 9.23 2.4375C8.705 2.4375 8.2325 2.7525 8.0225 3.24L6.1175 7.6875H4.715C3.7325 7.6875 2.9375 8.4825 2.9375 9.465V13.7925C2.9375 14.7675 3.74 15.5625 4.715 15.5625H13.385C14.2025 15.5625 14.9 14.9775 15.0425 14.1675L16.0325 8.5425C16.115 8.0475 15.98 7.545 15.6575 7.1625H15.665ZM4.715 14.4375C4.355 14.4375 4.0625 14.145 4.0625 13.7925V9.465C4.0625 9.105 4.355 8.8125 4.715 8.8125H5.9225V14.4375H4.715ZM13.94 13.9725C13.895 14.2425 13.6625 14.4375 13.385 14.4375H7.055V8.3625L9.0575 3.675C9.0875 3.6075 9.155 3.555 9.2975 3.555C9.815 3.555 10.2275 3.975 10.2275 4.4925V7.68H14.375C14.5475 7.68 14.6975 7.7475 14.8025 7.875C14.9075 8.0025 14.9525 8.1675 14.9225 8.34L13.9325 13.965L13.94 13.9725Z"
+                    fill="#F87171"
+                  />
+                </svg>
+                <span>20</span>
+              </span>
+              <!-- 댓글 -->
+              <span class="card-comment">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="19"
+                  height="19"
+                  viewBox="0 0 19 19"
+                  fill="none"
+                >
+                  <path
+                    d="M9.49968 1.58301C13.8721 1.58301 17.4163 5.1273 17.4163 9.49967C17.4163 13.872 13.8721 17.4163 9.49968 17.4163C8.23617 17.4181 6.99075 17.1162 5.86831 16.536L2.83939 17.3807C2.6704 17.4279 2.49191 17.4293 2.32221 17.3847C2.15251 17.3402 1.9977 17.2514 1.87364 17.1273C1.74958 17.0032 1.66074 16.8484 1.61621 16.6787C1.57168 16.509 1.57306 16.3305 1.62022 16.1615L2.46572 13.135C1.88413 12.0116 1.58137 10.7647 1.58301 9.49967C1.58301 5.1273 5.12731 1.58301 9.49968 1.58301ZM9.49968 2.77051C7.715 2.77051 6.00341 3.47947 4.74144 4.74144C3.47948 6.0034 2.77051 7.71499 2.77051 9.49967C2.77051 10.6634 3.06581 11.782 3.61997 12.7748L3.73872 12.9885L2.85839 16.1425L6.01477 15.2622L6.22852 15.381C7.12657 15.8803 8.12704 16.1673 9.15321 16.22C10.1794 16.2727 11.204 16.0897 12.1485 15.685C13.093 15.2804 13.9322 14.6648 14.6019 13.8855C15.2716 13.1062 15.754 12.1839 16.012 11.1893C16.27 10.1947 16.2968 9.15422 16.0903 8.14766C15.8839 7.14109 15.4497 6.19517 14.821 5.38243C14.1923 4.56968 13.3858 3.91171 12.4634 3.45896C11.541 3.00621 10.5272 2.7707 9.49968 2.77051ZM6.92676 10.2913H10.4877C10.6381 10.2914 10.7829 10.3485 10.8928 10.4512C11.0028 10.5539 11.0696 10.6945 11.0799 10.8446C11.0901 10.9947 11.043 11.1431 10.9481 11.2598C10.8532 11.3765 10.7175 11.4528 10.5684 11.4733L10.4877 11.4788H6.92676C6.77633 11.4788 6.63152 11.4216 6.5216 11.3189C6.41167 11.2162 6.34483 11.0756 6.33458 10.9256C6.32432 10.7755 6.37142 10.6271 6.46636 10.5104C6.56129 10.3937 6.69698 10.3174 6.84601 10.2969L6.92676 10.2913ZM6.92676 7.52051H12.0766C12.2269 7.52075 12.3716 7.57804 12.4814 7.68081C12.5911 7.78357 12.6578 7.92416 12.668 8.07418C12.6781 8.22421 12.631 8.37249 12.5361 8.48911C12.4411 8.60572 12.3055 8.68197 12.1565 8.70247L12.0766 8.70801H6.92676C6.77633 8.70796 6.63152 8.65081 6.5216 8.54811C6.41167 8.44541 6.34483 8.30481 6.33458 8.15473C6.32432 8.00464 6.37142 7.85626 6.46636 7.73956C6.56129 7.62287 6.69698 7.54655 6.84601 7.52605L6.92676 7.52051Z"
+                    fill="#F87171"
+                  />
+                </svg>
+                <span>20</span>
+              </span>
+            </div>
+          </div>
+          <!-- 댓글 개수 -->
+          <div class="comment-title">댓글 0</div>
+
+          <!-- 댓글 목록 -->
+          <div class="comment-list-outer">
+            <div class="no-comment" id="no-comment">아직 댓글이 없어요</div>
+            <div
+              class="comment-list"
+              id="comment-list"
+              style="display: none"
+            ></div>
+          </div>
+
+          <!-- 댓글 입력줄 -->
+          <div class="comment-input-row">
+            <span class="comment-profile-dot"></span>
+            <input
+              type="text"
+              class="comment-input"
+              placeholder="댓글을 입력해 주세요."
+            />
+            <button class="comment-send-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="30"
+                height="30"
+                viewBox="0 0 30 30"
+                fill="none"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M4.25276 8.3409C3.92776 5.4234 6.93151 3.2809 9.58526 4.5384L24.5153 11.6109C27.3753 12.9647 27.3753 17.0347 24.5153 18.3884L9.58526 25.4622C6.93151 26.7197 3.92901 24.5771 4.25276 21.6596L4.85276 16.2497H15.0003C15.3318 16.2497 15.6497 16.118 15.8841 15.8835C16.1186 15.6491 16.2503 15.3312 16.2503 14.9997C16.2503 14.6681 16.1186 14.3502 15.8841 14.1158C15.6497 13.8813 15.3318 13.7497 15.0003 13.7497H4.85401L4.25276 8.3409Z"
+                  fill="#9CA3AF"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <!-- 근처 다른 이슈 MOCK -->
+          <div class="related-section">
+            <div class="related-title-row">
+              <span>근처 다른 이슈</span>
+              <span style="font-size: 20px; color: #222">›</span>
+            </div>
+          </div>
+
+          <div class="card-list">
+            <div class="card">
+              <!-- 카드 상단: 이미지, 뱃지, 좋아요 숫자 -->
+              <div class="card-img-wrap">
+                <img
+                  src="./image/dark.jpg"
+                  alt="어두운 골목길"
+                  class="card-img"
+                />
+                <!-- 지역구 뱃지 (왼쪽 상단) -->
+                <span class="badge">수정구</span>
+                <!-- 오른쪽 상단 (상세 보기) -->
+                <span class="card-arrow">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 22 22"
+                    fill="none"
+                  >
+                    <path
+                      d="M11 21C16.523 21 21 16.523 21 11C21 5.477 16.523 1 11 1C5.477 1 1 5.477 1 11C1 16.523 5.477 21 11 21Z"
+                      stroke="white"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M9.5 15.5L14 11L9.5 6.5"
+                      stroke="white"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+              <!-- 카드 하단 -->
+              <div class="card-content">
+                <div class="card-title-row">
+                  <div class="card-title">모란역 3번 출구 쓰레기</div>
+                  <!-- 좋아요 -->
+                  <span class="card-like">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="19"
+                      height="18"
+                      viewBox="0 0 19 18"
+                      fill="none"
+                    >
+                      <path
+                        d="M15.665 7.1625C15.3425 6.78 14.8775 6.5625 14.375 6.5625H11.3525V4.5C11.3525 3.36 10.43 2.4375 9.23 2.4375C8.705 2.4375 8.2325 2.7525 8.0225 3.24L6.1175 7.6875H4.715C3.7325 7.6875 2.9375 8.4825 2.9375 9.465V13.7925C2.9375 14.7675 3.74 15.5625 4.715 15.5625H13.385C14.2025 15.5625 14.9 14.9775 15.0425 14.1675L16.0325 8.5425C16.115 8.0475 15.98 7.545 15.6575 7.1625H15.665ZM4.715 14.4375C4.355 14.4375 4.0625 14.145 4.0625 13.7925V9.465C4.0625 9.105 4.355 8.8125 4.715 8.8125H5.9225V14.4375H4.715ZM13.94 13.9725C13.895 14.2425 13.6625 14.4375 13.385 14.4375H7.055V8.3625L9.0575 3.675C9.0875 3.6075 9.155 3.555 9.2975 3.555C9.815 3.555 10.2275 3.975 10.2275 4.4925V7.68H14.375C14.5475 7.68 14.6975 7.7475 14.8025 7.875C14.9075 8.0025 14.9525 8.1675 14.9225 8.34L13.9325 13.965L13.94 13.9725Z"
+                        fill="#F87171"
+                      />
+                    </svg>
+                    <span>20</span>
+                  </span>
+                </div>
+
+                <div class="card-desc">
+                  <!-- 위치 SVG 아이콘(지도핀) -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="none"
+                  >
+                    <path
+                      d="M12.2427 3.09087C13.3443 4.19229 13.9743 5.67894 13.9995 7.23648C14.0248 8.79401 13.4433 10.3003 12.378 11.4369L12.2427 11.5769L9.41404 14.4049C9.05512 14.7636 8.57329 14.9724 8.06614 14.9891C7.55899 15.0058 7.06445 14.8291 6.6827 14.4949L6.5867 14.4049L3.75737 11.5762C2.63215 10.451 2 8.92484 2 7.33353C2 5.74222 2.63215 4.21609 3.75737 3.09087C4.8826 1.96564 6.40873 1.3335 8.00004 1.3335C9.59135 1.3335 11.1175 1.96564 12.2427 3.09087ZM8.00004 5.33353C7.73739 5.33353 7.47732 5.38526 7.23467 5.48577C6.99202 5.58628 6.77154 5.7336 6.58582 5.91932C6.40011 6.10504 6.25279 6.32552 6.15228 6.56817C6.05177 6.81082 6.00004 7.07089 6.00004 7.33353C6.00004 7.59618 6.05177 7.85625 6.15228 8.0989C6.25279 8.34155 6.40011 8.56203 6.58582 8.74775C6.77154 8.93346 6.99202 9.08078 7.23467 9.18129C7.47732 9.2818 7.73739 9.33353 8.00004 9.33353C8.53047 9.33353 9.03918 9.12282 9.41425 8.74775C9.78932 8.37267 10 7.86397 10 7.33353C10 6.8031 9.78932 6.29439 9.41425 5.91932C9.03918 5.54425 8.53047 5.33353 8.00004 5.33353Z"
+                      fill="#9CA3AF"
+                    />
+                  </svg>
+                  <span>수정구 산성대로 100 지하</span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <!-- 카드 상단: 이미지, 뱃지, 좋아요 숫자 -->
+              <div class="card-img-wrap">
+                <img
+                  src="./image/dark.jpg"
+                  alt="어두운 골목길"
+                  class="card-img"
+                />
+                <!-- 지역구 뱃지 (왼쪽 상단) -->
+                <span class="badge">수정구</span>
+                <!-- 오른쪽 상단 (상세 보기) -->
+                <span class="card-arrow">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 22 22"
+                    fill="none"
+                  >
+                    <path
+                      d="M11 21C16.523 21 21 16.523 21 11C21 5.477 16.523 1 11 1C5.477 1 1 5.477 1 11C1 16.523 5.477 21 11 21Z"
+                      stroke="white"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M9.5 15.5L14 11L9.5 6.5"
+                      stroke="white"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+              <!-- 카드 하단 -->
+              <div class="card-content">
+                <div class="card-title-row">
+                  <div class="card-title">모란역 3번 출구 쓰레기</div>
+                  <!-- 좋아요 -->
+                  <span class="card-like">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="19"
+                      height="18"
+                      viewBox="0 0 19 18"
+                      fill="none"
+                    >
+                      <path
+                        d="M15.665 7.1625C15.3425 6.78 14.8775 6.5625 14.375 6.5625H11.3525V4.5C11.3525 3.36 10.43 2.4375 9.23 2.4375C8.705 2.4375 8.2325 2.7525 8.0225 3.24L6.1175 7.6875H4.715C3.7325 7.6875 2.9375 8.4825 2.9375 9.465V13.7925C2.9375 14.7675 3.74 15.5625 4.715 15.5625H13.385C14.2025 15.5625 14.9 14.9775 15.0425 14.1675L16.0325 8.5425C16.115 8.0475 15.98 7.545 15.6575 7.1625H15.665ZM4.715 14.4375C4.355 14.4375 4.0625 14.145 4.0625 13.7925V9.465C4.0625 9.105 4.355 8.8125 4.715 8.8125H5.9225V14.4375H4.715ZM13.94 13.9725C13.895 14.2425 13.6625 14.4375 13.385 14.4375H7.055V8.3625L9.0575 3.675C9.0875 3.6075 9.155 3.555 9.2975 3.555C9.815 3.555 10.2275 3.975 10.2275 4.4925V7.68H14.375C14.5475 7.68 14.6975 7.7475 14.8025 7.875C14.9075 8.0025 14.9525 8.1675 14.9225 8.34L13.9325 13.965L13.94 13.9725Z"
+                        fill="#F87171"
+                      />
+                    </svg>
+                    <span>20</span>
+                  </span>
+                </div>
+
+                <div class="card-desc">
+                  <!-- 위치 SVG 아이콘(지도핀) -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="none"
+                  >
+                    <path
+                      d="M12.2427 3.09087C13.3443 4.19229 13.9743 5.67894 13.9995 7.23648C14.0248 8.79401 13.4433 10.3003 12.378 11.4369L12.2427 11.5769L9.41404 14.4049C9.05512 14.7636 8.57329 14.9724 8.06614 14.9891C7.55899 15.0058 7.06445 14.8291 6.6827 14.4949L6.5867 14.4049L3.75737 11.5762C2.63215 10.451 2 8.92484 2 7.33353C2 5.74222 2.63215 4.21609 3.75737 3.09087C4.8826 1.96564 6.40873 1.3335 8.00004 1.3335C9.59135 1.3335 11.1175 1.96564 12.2427 3.09087ZM8.00004 5.33353C7.73739 5.33353 7.47732 5.38526 7.23467 5.48577C6.99202 5.58628 6.77154 5.7336 6.58582 5.91932C6.40011 6.10504 6.25279 6.32552 6.15228 6.56817C6.05177 6.81082 6.00004 7.07089 6.00004 7.33353C6.00004 7.59618 6.05177 7.85625 6.15228 8.0989C6.25279 8.34155 6.40011 8.56203 6.58582 8.74775C6.77154 8.93346 6.99202 9.08078 7.23467 9.18129C7.47732 9.2818 7.73739 9.33353 8.00004 9.33353C8.53047 9.33353 9.03918 9.12282 9.41425 8.74775C9.78932 8.37267 10 7.86397 10 7.33353C10 6.8031 9.78932 6.29439 9.41425 5.91932C9.03918 5.54425 8.53047 5.33353 8.00004 5.33353Z"
+                      fill="#9CA3AF"
+                    />
+                  </svg>
+                  <span>수정구 산성대로 100 지하</span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <!-- 카드 상단: 이미지, 뱃지, 좋아요 숫자 -->
+              <div class="card-img-wrap">
+                <img
+                  src="./image/drain.jpg"
+                  alt="배수구 막힘"
+                  class="card-img"
+                />
+                <!-- 지역구 뱃지 (왼쪽 상단) -->
+                <span class="badge">중원구 </span>
+                <!-- 오른쪽 상단 (상세 보기) -->
+                <span class="card-arrow">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 22 22"
+                    fill="none"
+                  >
+                    <path
+                      d="M11 21C16.523 21 21 16.523 21 11C21 5.477 16.523 1 11 1C5.477 1 1 5.477 1 11C1 16.523 5.477 21 11 21Z"
+                      stroke="white"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M9.5 15.5L14 11L9.5 6.5"
+                      stroke="white"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+              <!-- 카드 하단 -->
+              <div class="card-content">
+                <div class="card-title-row">
+                  <div class="card-title">모란역 3번 출구 쓰레기</div>
+                  <!-- 좋아요 -->
+                  <span class="card-like">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="19"
+                      height="18"
+                      viewBox="0 0 19 18"
+                      fill="none"
+                    >
+                      <path
+                        d="M15.665 7.1625C15.3425 6.78 14.8775 6.5625 14.375 6.5625H11.3525V4.5C11.3525 3.36 10.43 2.4375 9.23 2.4375C8.705 2.4375 8.2325 2.7525 8.0225 3.24L6.1175 7.6875H4.715C3.7325 7.6875 2.9375 8.4825 2.9375 9.465V13.7925C2.9375 14.7675 3.74 15.5625 4.715 15.5625H13.385C14.2025 15.5625 14.9 14.9775 15.0425 14.1675L16.0325 8.5425C16.115 8.0475 15.98 7.545 15.6575 7.1625H15.665ZM4.715 14.4375C4.355 14.4375 4.0625 14.145 4.0625 13.7925V9.465C4.0625 9.105 4.355 8.8125 4.715 8.8125H5.9225V14.4375H4.715ZM13.94 13.9725C13.895 14.2425 13.6625 14.4375 13.385 14.4375H7.055V8.3625L9.0575 3.675C9.0875 3.6075 9.155 3.555 9.2975 3.555C9.815 3.555 10.2275 3.975 10.2275 4.4925V7.68H14.375C14.5475 7.68 14.6975 7.7475 14.8025 7.875C14.9075 8.0025 14.9525 8.1675 14.9225 8.34L13.9325 13.965L13.94 13.9725Z"
+                        fill="#F87171"
+                      />
+                    </svg>
+                    <span>16</span>
+                  </span>
+                </div>
+
+                <div class="card-desc">
+                  <!-- 위치 SVG 아이콘(지도핀) -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="none"
+                  >
+                    <path
+                      d="M12.2427 3.09087C13.3443 4.19229 13.9743 5.67894 13.9995 7.23648C14.0248 8.79401 13.4433 10.3003 12.378 11.4369L12.2427 11.5769L9.41404 14.4049C9.05512 14.7636 8.57329 14.9724 8.06614 14.9891C7.55899 15.0058 7.06445 14.8291 6.6827 14.4949L6.5867 14.4049L3.75737 11.5762C2.63215 10.451 2 8.92484 2 7.33353C2 5.74222 2.63215 4.21609 3.75737 3.09087C4.8826 1.96564 6.40873 1.3335 8.00004 1.3335C9.59135 1.3335 11.1175 1.96564 12.2427 3.09087ZM8.00004 5.33353C7.73739 5.33353 7.47732 5.38526 7.23467 5.48577C6.99202 5.58628 6.77154 5.7336 6.58582 5.91932C6.40011 6.10504 6.25279 6.32552 6.15228 6.56817C6.05177 6.81082 6.00004 7.07089 6.00004 7.33353C6.00004 7.59618 6.05177 7.85625 6.15228 8.0989C6.25279 8.34155 6.40011 8.56203 6.58582 8.74775C6.77154 8.93346 6.99202 9.08078 7.23467 9.18129C7.47732 9.2818 7.73739 9.33353 8.00004 9.33353C8.53047 9.33353 9.03918 9.12282 9.41425 8.74775C9.78932 8.37267 10 7.86397 10 7.33353C10 6.8031 9.78932 6.29439 9.41425 5.91932C9.03918 5.54425 8.53047 5.33353 8.00004 5.33353Z"
+                      fill="#9CA3AF"
+                    />
+                  </svg>
+                  <span>수정구 산성대로 100 지상</span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <!-- 카드 상단: 이미지, 뱃지, 좋아요 숫자 -->
+              <div class="card-img-wrap">
+                <img
+                  src="./image/drain.jpg"
+                  alt="배수구 막힘"
+                  class="card-img"
+                />
+                <!-- 지역구 뱃지 (왼쪽 상단) -->
+                <span class="badge">중원구 </span>
+                <!-- 오른쪽 상단 (상세 보기) -->
+                <span class="card-arrow">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 22 22"
+                    fill="none"
+                  >
+                    <path
+                      d="M11 21C16.523 21 21 16.523 21 11C21 5.477 16.523 1 11 1C5.477 1 1 5.477 1 11C1 16.523 5.477 21 11 21Z"
+                      stroke="white"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M9.5 15.5L14 11L9.5 6.5"
+                      stroke="white"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+              <!-- 카드 하단 -->
+              <div class="card-content">
+                <div class="card-title-row">
+                  <div class="card-title">모란역 3번 출구 쓰레기</div>
+                  <!-- 좋아요 -->
+                  <span class="card-like">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="19"
+                      height="18"
+                      viewBox="0 0 19 18"
+                      fill="none"
+                    >
+                      <path
+                        d="M15.665 7.1625C15.3425 6.78 14.8775 6.5625 14.375 6.5625H11.3525V4.5C11.3525 3.36 10.43 2.4375 9.23 2.4375C8.705 2.4375 8.2325 2.7525 8.0225 3.24L6.1175 7.6875H4.715C3.7325 7.6875 2.9375 8.4825 2.9375 9.465V13.7925C2.9375 14.7675 3.74 15.5625 4.715 15.5625H13.385C14.2025 15.5625 14.9 14.9775 15.0425 14.1675L16.0325 8.5425C16.115 8.0475 15.98 7.545 15.6575 7.1625H15.665ZM4.715 14.4375C4.355 14.4375 4.0625 14.145 4.0625 13.7925V9.465C4.0625 9.105 4.355 8.8125 4.715 8.8125H5.9225V14.4375H4.715ZM13.94 13.9725C13.895 14.2425 13.6625 14.4375 13.385 14.4375H7.055V8.3625L9.0575 3.675C9.0875 3.6075 9.155 3.555 9.2975 3.555C9.815 3.555 10.2275 3.975 10.2275 4.4925V7.68H14.375C14.5475 7.68 14.6975 7.7475 14.8025 7.875C14.9075 8.0025 14.9525 8.1675 14.9225 8.34L13.9325 13.965L13.94 13.9725Z"
+                        fill="#F87171"
+                      />
+                    </svg>
+                    <span>16</span>
+                  </span>
+                </div>
+
+                <div class="card-desc">
+                  <!-- 위치 SVG 아이콘(지도핀) -->
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="none"
+                  >
+                    <path
+                      d="M12.2427 3.09087C13.3443 4.19229 13.9743 5.67894 13.9995 7.23648C14.0248 8.79401 13.4433 10.3003 12.378 11.4369L12.2427 11.5769L9.41404 14.4049C9.05512 14.7636 8.57329 14.9724 8.06614 14.9891C7.55899 15.0058 7.06445 14.8291 6.6827 14.4949L6.5867 14.4049L3.75737 11.5762C2.63215 10.451 2 8.92484 2 7.33353C2 5.74222 2.63215 4.21609 3.75737 3.09087C4.8826 1.96564 6.40873 1.3335 8.00004 1.3335C9.59135 1.3335 11.1175 1.96564 12.2427 3.09087ZM8.00004 5.33353C7.73739 5.33353 7.47732 5.38526 7.23467 5.48577C6.99202 5.58628 6.77154 5.7336 6.58582 5.91932C6.40011 6.10504 6.25279 6.32552 6.15228 6.56817C6.05177 6.81082 6.00004 7.07089 6.00004 7.33353C6.00004 7.59618 6.05177 7.85625 6.15228 8.0989C6.25279 8.34155 6.40011 8.56203 6.58582 8.74775C6.77154 8.93346 6.99202 9.08078 7.23467 9.18129C7.47732 9.2818 7.73739 9.33353 8.00004 9.33353C8.53047 9.33353 9.03918 9.12282 9.41425 8.74775C9.78932 8.37267 10 7.86397 10 7.33353C10 6.8031 9.78932 6.29439 9.41425 5.91932C9.03918 5.54425 8.53047 5.33353 8.00004 5.33353Z"
+                      fill="#9CA3AF"
+                    />
+                  </svg>
+                  <span>수정구 산성대로 100 지상</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const commentInput = document.querySelector(".comment-input");
+        const sendBtn = document.querySelector(".comment-send-btn");
+        const sendSvgPath = sendBtn.querySelector("svg path");
+        const commentList = document.getElementById("comment-list");
+        const noComment = document.getElementById("no-comment");
+        const commentTitle = document.getElementById("comment-title");
+
+        let comments = []; // 댓글 배열
+
+        // 시간 문자열 (몇 분 전)
+        function formatTime(date) {
+          const diff = Math.floor((Date.now() - date.getTime()) / 60000);
+          return diff <= 0 ? "방금 전" : `${diff}분 전`;
+        }
+
+        // 댓글 렌더링
+        function renderComments() {
+          if (comments.length === 0) {
+            commentList.style.display = "none";
+            noComment.style.display = "flex";
+            commentTitle.textContent = "댓글 0";
+          } else {
+            commentList.innerHTML = "";
+            comments.forEach((item) => {
+              const el = document.createElement("div");
+              el.className = "comment-item";
+              el.innerHTML = `
+              <span class="comment-avatar"></span>
+              <div class="comment-content">
+                <div class="comment-top">
+                  <span class="comment-author">${item.author}</span>
+                  <span class="comment-time">${formatTime(item.time)}</span>
+                </div>
+                <div class="comment-text">${item.text}</div>
+              </div>
+            `;
+              commentList.appendChild(el);
+            });
+            commentList.style.display = "block";
+            noComment.style.display = "none";
+            commentTitle.textContent = `댓글 ${comments.length}`;
+          }
+        }
+
+        // 댓글 추가 함수
+        function addComment() {
+          const val = commentInput.value.trim();
+          if (val.length === 0) return;
+          comments.push({
+            author: "최가을",
+            text: val,
+            time: new Date(),
+          });
+          commentInput.value = "";
+          renderComments();
+          updateSendBtnState(); // 입력후 버튼 상태 갱신
+        }
+
+        // 버튼 SVG 색 및 커서 상태 갱신
+        function updateSendBtnState() {
+          if (commentInput.value.trim().length > 0) {
+            sendSvgPath.setAttribute("fill", "#F87171");
+            sendBtn.style.cursor = "pointer";
+          } else {
+            sendSvgPath.setAttribute("fill", "#9CA3AF");
+            sendBtn.style.cursor = "default";
+          }
+        }
+
+        // 이벤트 바인딩
+        sendBtn.addEventListener("click", addComment);
+        commentInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addComment();
+          }
+        });
+        commentInput.addEventListener("input", updateSendBtnState);
+
+        // 초기 렌더 및 상태 적용
+        renderComments();
+        updateSendBtnState();
+      });
+    </script>
+  </body>
+</html>

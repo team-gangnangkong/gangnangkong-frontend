@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>글쓰기</title>
+    <link rel="stylesheet" href="index.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .container {
+        background: #f9fafb;
+      }
+      .form,
+      input[type="text"],
+      textarea,
+      .photo-upload {
+        background: #f4f4f5;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      /* 뒤로가기 버튼 */
+      .back-arrow {
+        font-size: 25px;
+        margin-right: 20px;
+        cursor: pointer;
+      }
+
+      .header-title {
+        flex: 1;
+        text-align: center;
+        font-weight: 600;
+        font-size: 19px;
+      }
+      label {
+        font-size: 15px;
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: block;
+      }
+      input[type="text"],
+      textarea {
+        width: 100%;
+        border: none;
+        border-radius: 8px;
+        padding: 13px 12px;
+        font-size: 15px;
+        margin-bottom: 13px;
+        background: #f4f4f5;
+        outline: none;
+        transition: border 0.2s;
+      }
+      input[type="text"]:focus,
+      textarea:focus {
+        /* border: 1.5px solid #fecaca; */
+        border: none;
+      }
+      .required {
+        color: #f43f5e;
+        margin-left: 2px;
+      }
+      .category-group {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 13px;
+      }
+      .category-btn {
+        flex: 1;
+        padding: 10px 0;
+        border-radius: 8px;
+        border: none;
+        background: #f4f4f5;
+        font-size: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: background 0.2s, border 0.2s;
+      }
+      .category-btn.selected {
+        background: #fecaca;
+        border: none;
+        color: #d81341;
+        font-weight: 600;
+      }
+      .category-btn.selected-culture {
+        background: #dcfce7 !important;
+        border: none;
+        color: #15803d !important;
+      }
+
+      .location-input {
+        display: flex;
+        align-items: center;
+        margin-bottom: 7px;
+      }
+      .location-icon {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        padding: 2px 4.5px 5px 4.5px;
+        justify-content: center;
+        align-items: center;
+        aspect-ratio: 1/1;
+      }
+      .photo-upload {
+        background: #fafbfc;
+        border: none;
+        border-radius: 12px;
+        height: 138px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin-bottom: 13px;
+        cursor: pointer;
+        transition: border 0.2s;
+        position: relative;
+      }
+      .photo-upload input[type="file"] {
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        cursor: pointer;
+      }
+      .upload-icon {
+        font-size: 33px;
+        color: #bebebe;
+        margin-bottom: 9px;
+      }
+      .upload-text {
+        font-size: 14px;
+        color: #bebebe;
+        text-align: center;
+        line-height: 22px;
+      }
+      textarea {
+        min-height: 76px;
+        resize: none;
+      }
+      .submit-btn {
+        width: 100%;
+        background: #fecaca;
+        color: #f43f5e;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        padding: 13px 0;
+        margin-top: 13px;
+        transition: background 0.2s;
+        cursor: pointer;
+      }
+      .submit-btn:active {
+        background: #f43f5e;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="viewport">
+      <div class="app">
+        <div class="container">
+          <div class="header">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30"
+              height="30"
+              viewBox="0 0 30 30"
+              fill="none"
+            >
+              <path
+                d="M18.75 22.5L11.25 15L18.75 7.5"
+                stroke="black"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <div class="header-title">글쓰기</div>
+          </div>
+          <form>
+            <label>제목<span class="required">*</span></label>
+            <input type="text" placeholder="제목을 입력하세요." required />
+
+            <label>카테고리<span class="required">*</span></label>
+            <div class="category-group">
+              <button type="button" class="category-btn selected">민원</button>
+              <button type="button" class="category-btn">문화</button>
+            </div>
+
+            <label>위치<span class="required">*</span></label>
+            <div class="location-input">
+              <img src="./image/mappin.svg" alt="지도 아이콘" />
+              <input
+                type="text"
+                style="flex: 1"
+                placeholder="건물, 지번 또는 도로명 검색"
+                required
+              />
+            </div>
+            <input type="text" placeholder="상세주소" />
+
+            <label>사진<span class="required">*</span></label>
+            <div class="photo-upload">
+              <span class="upload-icon">&#8682;</span>
+              <span class="upload-text"
+                >사진을 업로드해주세요.<br />(jpg, jpeg, png)</span
+              >
+              <input type="file" accept=".jpg,.jpeg,.png" required />
+            </div>
+
+            <textarea placeholder="내용을 입력하세요."></textarea>
+            <button type="submit" class="submit-btn">작성하기</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 카테고리 버튼 토글
+      document.querySelectorAll(".category-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll(".category-btn").forEach((b) => {
+            b.classList.remove("selected");
+            b.classList.remove("selected-culture");
+          });
+          this.classList.add("selected");
+          if (this.textContent.trim() === "문화") {
+            this.classList.add("selected-culture");
+          }
+        });
+      });
+
+      // 필수 요소 선택
+      const titleInput = document.querySelector(
+        'input[placeholder="제목을 입력하세요."]'
+      );
+      const categoryBtns = document.querySelectorAll(".category-btn");
+      const locationInput = document.querySelector(
+        'input[placeholder="건물, 지번 또는 도로명 검색"]'
+      );
+      const photoInput = document.querySelector(
+        '.photo-upload input[type="file"]'
+      );
+      const submitBtn = document.querySelector(".submit-btn");
+
+      function isFormValid() {
+        // 제목 입력, 위치 입력, 파일 업로드, 카테고리 선택(하나라도 .selected)
+        const isTitle = titleInput.value.trim() !== "";
+        const isCategory = Array.from(categoryBtns).some((btn) =>
+          btn.classList.contains("selected")
+        );
+        const isLocation = locationInput.value.trim() !== "";
+        const isPhoto = !!photoInput.files && photoInput.files.length > 0;
+        return isTitle && isCategory && isLocation && isPhoto;
+      }
+
+      function updateButtonColor() {
+        if (isFormValid()) {
+          submitBtn.style.background = "#F87171";
+          submitBtn.style.color = "#fff";
+          submitBtn.disabled = false;
+        } else {
+          submitBtn.style.background = "#FEF2F2";
+          submitBtn.style.color = "#f43f5e";
+          submitBtn.disabled = true; // 비활성화는 선택적으로
+        }
+      }
+
+      // 이벤트 바인딩
+      [titleInput, locationInput].forEach((input) => {
+        input.addEventListener("input", updateButtonColor);
+      });
+      categoryBtns.forEach((btn) => {
+        btn.addEventListener("click", updateButtonColor);
+      });
+      photoInput.addEventListener("change", updateButtonColor);
+
+      // 페이지 진입 시 초기상태도 반영
+      updateButtonColor();
+    </script>
+  </body>
+</html>
