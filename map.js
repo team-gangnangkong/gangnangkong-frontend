@@ -233,6 +233,7 @@ async function init() {
         ),
       ]);
       POINTS = [].concat(neg || [], pos || []).map(normalizeItem);
+      attachCatFromCache(POINTS);
     } catch (e) {
       console.warn('panel fail', e);
       POINTS = [];
@@ -263,8 +264,8 @@ async function init() {
   const getAllPoints = () => POINTS;
 
   // ==== 아이콘 파일 경로 ====
-  const POS_URL = './image/positive.png';
-  const NEG_URL = './image/negative.png';
+  const POS_URL = '/image/positive.png';
+  const NEG_URL = '/image/negative.png';
 
   let _stickyMoodPin = null;
   let _stickyKey = null;
@@ -586,6 +587,7 @@ async function init() {
   const panelBadgeEl = document.getElementById('cp-badge');
   const panelCountEl = document.getElementById('cp-count');
   const panelCloseBtn = document.getElementById('cp-close');
+  const panelSortBtn = document.getElementById('cp-sort');
 
   let _lastPanelItems = [];
   let _lastPanelType = null;
@@ -732,7 +734,40 @@ async function init() {
   }
 
   // 카테고리 자동 추가
-  const _catCache = new Map(); // key: "lat|lng|title" → "카페" 등
+
+  const CAT_CACHE_KEY = 'catCache.v1';
+  const CAT_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30일
+
+  function loadCatCache() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CAT_CACHE_KEY) || '[]');
+      const now = Date.now();
+      return new Map(
+        raw
+          .filter(([_, v]) => v && v.name && v.exp > now)
+          .map(([k, v]) => [k, v.name])
+      );
+    } catch {
+      return new Map();
+    }
+  }
+  function saveCatCache(map) {
+    const now = Date.now();
+    const arr = Array.from(map.entries()).map(([k, name]) => [
+      k,
+      { name, exp: now + CAT_TTL_MS },
+    ]);
+    try {
+      localStorage.setItem(CAT_CACHE_KEY, JSON.stringify(arr.slice(-800)));
+    } catch {}
+  }
+
+  const _catCache = loadCatCache();
+  function _cachePut(key, cat) {
+    if (!cat) return;
+    _catCache.set(key, cat);
+    saveCatCache(_catCache);
+  }
 
   function _pickCatName(place) {
     return (
@@ -740,8 +775,30 @@ async function init() {
       (place.category_name || '').split('>').shift().trim()
     );
   }
+
   function _keyFor(it) {
     return `${(+it.lat).toFixed(6)}|${(+it.lng).toFixed(6)}|${it.title}`;
+  }
+
+  function guessCategoryFromTitle(title = '') {
+    const t = title.toLowerCase();
+    if (/(카페|coffee|cafe|루프탑|디저트)/i.test(title)) return '카페';
+    if (
+      /(식당|맛집|구이|분식|정식|라멘|라면|초밥|스시|돈까스|족발|보쌈|국밥)/i.test(
+        title
+      )
+    )
+      return '음식점';
+    if (/(클라이밍|짐|헬스|요가|필라테스|볼링)/i.test(title)) return '운동';
+    if (/(공원|전시|미술관|박물관|문화|공연)/i.test(title)) return '놀거리';
+    return '';
+  }
+
+  function attachCatFromCache(items) {
+    items.forEach((it) => {
+      const k = _keyFor(it);
+      if (!it.category && _catCache.has(k)) it.category = _catCache.get(k);
+    });
   }
 
   function fetchCategoryNear(placesSvc, it) {
@@ -752,7 +809,9 @@ async function init() {
       placesSvc.keywordSearch(
         it.title,
         (data, status) => {
-          if (status !== kakao.maps.services.Status.OK) return resolve('');
+          if (status !== kakao.maps.services.Status.OK || !data?.length) {
+            return resolve(guessCategoryFromTitle(it.title));
+          }
           const best = data
             .map((d) => ({
               d,
@@ -760,9 +819,11 @@ async function init() {
             }))
             .filter((x) => x.dist <= 120)
             .sort((a, b) => a.dist - b.dist)[0]?.d;
-          const cat = best ? _pickCatName(best) : '';
-          _catCache.set(key, cat);
-          resolve(cat);
+
+          const cat = best
+            ? _pickCatName(best)
+            : guessCategoryFromTitle(it.title);
+          resolve(cat || '');
         },
         { x: it.lng, y: it.lat, radius: 500, size: 5, sort: 'distance' }
       );
@@ -778,6 +839,7 @@ async function init() {
         if (!cat) return;
 
         it.category = cat;
+        _cachePut(_keyFor(it), cat);
 
         const card = findCardByLatLng(it.lat, it.lng);
         if (!card || card.querySelector('.cp-cat')) return;
@@ -792,10 +854,16 @@ async function init() {
   }
 
   function openClusterPanel(items, type /* 'pos' | 'neg' */) {
+    attachCatFromCache(items);
     _lastPanelItems = items;
     _lastPanelType = type;
     const isPos = type === 'pos';
     const count = items.length;
+
+    if (panelSortBtn) {
+      panelSortBtn.textContent = '공감순'; // 라벨 고정(선택)
+      panelSortBtn.classList.toggle('pos', isPos); // ★ 긍정이면 초록 적용
+    }
 
     const sorted = [...items].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
 

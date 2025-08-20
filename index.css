@@ -130,7 +130,7 @@ body {
   .logo-wrap {
     width: 300px;
     width: clamp(340px, 22%, 340px);
-    margin-bottom: 20vh;
+    margin-bottom: 22vh;
   }
   .index-char {
     top: -43%;

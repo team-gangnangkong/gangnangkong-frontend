@@ -409,6 +409,7 @@ body {
 
 /* ===== 하단 패널 ===== */
 :root {
+  --cp-sort-pink: #f87171;
   --cp-bg: #f7f8fb; /* 패널 배경 */
   --cp-radius: 18px;
   --cp-height: 44vh; /* 기본 열림 높이 */
@@ -451,11 +452,29 @@ body {
 
 /* 헤더 */
 .cp-head {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 2px 14px 3px;
+  /* padding: 2px 14px 3px; */
+  padding: 2px 44px 3px 14px;
 }
+
+/* 공감순 텍스트를 오른쪽 끝으로 밀기 */
+.cp-sort {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  font: 500 13px/1 'Noto Sans KR', system-ui;
+  letter-spacing: -0.2px;
+  color: var(--cp-color-neg); /* 기본: 민원 빨강 */
+}
+
+/* 문화(긍정)일 때 색상 */
+.cp-sort.pos {
+  color: #22c55e;
+}
+
 .cp-title {
   color: #6b7280;
   font-weight: 590;
@@ -464,12 +483,25 @@ body {
 }
 .cp-close {
   margin-left: auto;
+  position: absolute;
   border: 0;
   background: transparent;
   font-size: 18px;
   cursor: pointer;
   color: #6b7280;
+  display: none;
 }
+
+/* .cp-close {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: #6b7280;
+} */
 
 /* 타입 배지 */
 .cp-badge {
@@ -614,7 +646,7 @@ body {
 .cp-cat {
   display: inline-block;
   margin-left: 8px;
-  padding: 3px 8px;
+  padding: 3px 3px;
   border-radius: 999px;
   background: #eaf7ef;
   color: #16a34a;
@@ -626,7 +658,7 @@ body {
 .cp-title-wrap {
   display: flex;
   align-items: baseline;
-  gap: 8px; /* 제목과 카테고리 간격 */
+  gap: 0px; /* 제목과 카테고리 간격 */
   min-width: 0;
 }
 
@@ -647,7 +679,7 @@ body {
   padding: 0;
   border-radius: 0;
   color: #9ca3af; /* 회색 */
-  font: 700 14px/1 'Noto Sans KR', system-ui;
+  font: 500 13px/1 'Noto Sans KR', system-ui;
   white-space: nowrap;
   flex: 0 0 auto;
 }

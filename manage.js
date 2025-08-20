@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
   VIEW.detail.className = 'detail-view';
   VIEW.detail.innerHTML = `
     <div class="detail-head">
-      <button class="detail-back" type="button" aria-label="뒤로가기"><button class="detail-back" type="button" aria-label="뒤로가기">
+      <button class="detail-back" type="button" aria-label="뒤로가기">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
     <path d="M15 6 L9 12 L15 18" 
           fill="none" 
@@ -544,7 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
           stroke-linecap="round" 
           stroke-linejoin="round"/>
   </svg>
-</button>
 </button>
       <div style="font-weight:650; font-size:1.1rem;">관리하기</div>
     </div>
