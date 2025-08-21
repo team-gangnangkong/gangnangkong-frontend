@@ -1,25 +1,61 @@
-const API_BASE = 'http://localhost:8080'; // 배포 백엔드
-const LOGIN_PATH = '/oauth2/authorization/kakao';
-const ME_PATH = '/api/user/me';
+// index.js — Kakao OAuth (쿠키 기반, 배포 백엔드 고정)
+(() => {
+  const API_BASE = 'https://sorimap.it.com'; // 배포 백엔드
+  const CLIENT_ID = '21a378dd1e0ed38b3f458c67dd55f414'; // 카카오 REST API 키
+  const CALLBACK_PATH = '/kakao/callback';
+  const REDIRECT_URI = `${API_BASE}${CALLBACK_PATH}`;
+  const SCOPE = 'profile_nickname,profile_image';
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('kakao-login-btn').addEventListener('click', () => {
-    location.href = `${API_BASE}${LOGIN_PATH}`;
-  });
-  document.querySelector('.admin-login')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    location.href = 'manage.html';
-  });
-  checkLogin();
-});
+  // 카카오 권한요청 URL
+  const AUTH_URL =
+    `https://kauth.kakao.com/oauth/authorize` +
+    `?response_type=code` +
+    `&client_id=${encodeURIComponent(CLIENT_ID)}` +
+    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+    `&scope=${encodeURIComponent(SCOPE)}`;
 
-async function checkLogin() {
-  try {
-    const res = await fetch(`${API_BASE}${ME_PATH}`, {
-      credentials: 'include',
-    });
-    if (res.ok) location.replace('map.html'); // 로그인 상태면 바로 이동
-  } catch (_) {
-    /* 네트워크 실패는 무시하고 현재 페이지 유지 */
+  // 로그인 여부 확인 API
+  const ME_PATH = '/api/user/me';
+  const isJson = (res) =>
+    res.headers.get('content-type')?.includes('application/json');
+
+  async function checkLogin() {
+    try {
+      const res = await fetch(`${API_BASE}${ME_PATH}`, {
+        method: 'GET',
+        credentials: 'include', // ★ 쿠키 포함
+      });
+      if (res.ok && isJson(res)) {
+        // 로그인 상태면 지도 화면으로
+        location.replace('map.html');
+      }
+      // 401/403/HTML이면 현재 페이지 유지
+    } catch (e) {
+      console.warn('[checkLogin] network ignored:', e);
+    }
   }
-}
+
+  function bindUI() {
+    const loginBtn = document.querySelector('#kakao-login-btn');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        location.href = AUTH_URL; // 카카오 로그인 시작
+      });
+    }
+    const admin = document.querySelector('.admin-login');
+    if (admin) {
+      admin.addEventListener('click', (e) => {
+        e.preventDefault();
+        location.href = 'manage.html';
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    bindUI();
+    checkLogin(); // 첫 진입 시 로그인 여부 체크
+    console.log('[AUTH_URL]', AUTH_URL);
+    console.log('[REDIRECT_URI]', REDIRECT_URI);
+  });
+})();
