@@ -183,27 +183,55 @@
             </svg>
             <div class="header-title">글쓰기</div>
           </div>
-          <form>
-            <label>제목<span class="required">*</span></label>
-            <input type="text" placeholder="제목을 입력하세요." required />
+          <form id="feedForm">
+            <label for="titleInput">제목<span class="required">*</span></label>
+            <input
+              id="titleInput"
+              name="title"
+              type="text"
+              placeholder="제목을 입력하세요."
+              required
+            />
 
             <label>카테고리<span class="required">*</span></label>
             <div class="category-group">
-              <button type="button" class="category-btn selected">민원</button>
-              <button type="button" class="category-btn">문화</button>
+              <button
+                type="button"
+                class="category-btn selected"
+                data-type="COMPLAINT"
+              >
+                민원
+              </button>
+              <button type="button" class="category-btn" data-type="CULTURE">
+                문화
+              </button>
             </div>
 
-            <label>위치<span class="required">*</span></label>
-            <div class="location-input">
-              <img src="./image/mappin.svg" alt="지도 아이콘" />
-              <input
-                type="text"
-                style="flex: 1"
-                placeholder="건물, 지번 또는 도로명 검색"
-                required
-              />
-            </div>
-            <input type="text" placeholder="상세주소" />
+            <label for="addressInput"
+              >위치<span class="required">*</span></label
+            >
+            <input
+              id="addressInput"
+              name="address"
+              type="text"
+              placeholder="건물, 지번 또는 도로명 검색"
+              required
+            />
+
+            <label for="detailAddressInput">상세주소</label>
+            <input
+              id="detailAddressInput"
+              name="detailAddress"
+              type="text"
+              placeholder="상세주소"
+            />
+
+            <input
+              id="locationIdInput"
+              name="locationId"
+              type="hidden"
+              value="1"
+            />
 
             <label>사진<span class="required">*</span></label>
             <div class="photo-upload">
@@ -211,55 +239,94 @@
               <span class="upload-text"
                 >사진을 업로드해주세요.<br />(jpg, jpeg, png)</span
               >
-              <input type="file" accept=".jpg,.jpeg,.png" required />
+              <input
+                id="imageInput"
+                name="images"
+                type="file"
+                accept=".jpg,.jpeg,.png"
+                multiple
+                required
+              />
             </div>
 
-            <textarea placeholder="내용을 입력하세요."></textarea>
-            <button type="submit" class="submit-btn">작성하기</button>
+            <label for="contentInput">내용</label>
+            <textarea
+              id="contentInput"
+              name="content"
+              placeholder="내용을 입력하세요."
+            ></textarea>
+
+            <button id="submitBtn" type="submit" class="submit-btn" disabled>
+              작성하기
+            </button>
           </form>
         </div>
       </div>
     </div>
 
     <script>
-      // 카테고리 버튼 토글
-      document.querySelectorAll(".category-btn").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          document.querySelectorAll(".category-btn").forEach((b) => {
-            b.classList.remove("selected");
-            b.classList.remove("selected-culture");
+      const form = document.getElementById("feedForm");
+      let selectedType = "COMPLAINT"; // 초기값
+
+      // 카테고리 버튼 토글 및 선택 타입 저장
+      form.querySelectorAll(".category-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          form.querySelectorAll(".category-btn").forEach((b) => {
+            b.classList.remove("selected", "selected-culture");
           });
-          this.classList.add("selected");
-          if (this.textContent.trim() === "문화") {
-            this.classList.add("selected-culture");
-          }
+          btn.classList.add("selected");
+          if (btn.dataset.type === "CULTURE")
+            btn.classList.add("selected-culture");
+          selectedType = btn.dataset.type;
+          updateButtonColor();
         });
       });
 
-      // 필수 요소 선택
-      const titleInput = document.querySelector(
-        'input[placeholder="제목을 입력하세요."]'
-      );
-      const categoryBtns = document.querySelectorAll(".category-btn");
-      const locationInput = document.querySelector(
-        'input[placeholder="건물, 지번 또는 도로명 검색"]'
-      );
-      const photoInput = document.querySelector(
-        '.photo-upload input[type="file"]'
-      );
-      const submitBtn = document.querySelector(".submit-btn");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!isFormValid()) return;
 
+        const feedData = {
+          title: form.title.value.trim(),
+          content: form.content.value.trim(),
+          type: selectedType,
+          address: form.address.value.trim(),
+          lat: parseFloat(form.lat.value) || 0,
+          lng: parseFloat(form.lng.value) || 0,
+          locationId: parseInt(form.locationId.value, 10),
+        };
+
+        const images = form.images.files;
+
+        createFeedWithImages(feedData, images)
+          .then(() => {
+            alert("피드가 성공적으로 작성되었습니다!");
+            // 추가 행동 (페이지 이동 등)
+          })
+          .catch((err) => {
+            alert("피드 작성 중 오류가 발생했습니다: " + err.message);
+          });
+      });
+
+      // 폼 유효성 검사용 요소 선택
+      const titleInput = form.querySelector('input[name="title"]');
+      const categoryBtns = Array.from(form.querySelectorAll(".category-btn"));
+      const locationInput = form.querySelector('input[name="address"]');
+      const photoInput = form.querySelector('input[type="file"]');
+      const submitBtn = form.querySelector(".submit-btn");
+
+      // 폼 유효성 체크 함수
       function isFormValid() {
-        // 제목 입력, 위치 입력, 파일 업로드, 카테고리 선택(하나라도 .selected)
         const isTitle = titleInput.value.trim() !== "";
-        const isCategory = Array.from(categoryBtns).some((btn) =>
+        const isCategory = categoryBtns.some((btn) =>
           btn.classList.contains("selected")
         );
         const isLocation = locationInput.value.trim() !== "";
-        const isPhoto = !!photoInput.files && photoInput.files.length > 0;
+        const isPhoto = photoInput.files && photoInput.files.length > 0;
         return isTitle && isCategory && isLocation && isPhoto;
       }
 
+      // 제출 버튼 색상 및 활성화 상태 업데이트
       function updateButtonColor() {
         if (isFormValid()) {
           submitBtn.style.background = "#F87171";
@@ -268,11 +335,11 @@
         } else {
           submitBtn.style.background = "#FEF2F2";
           submitBtn.style.color = "#f43f5e";
-          submitBtn.disabled = true; // 비활성화는 선택적으로
+          submitBtn.disabled = true;
         }
       }
 
-      // 이벤트 바인딩
+      // 입력 요소 및 버튼 이벤트에 유효성 검사 함수 연결
       [titleInput, locationInput].forEach((input) => {
         input.addEventListener("input", updateButtonColor);
       });
@@ -281,7 +348,7 @@
       });
       photoInput.addEventListener("change", updateButtonColor);
 
-      // 페이지 진입 시 초기상태도 반영
+      // 페이지 로드 시 버튼 상태 초기화
       updateButtonColor();
     </script>
   </body>
