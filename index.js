@@ -1,4 +1,3 @@
-// index.js — Kakao OAuth (쿠키 기반, 배포 백엔드 고정)
 (() => {
   const API_BASE = 'https://sorimap.it.com'; // 배포 백엔드
   const CLIENT_ID = '21a378dd1e0ed38b3f458c67dd55f414'; // 카카오 REST API 키
@@ -23,7 +22,7 @@
     try {
       const res = await fetch(`${API_BASE}${ME_PATH}`, {
         method: 'GET',
-        credentials: 'include', // ★ 쿠키 포함
+        credentials: 'include',
       });
       if (res.ok && isJson(res)) {
         // 로그인 상태면 지도 화면으로
