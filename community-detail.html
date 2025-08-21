@@ -243,6 +243,50 @@
         color: #f87171;
       }
 
+      /* js로 추가되는 댓글 */
+      .comment-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+      }
+
+      /* 댓글 본문 영역 */
+      .comment-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* 상단(작성자+시간) */
+      .comment-top {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 3px;
+      }
+
+      .comment-author {
+        font-weight: 700;
+        font-size: 15px;
+        color: #232323;
+      }
+
+      .comment-time {
+        margin-left: auto;
+        color: #9ca3af;
+        font-size: 13px;
+        font-weight: 400;
+      }
+
+      /* 댓글 텍스트(본문) */
+      .comment-text {
+        font-size: 15px;
+        color: #333;
+        line-height: 1.55;
+        white-space: pre-line;
+        word-break: break-word;
+      }
+
       /* 반응형 */
       @media (max-width: 430px) {
         .app {
@@ -829,91 +873,6 @@
       </div>
     </div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const commentInput = document.querySelector(".comment-input");
-        const sendBtn = document.querySelector(".comment-send-btn");
-        const sendSvgPath = sendBtn.querySelector("svg path");
-        const commentList = document.getElementById("comment-list");
-        const noComment = document.getElementById("no-comment");
-        const commentTitle = document.getElementById("comment-title");
-
-        let comments = []; // 댓글 배열
-
-        // 시간 문자열 (몇 분 전)
-        function formatTime(date) {
-          const diff = Math.floor((Date.now() - date.getTime()) / 60000);
-          return diff <= 0 ? "방금 전" : `${diff}분 전`;
-        }
-
-        // 댓글 렌더링
-        function renderComments() {
-          if (comments.length === 0) {
-            commentList.style.display = "none";
-            noComment.style.display = "flex";
-            commentTitle.textContent = "댓글 0";
-          } else {
-            commentList.innerHTML = "";
-            comments.forEach((item) => {
-              const el = document.createElement("div");
-              el.className = "comment-item";
-              el.innerHTML = `
-              <span class="comment-avatar"></span>
-              <div class="comment-content">
-                <div class="comment-top">
-                  <span class="comment-author">${item.author}</span>
-                  <span class="comment-time">${formatTime(item.time)}</span>
-                </div>
-                <div class="comment-text">${item.text}</div>
-              </div>
-            `;
-              commentList.appendChild(el);
-            });
-            commentList.style.display = "block";
-            noComment.style.display = "none";
-            commentTitle.textContent = `댓글 ${comments.length}`;
-          }
-        }
-
-        // 댓글 추가 함수
-        function addComment() {
-          const val = commentInput.value.trim();
-          if (val.length === 0) return;
-          comments.push({
-            author: "최가을",
-            text: val,
-            time: new Date(),
-          });
-          commentInput.value = "";
-          renderComments();
-          updateSendBtnState(); // 입력후 버튼 상태 갱신
-        }
-
-        // 버튼 SVG 색 및 커서 상태 갱신
-        function updateSendBtnState() {
-          if (commentInput.value.trim().length > 0) {
-            sendSvgPath.setAttribute("fill", "#F87171");
-            sendBtn.style.cursor = "pointer";
-          } else {
-            sendSvgPath.setAttribute("fill", "#9CA3AF");
-            sendBtn.style.cursor = "default";
-          }
-        }
-
-        // 이벤트 바인딩
-        sendBtn.addEventListener("click", addComment);
-        commentInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            addComment();
-          }
-        });
-        commentInput.addEventListener("input", updateSendBtnState);
-
-        // 초기 렌더 및 상태 적용
-        renderComments();
-        updateSendBtnState();
-      });
-    </script>
+    <script src="community-detail.js"></script>
   </body>
 </html>

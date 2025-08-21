@@ -84,7 +84,7 @@
         color: #d81341;
         font-weight: 600;
       }
-      .category-btn.selected-culture {
+      .category-btn.selected.selected-culture {
         background: #dcfce7 !important;
         border: none;
         color: #15803d !important;
@@ -263,93 +263,5 @@
         </div>
       </div>
     </div>
-
-    <script>
-      const form = document.getElementById("feedForm");
-      let selectedType = "COMPLAINT"; // 초기값
-
-      // 카테고리 버튼 토글 및 선택 타입 저장
-      form.querySelectorAll(".category-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          form.querySelectorAll(".category-btn").forEach((b) => {
-            b.classList.remove("selected", "selected-culture");
-          });
-          btn.classList.add("selected");
-          if (btn.dataset.type === "CULTURE")
-            btn.classList.add("selected-culture");
-          selectedType = btn.dataset.type;
-          updateButtonColor();
-        });
-      });
-
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        if (!isFormValid()) return;
-
-        const feedData = {
-          title: form.title.value.trim(),
-          content: form.content.value.trim(),
-          type: selectedType,
-          address: form.address.value.trim(),
-          lat: parseFloat(form.lat.value) || 0,
-          lng: parseFloat(form.lng.value) || 0,
-          locationId: parseInt(form.locationId.value, 10),
-        };
-
-        const images = form.images.files;
-
-        createFeedWithImages(feedData, images)
-          .then(() => {
-            alert("피드가 성공적으로 작성되었습니다!");
-            // 추가 행동 (페이지 이동 등)
-          })
-          .catch((err) => {
-            alert("피드 작성 중 오류가 발생했습니다: " + err.message);
-          });
-      });
-
-      // 폼 유효성 검사용 요소 선택
-      const titleInput = form.querySelector('input[name="title"]');
-      const categoryBtns = Array.from(form.querySelectorAll(".category-btn"));
-      const locationInput = form.querySelector('input[name="address"]');
-      const photoInput = form.querySelector('input[type="file"]');
-      const submitBtn = form.querySelector(".submit-btn");
-
-      // 폼 유효성 체크 함수
-      function isFormValid() {
-        const isTitle = titleInput.value.trim() !== "";
-        const isCategory = categoryBtns.some((btn) =>
-          btn.classList.contains("selected")
-        );
-        const isLocation = locationInput.value.trim() !== "";
-        const isPhoto = photoInput.files && photoInput.files.length > 0;
-        return isTitle && isCategory && isLocation && isPhoto;
-      }
-
-      // 제출 버튼 색상 및 활성화 상태 업데이트
-      function updateButtonColor() {
-        if (isFormValid()) {
-          submitBtn.style.background = "#F87171";
-          submitBtn.style.color = "#fff";
-          submitBtn.disabled = false;
-        } else {
-          submitBtn.style.background = "#FEF2F2";
-          submitBtn.style.color = "#f43f5e";
-          submitBtn.disabled = true;
-        }
-      }
-
-      // 입력 요소 및 버튼 이벤트에 유효성 검사 함수 연결
-      [titleInput, locationInput].forEach((input) => {
-        input.addEventListener("input", updateButtonColor);
-      });
-      categoryBtns.forEach((btn) => {
-        btn.addEventListener("click", updateButtonColor);
-      });
-      photoInput.addEventListener("change", updateButtonColor);
-
-      // 페이지 로드 시 버튼 상태 초기화
-      updateButtonColor();
-    </script>
   </body>
 </html>
