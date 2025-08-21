@@ -21,6 +21,28 @@ async function fetchComments(feedId) {
   }
 }
 
+// 공감 API 호출 함수
+async function postLike(feedId) {
+  try {
+    const response = await fetch(
+      `http://localhost:8080/api/reactions/like?feedId=${feedId}`,
+      {
+        method: "POST",
+        credentials: "include", // 쿠키(ACCESS-TOKEN) 포함
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) throw new Error("서버 오류");
+    const result = await response.text();
+    return result;
+  } catch (error) {
+    alert(error.message);
+    return null;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const commentInput = document.querySelector(".comment-input");
   const sendBtn = document.querySelector(".comment-send-btn");
@@ -28,6 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const commentList = document.getElementById("comment-list");
   const noComment = document.getElementById("no-comment");
   const commentTitle = document.getElementById("comment-title");
+  const likeBtn = document.querySelector(".like-btn");
+  const likeCountSpan = document.querySelector(".card-like span"); // 공감 숫자 부분
   const feedId = 1; // 실제 피드 ID로 교체
   fetchComments(feedId);
 
@@ -110,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (result) {
       // API서 반환된 새 댓글을 comments 배열에 추가하고 화면 갱신
       comments.push({
-        author: result.author || "최가을",
+        author: result.author || "을랑이", // 기본 작성자 이름
         body: result.body || val,
         createdAt: result.createdAt || new Date().toISOString(),
       });
@@ -119,6 +143,23 @@ document.addEventListener("DOMContentLoaded", () => {
       renderComments();
     }
   }
+
+  // 공감 버튼
+  likeBtn.addEventListener("click", async () => {
+    likeBtn.disabled = true;
+    const resultMsg = await postLike(feedId);
+    likeBtn.disabled = false;
+    if (resultMsg) {
+      alert(resultMsg); // "공감 완료" 또는 "이미 공감하셨습니다."
+
+      // "공감 완료"일 때만 카운트 증가
+      if (resultMsg.includes("공감 완료")) {
+        let count = parseInt(likeCountSpan.textContent, 10) || 0;
+        likeCountSpan.textContent = count + 1;
+      }
+      // 중복 공감 시(이미 공감하셨습니다.) 카운트 변화 없음
+    }
+  });
 
   // 버튼 SVG 색 및 커서 상태 갱신
   function updateSendBtnState() {
