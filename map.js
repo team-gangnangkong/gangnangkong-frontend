@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==== API 기본 설정 ====
-const API_BASE = 'http://localhost:8080'; // 배포 시 교체
+const API_BASE = 'https://sorimap.it.com'; // 배포 시 교체
 
 const ENDPOINTS = {
   // 지도 클러스터 (줌아웃 시)

@@ -1,8 +1,8 @@
 (() => {
   const API_BASE = 'https://sorimap.it.com'; // 배포 백엔드
-  const CLIENT_ID = '21a378dd1e0ed38b3f458c67dd55f414'; // 카카오 REST API 키
+  const CLIENT_ID = '21a378dd1e0ed38b3f458c67dd55f414'; // 카카오 앶 키
   const CALLBACK_PATH = '/kakao/callback';
-  const REDIRECT_URI = `${API_BASE}${CALLBACK_PATH}`;
+  const REDIRECT_URI = `${API_BASE}${CALLBACK_PATH}`; //https://sorimap.it.com/kakao/callback
   const SCOPE = 'profile_nickname,profile_image';
 
   // 카카오 권한요청 URL
