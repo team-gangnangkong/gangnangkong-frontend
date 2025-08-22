@@ -59,7 +59,6 @@ const ENDPOINTS = {
   searchSelect: () => `/api/search/select`,
 };
 
-// 공통 fetch
 async function api(path, { method = 'GET', body, signal, headers } = {}) {
   const finalHeaders = new Headers(headers || {});
   if (
@@ -69,6 +68,10 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
   ) {
     finalHeaders.set('Content-Type', 'application/json');
   }
+  // 필요시 JWT
+  const token = localStorage.getItem('accessToken');
+  if (token) finalHeaders.set('Authorization', `Bearer ${token}`);
+
   const res = await fetch(API_BASE + path, {
     method,
     headers: finalHeaders,
@@ -77,12 +80,18 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
         ? body
         : JSON.stringify(body)
       : undefined,
-    credentials: 'omit',
+    credentials: 'include', // 쿠키세션 쓰면 유지, 아니면 'omit'
     signal,
   });
-  if (!res.ok) throw new Error(`${method} ${path} ${res.status}`);
 
-  const text = await res.text();
+  const text = await res.text().catch(() => '');
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status} ${method} ${path}`);
+    err.status = res.status;
+    err.url = API_BASE + path;
+    err.body = text;
+    throw err;
+  }
   try {
     return text ? JSON.parse(text) : null;
   } catch {
@@ -104,7 +113,13 @@ async function recordSelectedPlace({ id, name, addr, lat, lng }) {
     });
     return true;
   } catch (e) {
+    const msg = String(e?.message || e);
     console.warn('[search/select] fail', e);
+    if (msg.includes('404')) {
+      alert(
+        '선택 저장 API 경로가 서버에 없어요(404). 프록시/백엔드 라우팅을 확인해 주세요.'
+      );
+    }
     return false;
   }
 }
