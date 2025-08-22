@@ -1,69 +1,65 @@
-// POST 요청
-async function postFeed(formData, accessToken) {
-  try {
-    const response = await fetch("http://localhost:8080/api/feeds", {
-      method: "POST",
-      headers: {
-        "ACCESS-TOKEN": accessToken,
-      },
-      body: formData,
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("네트워크 응답이 이상합니다: " + response.statusText);
-    }
-    const data = await response.json(); // 응답
-    return data;
-  } catch (error) {
-    console.error("피드 전송 중 오류 발생:", error);
-    throw error;
-  }
-}
-
-// 피드 등록 함수
-async function submitFeed(accessToken) {
-  // 각 입력값 가져오기 (querySelector 또는 getElementById 등 자유)
-  const title = document.querySelector(".title-input").value;
-  const content = document.querySelector(".content-input").value;
-  const type = document.querySelector(".type-input").value;
-  const address = document.querySelector(".address-input").value;
-  const lat = parseFloat(document.querySelector(".lat-input").value);
-  const lng = parseFloat(document.querySelector(".lng-input").value);
-  const locationId = parseInt(
-    document.querySelector(".locationId-input").value,
-    10
-  );
-  const imagesInput = document.querySelector(".images-input");
-
-  // feed 객체 생성하여 JSON문자열 변환
-  const feedObj = {
-    title,
-    content,
-    type,
-    address,
-    lat,
-    lng,
-    locationId,
-  };
-  const feedJSON = JSON.stringify(feedObj);
-
-  // FormData 생성 및 값 넣기
-  const formData = new FormData();
-  formData.append("feed", feedJSON); // feed는 JSON string
-
-  // 이미지 여러 장 첨부 (images라는 key로 여러 번 추가)
-  if (imagesInput && imagesInput.files.length > 0) {
-    for (let i = 0; i < imagesInput.files.length; i++) {
-      formData.append("images", imagesInput.files[i]);
-    }
-  }
-
-  // 전송 함수 호출 (ACCESS-TOKEN 필요)
-  await postFeed(formData, accessToken);
-}
-
 // 글쓰기 버튼 클릭 시 write.html로 이동
 document.getElementById("writeBtn").addEventListener("click", function () {
   window.location.href = "write.html";
 });
+
+const maxCardsToShow = 5;
+const cardsToRender = allCards.slice(0, maxCardsToShow);
+
+document.addEventListener("DOMContentLoaded", () => {
+  const slider = document.querySelector(".on-going-card-slider");
+  const cardList = slider.querySelector(".on-going-card-list");
+  const cards = Array.from(cardList.querySelectorAll(".on-going-card"));
+  const pagination = slider.querySelector(".on-going-pagination");
+
+  let currentIndex = 0;
+
+  // 1. 카드 개수에 따라 on-going-dot 생성
+  function createDots() {
+    pagination.innerHTML = ""; // 초기화
+    for (let i = 0; i < cards.length; i++) {
+      const dot = document.createElement("span");
+      dot.classList.add("on-going-dot");
+      if (i === 0) dot.classList.add("active");
+      dot.dataset.index = i;
+      pagination.appendChild(dot);
+    }
+  }
+
+  // 2. 현재 보여지는 카드 on-going-dot active
+  function updateActiveDot(index) {
+    const dots = pagination.querySelectorAll(".on-going-dot");
+    dots.forEach((dot, i) => {
+      dot.classList.toggle("active", i === index);
+    });
+  }
+
+  // 3. 좌우 슬라이드 기능
+  function slideTo(index) {
+    if (index < 0) index = cards.length - 1;
+    else if (index >= cards.length) index = 0;
+
+    currentIndex = index;
+    const cardWidth = cards[0].offsetWidth;
+    cardList.style.transform = `translateX(${-cardWidth * index}px)`;
+    updateActiveDot(index);
+  }
+
+  // 도트 클릭 시 슬라이드 이동
+  pagination.addEventListener("click", (e) => {
+    if (e.target.classList.contains("on-going-dot")) {
+      const index = Number(e.target.dataset.index);
+      slideTo(index);
+    }
+  });
+
+  // 마우스나 터치로 좌우 슬라이드 구현 (선택 사항)
+  // 아래는 간단한 버튼 좌우 슬라이드 예제 추가 (버튼 직접 만들 경우)
+
+  // 초기 설정
+  createDots();
+  slideTo(0);
+});
+
+// 초기 실행, 전체 피드 불러오기
+loadFeeds();

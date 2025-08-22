@@ -2,7 +2,7 @@
 async function fetchComments(feedId) {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/comments/${feedId}`,
+      `https://sorimap.it.com/api/comments/${feedId}`,
       {
         method: "GET",
         credentials: "omit", // 쿠키 없음
@@ -25,7 +25,7 @@ async function fetchComments(feedId) {
 async function postLike(feedId) {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/reactions/like?feedId=${feedId}`,
+      `https://sorimap.it.com/api/reactions/like?feedId=${feedId}`,
       {
         method: "POST",
         credentials: "include", // 쿠키(ACCESS-TOKEN) 포함
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 댓글 등록 API
   async function postComment(feedId, body) {
     try {
-      const response = await fetch("http://localhost:8080/api/comments", {
+      const response = await fetch("https://sorimap.it.com/api/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
