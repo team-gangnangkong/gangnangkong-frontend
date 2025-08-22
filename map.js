@@ -54,9 +54,8 @@ const ENDPOINTS = {
   reactionsLike: (feedId) =>
     `/api/reactions/like?feedId=${encodeURIComponent(feedId)}`,
 
-  searchKeyword: (keyword) =>
-    `/api/search?keyword=${encodeURIComponent(keyword)}`,
-  searchSelect: () => `/api/search/select`,
+  searchKeyword: (keyword) => `/search?keyword=${encodeURIComponent(keyword)}`,
+  searchSelect: () => `/search/select`,
 };
 
 async function api(path, { method = 'GET', body, signal, headers } = {}) {
