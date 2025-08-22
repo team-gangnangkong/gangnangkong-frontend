@@ -177,6 +177,12 @@
           max-width: 100vw;
         }
       }
+
+      /* 로그아웃 버튼 */
+      .logout-button {
+        text-align: center;
+        margin: 30px 0;
+      }
     </style>
   </head>
   <body>
@@ -186,7 +192,7 @@
         <div class="profile-card">
           <div class="profile-row">
             <div class="profile-avatar"></div>
-            <div class="profile-name">최가을</div>
+            <div class="profile-name">을랑이</div>
             <div
               tabindex="0"
               role="button"
@@ -247,7 +253,7 @@
             </div>
           </div>
         </div>
-        <!-- 내가 작성한 민원 -->
+        <!-- 내가 작성한 민원 피드 -->
         <div class="section-title-row">
           <span>내가 작성한 민원</span>
           <a class="my-community-more" href="#">더보기</a>
@@ -333,7 +339,7 @@
               </svg>
               <span>지도</span>
             </a>
-            <a href="community.html" class="nav-item active">
+            <a href="community.html" class="nav-item">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -366,7 +372,7 @@
               </svg>
               <span>소통</span>
             </a>
-            <a href="mypage.html" class="nav-item">
+            <a href="mypage.html" class="nav-item active">
               <svg
                 width="25"
                 height="25"
@@ -381,6 +387,23 @@
               <span>내 활동</span>
             </a>
           </footer>
+        </div>
+
+        <!-- 로그아웃 버튼 -->
+        <div class="logout-button">
+          <button
+            id="logout-button"
+            style="
+              background: none;
+              border: none;
+              color: gray;
+              text-decoration: underline;
+              cursor: pointer;
+              font-size: 1rem;
+            "
+          >
+            로그아웃
+          </button>
         </div>
       </div>
     </div>
