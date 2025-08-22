@@ -10,6 +10,912 @@ body {
   background: #fef2f2;
 }
 
+/* 콘텐츠 영역이 남는 높이를 차지하도록 */
+.app-content {
+  flex: 1;
+  min-height: 0; /* flex overflow 방지 */
+}
+
+/* 맵: 하단바 높이(95px) + 안전영역까지 빼고 꽉 채움 */
+.map {
+  width: 100%;
+  height: calc(100dvh - 95px);
+}
+
+:root {
+  --accent: #ff5b61;
+  --muted: #9ca3af;
+}
+
+/* 지도 위 UI 컨테이너 */
+.map-ui {
+  position: absolute;
+  inset: 0;
+  bottom: 95px; /* 하단바 위로 */
+  pointer-events: none; /* 기본은 클릭 막고 */
+  z-index: 1500;
+}
+
+/* 검색바 */
+.search-bar {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 50px;
+  height: 50px;
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  pointer-events: auto; /* 이 요소만 클릭 허용 */
+}
+.search-ico {
+  flex: 0 0 auto;
+  color: #f87171;
+}
+
+.search-ico circle,
+.search-ico line {
+  stroke-width: 3px;
+}
+
+.search-bar input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 14px;
+  color: #111;
+}
+.search-bar input::placeholder {
+  color: #616367;
+}
+
+/* 내 위치 FAB */
+.mypos-fab {
+  position: absolute;
+  right: 29px;
+  bottom: 58px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto; /* 버튼 클릭 가능 */
+  z-index: 1001;
+  touch-action: manipulation;
+  display: block;
+}
+
+.mypos-fab svg {
+  display: block;
+}
+.mypos-fab .gps-dot {
+  fill: #4b5563;
+}
+.mypos-fab.active .gps-dot {
+  fill: var(--accent);
+} /* 클릭 시 빨강 */
+
+/* 페이지 전환 토글 */
+#searchView {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  background: #fbfbfc;
+  overflow: hidden;
+  flex-direction: column;
+  z-index: 1200;
+}
+#searchView[hidden] {
+  display: none;
+}
+.app.searching .map,
+.app.searching .map-ui,
+.app.searching .bottom-nav {
+  display: none;
+}
+
+/* 검색 상단/입력 UI(간단 스타일) */
+.search-top {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: max(14px, env(safe-area-inset-top)) 14px 10px 10px;
+  background: #f9fafb;
+  margin-top: 37px;
+  margin-bottom: 5px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 주소 검색 뒤로 가기 버튼 필요시 display:grid */
+.icon-btn {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: #f9fafb;
+  display: none;
+  place-items: center;
+  margin-right: 5px;
+  margin-left: -10px;
+}
+.search-input-wrap {
+  flex: 1;
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 12px;
+  color: #7d8087;
+  height: 48px;
+  margin-left: 10px;
+  margin-right: 10px;
+  padding-left: 12px;
+}
+
+.search-ico {
+  color: #f87171;
+}
+#searchFull {
+  flex: 1;
+  height: 50px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 15px;
+}
+.clear-btn {
+  border: 0;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  display: none;
+  cursor: pointer;
+}
+.search-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0px 14px calc(24px + env(safe-area-inset-bottom));
+}
+.hint {
+  margin: 200px 0 0;
+  text-align: center;
+  color: #a1a1aa;
+  font-size: 14px;
+}
+.search-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.search-list li {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.06);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.search-list .name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.search-list .addr {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* ========== 선택 바텀시트 ========== */
+.place-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 0; /* 모서리 없음 = 꽉차게 */
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06);
+  padding: 16px 16px 22px;
+  z-index: 1100;
+}
+
+.app.pick-mode .map-ui {
+  bottom: 0;
+}
+.place-sheet[hidden] {
+  display: none;
+}
+
+.place-sheet__body {
+  padding: 4px 4px 10px;
+}
+.place-sheet .title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.place-sheet .addr {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.pick-btn {
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #f87171;
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* 상태 전환: pick-mode일 때 하단바 숨기고 시트 보이기 */
+.app.pick-mode .bottom-nav {
+  display: none;
+}
+.app.pick-mode #placeSheet {
+  display: block;
+}
+
+/* 버튼 그룹이 맵 우하단에 나란히 붙도록(바텀시트보다 위!) */
+.map-fab-wrap {
+  position: absolute;
+  right: 30px;
+  bottom: 48px; /* 기본 위치 */
+  display: flex;
+  gap: 8px;
+  z-index: 1510;
+  pointer-events: auto;
+}
+
+/* 선택하기 시트가 열렸을 때 위치 변경 */
+.app.pick-mode .map-fab-wrap {
+  right: 23px;
+  bottom: 165px;
+}
+
+.map-fab {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #4b5563;
+  background: #fff;
+}
+
+/* 래퍼 안으로 들어가면 절대배치 제거 */
+.map-fab-wrap .mypos-fab {
+  position: static;
+  right: auto;
+  bottom: auto;
+}
+
+.map-fab:hover {
+  color: #f87171;
+}
+
+#mypos-btn svg path {
+  fill: #4b5563;
+}
+#mypos-btn:hover svg path {
+  fill: #f87171;
+}
+
+/* 혹시 rect 색이 변하면 고정 */
+#mypos-btn svg rect {
+  fill: #ffffff;
+}
+
+/* 새 목록 버튼: 기본은 숨김 → pick-mode일 때만 표시 */
+#openSearchBtn {
+  display: none;
+  color: #4b5563;
+  background-color: transparent;
+  border: none;
+}
+#openSearchBtn:hover,
+#openSearchBtn:active {
+  color: #f87171;
+}
+.app.pick-mode #openSearchBtn {
+  display: block;
+}
+
+/* ==== 긍정이/부정이 커스텀 핀 ==== */
+.mood-pin {
+  width: 20px;
+  height: 36px;
+  transform: translate(-50%, -100%); /* 머리 꼭대기가 좌표 */
+  pointer-events: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  background-color: transparent !important;
+}
+.mood-pin img,
+.mood-pin svg {
+  width: 32px;
+  height: 42px;
+
+  display: block;
+}
+.mood-pin__count {
+  position: absolute;
+  right: -4px;
+  top: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #ff5b61;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* ==== 그룹화 동그라미 ==== */
+.cluster-bubble {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.cluster-bubble.pos {
+  /* 문화(긍정) */
+  border: 2px solid #22c55e;
+  background: rgba(187, 247, 207, 0.65);
+}
+.cluster-bubble.neg {
+  /* 민원(부정) */
+  border: 2px solid #f87171;
+  background: rgba(254, 226, 226, 0.65);
+}
+.cluster-bubble.pos .cluster-count {
+  color: #22c55e; /* 문화 → 초록 */
+}
+.cluster-bubble.neg .cluster-count {
+  color: #f87171; /* 민원 → 빨강 */
+}
+
+/* 라벨 제거 */
+.cluster-label {
+  display: none;
+}
+
+/* ===== 하단 패널 ===== */
+:root {
+  --cp-sort-pink: #f87171;
+  --cp-bg: #f7f8fb; /* 패널 배경 */
+  --cp-radius: 18px;
+  --cp-height: 44vh; /* 기본 열림 높이 */
+  --cp-color-pos: #22c55e; /* 문화 */
+  --cp-fill-pos: #dcfce7;
+  --cp-color-neg: #f87171; /* 민원 */
+  --cp-fill-neg: #fef2f2;
+}
+
+.cluster-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--cp-height);
+  max-height: var(--cp-max, 70vh);
+  background: var(--cp-bg);
+  border-top-left-radius: var(--cp-radius);
+  border-top-right-radius: var(--cp-radius);
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.06);
+  z-index: 1400;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.22s ease;
+  touch-action: none;
+}
+.app.panel-open .cluster-panel {
+  transform: translateY(0);
+}
+
+/* 상단 그립(막대) */
+.cp-grip {
+  width: 48px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.18);
+  margin: 10px auto 8px;
+}
+
+/* 헤더 */
+.cp-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* padding: 2px 14px 3px; */
+  padding: 2px 44px 3px 14px;
+}
+
+/* 공감순 텍스트를 오른쪽 끝으로 밀기 */
+.cp-sort {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  font: 500 13px/1 "Noto Sans KR", system-ui;
+  letter-spacing: -0.2px;
+  color: var(--cp-color-neg); /* 기본: 민원 빨강 */
+}
+
+/* 문화(긍정)일 때 색상 */
+.cp-sort.pos {
+  color: #22c55e;
+}
+
+.cp-title {
+  color: #6b7280;
+  font-weight: 590;
+  font-size: 13px;
+  padding-left: 5px;
+}
+.cp-close {
+  margin-left: auto;
+  position: absolute;
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: #6b7280;
+  display: none;
+}
+
+/* .cp-close {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: #6b7280;
+} */
+
+/* 타입 배지 */
+.cp-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: 700 12px/1 "Noto Sans KR", system-ui;
+  color: #fff;
+  background: var(--cp-color-neg); /* 기본: 민원 */
+}
+.cp-badge.pos {
+  background: var(--cp-color-pos);
+}
+
+/* 리스트 */
+.cp-list {
+  flex: 1;
+  overflow: auto;
+  padding: 6px 14px calc(20px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 공감해요 버톤+아래 좋아요표시+ 좋아요 수 묶음 */
+.cp-card {
+  background: #fff;
+  border-radius: 11px;
+  padding: 2px 16px 12px;
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  align-self: flex-start;
+  position: relative;
+}
+
+.cp-card > .cp-addr {
+  margin-top: -15px; /* -4 ~ -8px 사이로 조절 */
+}
+/* 민원 공감 버튼 hover */
+.cp-card:not(.pos) .cp-likebtn:hover {
+  background: #ef4444;
+}
+
+/* 문화 공감 버튼 hover */
+.cp-card.pos .cp-likebtn:hover {
+  background: #16a34a;
+}
+
+/* 공감 버튼이 '눌림' 상태일 때(토글 온) → hover 색으로 고정 */
+.cp-likebtn.is-liked {
+  background: #ef4444;
+} /* 민원(빨강) */
+.cp-card.pos .cp-likebtn.is-liked {
+  background: #16a34a;
+} /* 문화(초록) */
+
+.cp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cp-title-txt {
+  color: #111827;
+  letter-spacing: -0.2px;
+  font-weight: 600;
+  padding-top: 0px;
+  margin: 0;
+  font-size: 18px;
+}
+.cp-addr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 13px;
+}
+.cp-addr .addr-ico {
+  width: 17px;
+  height: 20px;
+  border-radius: 50%;
+  background: transparent;
+  flex: 0 0 auto;
+  color: #9ca3af;
+}
+
+/* 공감 버튼(민원/문화 색상) */
+.cp-likebtn {
+  margin-left: auto;
+  margin-top: 18px;
+  border: 0;
+  align-self: center;
+  border-radius: 11px;
+  padding: 12px 14px;
+  font: 700 14px/1 "Noto Sans KR";
+  color: #fff;
+  background: var(--cp-color-neg);
+}
+.cp-card.pos .cp-likebtn {
+  background: var(--cp-color-pos);
+}
+
+/* 진행바 모사 */
+.cp-progress {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: #fde2e2;
+  overflow: hidden;
+}
+.cp-card.pos .cp-progress {
+  background: #d1fadf;
+}
+.cp-progress > i {
+  position: absolute;
+  inset: 0;
+  width: 62%;
+  background: #ef4444; /* 데모용 고정폭 */
+}
+.cp-card.pos .cp-progress > i {
+  background: #22c55e;
+}
+.cp-progress .pin {
+  position: absolute;
+  left: 38%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+.cp-card.pos .cp-progress .pin {
+  background: #22c55e;
+}
+
+/* 문화 카테고리 배지 */
+.cp-cat {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 3px;
+  border-radius: 999px;
+  background: #eaf7ef;
+  color: #16a34a;
+  font: 700 11px/1 "Noto Sans KR", system-ui;
+  vertical-align: middle;
+}
+
+/* 제목-카테고리 한 줄 정렬 */
+.cp-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0px; /* 제목과 카테고리 간격 */
+  min-width: 0;
+}
+
+/* 제목은 굵게, 길면 말줄임 */
+.cp-title-wrap .cp-title-txt {
+  margin: 0;
+  font-weight: 700;
+  font-size: 18px;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 카테고리: 회색 텍스트, pill 제거 */
+.cp-title-wrap .cp-cat {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: #9ca3af; /* 회색 */
+  font: 500 13px/1 "Noto Sans KR", system-ui;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* 문화 후기 버블 */
+.cp-review {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 4px;
+}
+.cp-review-ico {
+  width: 18px;
+  height: 18px;
+  color: #22c55e;
+  flex: 0 0 auto;
+}
+.cp-review-text {
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 두 줄 말줄임 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 민원 진행 상태 바(라벨 포함) */
+.cp-status {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+.cp-status-label {
+  color: #9ca3af;
+  font-size: 12px;
+}
+.cp-status .cp-progress {
+  height: 12px;
+  border-radius: 999px;
+  background: #fde2e2;
+  position: relative;
+  overflow: hidden;
+}
+.cp-status .cp-progress > i {
+  position: absolute;
+  inset: 0 0 0 0;
+  width: 60%;
+  background: #ef4444;
+}
+.cp-status .cp-progress .pin {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+/* === 민원 본문 버블 === */
+
+:root {
+  --accent-pos: #22c55e; /* 초록(원하면 색 바꿔도 됨) */
+  --accent-neg: #f87171; /* 기존 민원 빨강 */
+}
+
+/* 문화 카드 말풍선 아이콘을 초록으로 */
+.cp-card.pos .cp-bubble-ico {
+  color: var(--accent-pos);
+}
+
+/* (선택) 말풍선 텍스트 2줄 말줄임표 */
+.cp-bubble-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cp-bubble,
+.cp-complaint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #f9fafb; /* 스샷처럼 연회색 버블 */
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 6px;
+  width: 70%;
+}
+
+.cp-bubble-ico,
+.cp-complaint-ico {
+  width: 18px;
+  height: 18px;
+  color: #f87171; /* 민원(빨강) */
+  flex: 0 0 auto;
+}
+
+.cp-bubble-text,
+.cp-complaint-text {
+  color: #303135;
+  font-size: 13px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 두 줄 말줄임 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 카드 영구 선택(핀 고정/카드 선택 시) */
+.cp-card.is-selected {
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
+  outline: 2px solid rgba(248, 113, 113, 0.25); /* 민원 기본 빨강 */
+  outline-offset: 0;
+}
+.cp-card.pos.is-selected {
+  outline-color: rgba(34, 197, 94, 0.25); /* 문화 초록 */
+}
+
+/* 좋아요 수 */
+.cp-likecount {
+  position: absolute;
+  width: 30px; /* 아이콘 크기 */
+  height: 2px;
+  display: inline-flex;
+  stroke: currentColor;
+  align-items: center;
+  gap: 4px;
+  fill: none; /* 채우기 없음 */
+  stroke-width: 2; /* 선 두께 */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: #f87171;
+  margin-left: auto;
+  white-space: nowrap;
+  right: 20px;
+  bottom: 25px;
+}
+.cp-card.pos .cp-likecount {
+  color: #22c55e;
+}
+
+/* 패널 열리면 하단 내비 숨김 */
+.app.panel-open .bottom-nav {
+  display: none;
+}
+
+/* 패널이 열려 있을 때는 패널 높이만큼 위로 밀기 */
+.app.panel-open .map-ui {
+  bottom: var(--cp-height);
+}
+
+.app.panel-open .map-fab-wrap {
+  bottom: 16px; /* 패널 위에서 16px 띄움(원하면 조절) */
+}
+
+/* 카드 하이라이트 */
+.cp-card.bump {
+  box-shadow: 0 6px 5px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+  transition: box-shadow 0.25s ease, transform 0.15s ease;
+}
+
+#cp-edge-open {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px; /* 손잡이 높이와 유사 */
+  z-index: 4000;
+  pointer-events: auto;
+  touch-action: none; /* 제스처 인식 */
+  background: transparent; /* 보이지 않음 */
+}
+
+/* 핀 컨테이너가 기준이 되도록 */
+.mood-pin {
+  position: relative;
+  width: 20px;
+  height: 36px;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  background: transparent !important;
+}
+.mood-pin img {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 42px;
+  display: block;
+}
+
+/* 원(기본은 보이지 않음) */
+.mood-pin::before {
+  content: "";
+  position: absolute;
+  left: 79%;
+  top: 64%;
+  /* 핀의 머리 중심에 맞추기 위해 약간 위로 */
+  transform: translate(-50%, -58%) scale(0.6);
+  width: 55px; /* 원 지름 */
+  height: 55px;
+  border-radius: 50%;
+  opacity: 0;
+  z-index: 0;
+}
+/* 타입별 색 */
+.mood-pin.pos::before {
+  background: rgba(34, 197, 94, 0.3);
+} /* 초록(긍정) */
+.mood-pin.neg::before {
+  background: rgba(248, 113, 113, 0.3);
+} /* 빨강(부정) */
+
+/* hover/press 시 원 보이기 */
+.mood-pin:hover::before,
+.mood-pin:active::before,
+.mood-pin.is-hover::before {
+  opacity: 1;
+  transform: translate(-50%, -58%) scale(1);
+}
+
+/* 기존 규칙 그대로 두고, 고정용 클래스만 추가 */
+.mood-pin.is-sticky::before {
+  opacity: 1;
+  transform: translate(-50%, -58%) scale(1);
+}
+
 /* 하단바 */
 .bottom-nav {
   position: absolute;

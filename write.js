@@ -23,7 +23,7 @@ async function createFeedWithImages(feedData, imageFiles) {
       }
     }
 
-    const response = await fetch("http://localhost:8080/api/feeds", {
+    const response = await fetch("https://sorimap.it.com/api/feeds", {
       method: "POST",
       headers: {
         "ACCESS-TOKEN": getAccessTokenFromCookie(),

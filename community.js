@@ -4,12 +4,10 @@ async function createFeed(formData) {
     const response = await fetch("https://sorimap.it.com/api/feeds", {
       method: "POST",
       headers: {
-        // 'Content-Type' is NOT set explicitly when using FormData,
-        // browser sets the correct multipart/form-data boundary automatically
-        "ACCESS-TOKEN": getAccessTokenFromCookie(), // assuming you have a function to get token from cookie
+        "ACCESS-TOKEN": getAccessTokenFromCookie(),
       },
       body: formData,
-      credentials: "include", // to send cookies (login session)
+      credentials: "include",
     });
 
     if (!response.ok) {
@@ -56,8 +54,6 @@ function renderFeeds(feeds) {
       feed.imageUrls && feed.imageUrls.length > 0
         ? feed.imageUrls[0]
         : "./image/default.jpg";
-
-    // 지역구 불러오는 api가 없는데 type은 어디다가 설정?
 
     card.innerHTML = `
   <div class="card-img-wrap">
@@ -118,6 +114,24 @@ async function loadFeeds(locationId = null) {
   }
 }
 
+// 특정 위치에 해당하는 피드만 필터링
+async function loadFeedsByLocation(locationId) {
+  try {
+    const response = await fetch(
+      `https://sorimap.it.com/api/feeds?locationId=${locationId}`
+    );
+    if (!response.ok) {
+      throw new Error("위치별 피드 조회 실패: " + response.status);
+    }
+    const feeds = await response.json();
+    renderFeeds(feeds);
+  } catch (error) {
+    console.error("위치별 피드 불러오기 에러:", error);
+    feedListContainer.innerHTML =
+      "<p>피드를 불러오는 중 오류가 발생했습니다.</p>";
+  }
+}
+
 // 상태별 조회
 async function loadFeedsByStatus(status, locationId = null) {
   try {
@@ -154,6 +168,8 @@ async function filterFeedsByCategory(category) {
     if (category === "MINWON" || category === "CULTURE") {
       // 민원 또는 문화일 경우 status별이 아니라 type별 필터링이 필요하므로,
       // API에 맞게 요청 URL 조정이 필요할 수 있습니다.
+
+      // 지역구(badge), 민원/문화(type)은 어디다가 설정?
       // 여기서는 type 필터 쿼리 파라미터 가정 예시:
       url += `?type=${category}`;
     }
