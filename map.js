@@ -54,8 +54,9 @@ const ENDPOINTS = {
   reactionsLike: (feedId) =>
     `/api/reactions/like?feedId=${encodeURIComponent(feedId)}`,
 
-  searchKeyword: (keyword) => `/search?keyword=${encodeURIComponent(keyword)}`,
-  searchSelect: () => `/search/select`,
+  searchKeyword: (keyword) =>
+    `/api/search?keyword=${encodeURIComponent(keyword)}`,
+  searchSelect: () => `/api/search/select`,
 };
 
 // 공통 fetch
@@ -76,7 +77,7 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
         ? body
         : JSON.stringify(body)
       : undefined,
-    credentials: 'include',
+    credentials: 'omit',
     signal,
   });
   if (!res.ok) throw new Error(`${method} ${path} ${res.status}`);
@@ -89,11 +90,12 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
   }
 }
 
-async function recordSelectedPlace({ name, addr, lat, lng }) {
+async function recordSelectedPlace({ id, name, addr, lat, lng }) {
   try {
     await api(ENDPOINTS.searchSelect(), {
       method: 'POST',
       body: {
+        ...(id != null ? { id } : {}), // ← 있으면 포함
         name,
         address: addr || '',
         latitude: lat,
@@ -1813,6 +1815,7 @@ async function init() {
           const rows = await api(ENDPOINTS.searchKeyword(q));
           return Array.isArray(rows)
             ? rows.map((r) => ({
+                id: r.id ?? r.placeId ?? null,
                 name: r.name,
                 addr: r.address || '',
                 lat: +(r.latitude ?? r.lat),
@@ -1957,10 +1960,10 @@ async function init() {
       list.innerHTML = items
         .map(
           (it) => `
-      <li data-lat="${it.lat}" data-lng="${it.lng}">
-        <div class="name">${it.name}</div>
-        ${it.addr ? `<div class="addr">${it.addr}</div>` : ''}
-      </li>`
+    <li data-id="${it.id ?? ''}" data-lat="${it.lat}" data-lng="${it.lng}">
+      <div class="name">${it.name}</div>
+      ${it.addr ? `<div class="addr">${it.addr}</div>` : ''}
+    </li>`
         )
         .join('');
       list.style.display = 'block';
@@ -1968,8 +1971,9 @@ async function init() {
     }
 
     function pickFromList(li) {
-      const lat = +li.dataset.lat,
-        lng = +li.dataset.lng;
+      const lat = +li.dataset.lat;
+      const lng = +li.dataset.lng;
+      const id = li.dataset.id ? Number(li.dataset.id) : undefined;
       const name = li.querySelector('.name')?.textContent?.trim() || '';
       const addr = li.querySelector('.addr')?.textContent?.trim() || '';
       const pos = new kakao.maps.LatLng(lat, lng);
@@ -1998,7 +2002,7 @@ async function init() {
       if (smallInput) smallInput.value = name;
 
       // 시트 열기
-      _selectedPlace = { name, addr, lat, lng };
+      _selectedPlace = { id, name, addr, lat, lng };
       psName.textContent = name;
       psAddr.textContent = addr || '주소 정보 없음';
       sheet.hidden = false;
@@ -2085,7 +2089,7 @@ async function init() {
           );
       } finally {
         pickBtn.disabled = false;
-        pickBtn.textContent = '이 장소 선택';
+        pickBtn.textContent = '선택하기';
       }
 
       const sheet = document.getElementById('placeSheet');
