@@ -1,5 +1,7 @@
+// 민원 MINWON, 문화 MUNHWA
+
 const writeForm = document.getElementById("feedForm");
-let selectedType = "COMPLAINT"; // 초기 카테고리
+let selectedType = "MINWON"; // 초기 카테고리
 
 // ACCESS-TOKEN 쿠키에서 가져오는 함수
 function getAccessTokenFromCookie() {
@@ -43,6 +45,43 @@ async function createFeedWithImages(feedData, imageFiles) {
     throw error;
   }
 }
+/*
+1. 사용자가 글쓰기 페이지에서 "지도에서 찾기" 버튼 클릭 → map.html 새창(또는 모달) 열림
+
+2. map.html에서 사용자가 지도에서 위치 선택 → selectLocation(address, lat, lng) 호출
+
+3. selectLocation 함수가 window.opener.setLocation()을 통해 부모창(글쓰기 페이지)에 정보 전달, map.html은 닫힘
+
+4.글쓰기 페이지의 setLocation이 input 값 채워줌
+*/
+
+// 지도창 열기
+function openMap() {
+  window.open("map.html", "mapWindow");
+}
+
+// 위치 (addressInput) 클릭 시 지도 열기
+document.getElementById("addressInput").addEventListener("click", function (e) {
+  openMap();
+});
+
+// 주소address 위도lat 경도lng 값 채우기
+function setLocation(address, lat, lng) {
+  document.querySelector("#addressInput").value = address;
+  document.querySelector("#latInput").value = lat;
+  document.querySelector("#lngInput").value = lng;
+}
+
+// 사용자가 위치를 선택했을 때 (map.js에서 선택한거 write.html로 불러옴)
+function onPlaceSelected(address, lat, lng) {
+  // 부모창(write.html)의 setLocation 함수 호출
+  if (window.opener && typeof window.opener.setLocation === "function") {
+    window.opener.setLocation(address, lat, lng);
+    window.close(); // 선택 후 창 닫기
+  } else {
+    alert("위치 정보를 전달할 수 없습니다.");
+  }
+}
 
 // 카테고리 버튼 토글 및 선택 상태 저장
 const categoryBtns = Array.from(writeForm.querySelectorAll(".category-btn"));
@@ -52,10 +91,10 @@ categoryBtns.forEach((btn) => {
       b.classList.remove("selected", "selected-culture");
     });
     btn.classList.add("selected");
-    if (btn.dataset.type === "CULTURE") {
+    if (btn.dataset.type === "MUNHWA") {
       btn.classList.add("selected-culture");
     }
-    selectedType = btn.dataset.type;
+    selectedType = btn.dataset.type; // MINWON 또는 MUNHWA
     updateButtonColor();
   });
 });
@@ -107,7 +146,7 @@ writeForm.addEventListener("submit", async (e) => {
   const feedData = {
     title: writeForm.title.value.trim(),
     content: writeForm.content.value.trim(),
-    type: selectedType,
+    type: selectedType, // MINWON 또는 MUNHWA
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
