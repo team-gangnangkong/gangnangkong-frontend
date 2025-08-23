@@ -90,7 +90,11 @@ function hydrateProfile(data) {
 
   if (shouldUseFallback) {
     setBG(FALLBACK);
+      avatarEl.classList.add('is-fallback');
+  avatarEl.style.backgroundImage = `url('${FALLBACK}')`;
   } else {
+    avatarEl.classList.remove('is-fallback');
+  avatarEl.style.backgroundImage = `url('${avatarUrl}')`;
     const img = new Image();
     img.onload = () => setBG(avatarUrl);
     img.onerror = () => setBG(FALLBACK);
