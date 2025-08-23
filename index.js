@@ -23,14 +23,19 @@
       const res = await fetch(`${API_BASE}${ME_PATH}`, {
         method: 'GET',
         credentials: 'include',
+        cache: 'no-store', // 캐시 방지
       });
-      if (res.ok && isJson(res)) {
-        // 로그인 상태면 지도 화면으로
+      if (res.status !== 200) return; // 200 아닐 땐 로그인 아님
+      if (!isJson(res)) return; // JSON 아니면 로그인 아님
+
+      const me = await res.json();
+      const hasUser =
+        me && (me.id || me.userId || me.uid || me.username || me.name);
+      if (hasUser) {
         location.replace('map.html');
       }
-      // 401/403/HTML이면 현재 페이지 유지
     } catch (e) {
-      console.warn('[checkLogin] network ignored:', e);
+      console.warn('[checkLogin] ignored:', e);
     }
   }
 
@@ -53,7 +58,9 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     bindUI();
-    checkLogin(); // 첫 진입 시 로그인 여부 체크
+    const q = new URLSearchParams(location.search);
+    const skipAuto = q.has('loggedout'); // mypage에서 붙여준 쿼리
+    if (!skipAuto) checkLogin();
     console.log('[AUTH_URL]', AUTH_URL);
     console.log('[REDIRECT_URI]', REDIRECT_URI);
   });
