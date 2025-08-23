@@ -39,33 +39,65 @@
     }
   }
 
-  // 닉네임/프로필
-  function hydrateProfile(data) {
-    const name =
-      data?.nickname ||
-      data?.name ||
-      data?.username ||
-      data?.profile?.nickname ||
-      '사용자';
+ // ── 닉네임/프로필 ─────────────────────────────────────────────
+function hydrateProfile(data) {
+  const name =
+    data?.nickname ||
+    data?.name ||
+    data?.username ||
+    data?.profile?.nickname ||
+    '사용자';
 
-    const profileNameEl = document.querySelector('.profile-name');
-    if (profileNameEl) profileNameEl.textContent = name;
+  document.querySelector('.profile-name')?.textContent = name;
 
-    const avatarUrl =
-      data?.profileImageUrl ||
-      data?.profile_image_url ||
-      data?.profile_image ||
-      data?.profile?.profile_image_url ||
-      data?.picture;
+  const avatarUrl =
+    data?.profileImageUrl ||
+    data?.profile_image_url ||
+    data?.profile_image ||
+    data?.profile?.profile_image_url ||
+    data?.picture ||
+    '';
 
-    const avatarEl = document.querySelector('.profile-avatar');
-    if (avatarEl && avatarUrl) {
-      avatarEl.style.backgroundImage = `url('${avatarUrl}')`;
-      avatarEl.style.backgroundSize = 'cover';
-      avatarEl.style.backgroundPosition = 'center';
-      avatarEl.style.borderRadius = '50%';
-    }
+  const isDefaultFlag =
+    data?.isDefaultImage ??
+    data?.is_default_image ??
+    data?.profile?.is_default_image ??
+    null;
+
+  const kakaoDefaultPatterns = [
+    /kakaocdn\.net\/.*default_profile/i,
+    /kakaocdn\.net\/account_images\/default_/i,
+  ];
+  const isKakaoDefaultUrl =
+    typeof avatarUrl === 'string' &&
+    kakaoDefaultPatterns.some((re) => re.test(avatarUrl));
+
+  // ✅ 네가 말한 기본 이미지 파일명 사용
+  const FALLBACK = 'profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
+
+  const shouldUseFallback =
+    !avatarUrl || isDefaultFlag === true || isKakaoDefaultUrl;
+
+  const avatarEl = document.querySelector('.profile-avatar');
+  if (!avatarEl) return;
+
+  const setBG = (url) => {
+    avatarEl.style.backgroundImage = `url('${url}')`;
+    avatarEl.style.backgroundSize = 'cover';
+    avatarEl.style.backgroundPosition = 'center';
+    avatarEl.style.borderRadius = '50%';
+  };
+
+  if (shouldUseFallback) {
+    setBG(FALLBACK);
+  } else {
+    const img = new Image();
+    img.onload = () => setBG(avatarUrl);
+    img.onerror = () => setBG(FALLBACK);
+    img.src = avatarUrl;
   }
+}
+
 
   // 공감 히스토리 채우기 (기존 리스트 갈아끼움)
   function hydrateLikeHistory(list) {
@@ -151,10 +183,11 @@
     _isLoggingOut = true;
 
     try {
-      let used = null,
-        lastStatus = 0;
+      let ok = false,
+        lastStatus = 0,
+        used = null;
 
-      // 1) 후보 엔드포인트들 시도
+      // 1) 정상 fetch POST 시도(쿠키 포함)
       for (const p of LOGOUT_CANDIDATES) {
         const url = api(p);
         console.log('[try logout]', url);
@@ -164,34 +197,44 @@
         });
         lastStatus = res.status;
         if (res.ok || res.status === 204) {
+          ok = true;
           used = p;
           break;
         }
+        // 404면 다음 후보 계속
       }
-      if (!used)
-        throw new Error('logout 실패 (마지막 상태=' + lastStatus + ')');
 
-      // 2) 진짜 로그아웃됐는지 확인(토큰이 살아있으면 바로 200 나옴)
-      await new Promise((r) => setTimeout(r, 120)); // 쿠키 반영 여유
+      // 2) fetch로 쿠키가 안 지워졌을 수 있으니(크로스도메인 Set-Cookie 미반영 등)
+      //    폼 POST를 hidden iframe으로 한 번 더 날려 확실하게 처리 (CORS 미적용)
+      const iframe = document.createElement('iframe');
+      iframe.name = 'logout_iframe';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      const form = document.createElement('form');
+      form.action = api(used || LOGOUT_CANDIDATES[0]); // 가장 유력한 경로로
+      form.method = 'POST';
+      form.target = 'logout_iframe';
+      document.body.appendChild(form);
+      form.submit();
+
+      // 3) 쿠키 반영 시간 잠깐 주고 /me로 성공 여부 확인
+      await new Promise((r) => setTimeout(r, 200));
       const me = await fetch(api(PATHS.me), {
         credentials: 'include',
         cache: 'no-store',
       });
 
-      if (me.status === 200) {
-        // 3) 하드 로그아웃: API 엔드포인트로 "최상위 네비게이션" 이동 (1st-party 컨텍스트에서 Set-Cookie 확실히 반영)
-        // 서버가 리다이렉트를 지원하면 ?redirect= 로 우리 사이트로 돌아오게 하면 베스트
-        const hardUrl = api(used);
-        console.warn('[hard logout redirect]', hardUrl);
-        location.href = hardUrl; // 서버에서 200만 주면 API 응답 화면이 잠깐 보일 수 있음(임시 우회)
-        return;
-      }
-
-      // 4) 성공 → 클라이언트 캐시 정리 후 인덱스로
+      // 4) 성공 처리
+      try {
+        sessionStorage.setItem('justLoggedOut', '1');
+      } catch {}
       try {
         sessionStorage.clear();
         localStorage.removeItem('userInfo');
       } catch {}
+
+      // 5) 인덱스로 (GET으로 API로 이동 절대 금지! 405 원인)
       location.replace('index.html');
     } catch (e) {
       console.error(e);
@@ -199,7 +242,6 @@
       _isLoggingOut = false;
     }
   }
-
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.profile-row')?.addEventListener('click', () => {
