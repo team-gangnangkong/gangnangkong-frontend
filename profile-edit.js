@@ -1,57 +1,59 @@
-// profile-edit.js
 (() => {
   const API_BASE = 'https://sorimap.it.com';
-  const ENDPOINTS = {
+  const EP = {
     me: '/api/user/me',
-    changeNickname: '/api/users/me/nickname',
-    changeProfileImage: '/api/users/me/profile-image',
+    nickname: '/api/users/me/nickname',
+    profileImage: '/api/users/me/profile-image',
   };
-  const FALLBACK_IMG = './image/profile_default.png';
+  const FALLBACK = './image/profile_default.png';
 
-  // ---- DOM ----
-  const els = {
-    profileImg: document.querySelector('.profile-img'),
-    profileImgWrap: document.querySelector('.profile-img-wrap'),
-    sheet: document.getElementById('sheet'),
-    albumBtn: document.getElementById('album-btn'),
-    closeBtn: document.getElementById('close-btn'),
-    albumInput: document.getElementById('album-input'),
+  const state = { els: {} };
+  const q = (s) => document.querySelector(s);
 
-    nicknameInput: document.getElementById('nickname-input'),
-    clearBtn: document.getElementById('clear-btn'),
-    errorMsg: document.getElementById('nickname-error'),
-    submitBtn: document.getElementById('submit-btn'),
-  };
-
-  // ---- helpers ----
-  const isKakaoDefaultUrl = (u) =>
-    typeof u === 'string' &&
+  // kakao 기본 이미지 판별
+  const isKakaoDefaultUrl = (u = '') =>
     /kakaocdn\.net\/.*default_profile|kakaocdn\.net\/account_images\/default_/i.test(
       u
     );
 
-  function setProfileImage(url, isFallback = false) {
-    if (!els.profileImg) return;
-    els.profileImg.src = url || FALLBACK_IMG;
-    els.profileImg.classList.toggle('is-fallback', isFallback || !url);
-    // 네트워크/권한 등으로 이미지 못 불러오면 기본 이미지로
-    els.profileImg.onerror = () => {
-      els.profileImg.onerror = null;
-      els.profileImg.src = FALLBACK_IMG;
-      els.profileImg.classList.add('is-fallback');
+  // DOM 요소 캐싱
+  function cacheEls() {
+    state.els = {
+      profileImg: q('.profile-img'),
+      profileImgWrap: q('.profile-img-wrap'),
+      sheet: q('#sheet'),
+      albumBtn: q('#album-btn'),
+      closeBtn: q('#close-btn'),
+      albumInput: q('#album-input'),
+      nicknameInput: q('#nickname-input'),
+      clearBtn: q('#clear-btn'),
+      errorMsg: q('#nickname-error'),
+      submitBtn: q('#submit-btn'),
     };
   }
 
-  // ---- 현재 프로필 불러오기 ----
+  // 프로필 이미지 세팅
+  function setProfileImage(url, isFallback = false) {
+    const img = state.els.profileImg;
+    if (!img) return;
+    img.classList.toggle('is-fallback', isFallback || !url);
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = FALLBACK;
+      img.classList.add('is-fallback');
+    };
+    img.src = url || FALLBACK;
+  }
+
+  // 내 정보 불러오기 -> 이미지/닉네임 초기화
   async function loadMyProfile() {
     try {
-      const res = await fetch(API_BASE + ENDPOINTS.me, {
+      const res = await fetch(API_BASE + EP.me, {
         method: 'GET',
         credentials: 'include',
         cache: 'no-store',
       });
       if (!res.ok) throw new Error('unauthorized');
-
       const me = await res.json();
 
       const imgUrl =
@@ -62,62 +64,61 @@
         me?.picture ||
         '';
 
-      const isDefaultFlag =
+      const isDefault =
         me?.isDefaultImage ??
         me?.is_default_image ??
         me?.profile?.is_default_image ??
         null;
 
-      if (!imgUrl || isDefaultFlag === true || isKakaoDefaultUrl(imgUrl)) {
-        setProfileImage(FALLBACK_IMG, true);
+      if (!imgUrl || isDefault === true || isKakaoDefaultUrl(imgUrl)) {
+        setProfileImage(FALLBACK, true);
       } else {
-        setProfileImage(imgUrl, false);
+        // 캐시 버스트로 즉시 반영
+        setProfileImage(`${imgUrl}?t=${Date.now()}`, false);
       }
 
-      // 닉네임 초기값
       const initialName = me?.nickname || me?.name || me?.username || '';
-      if (els.nicknameInput && initialName) {
-        els.nicknameInput.value = initialName;
+      if (state.els.nicknameInput && initialName) {
+        state.els.nicknameInput.value = initialName;
         updateNicknameState();
       }
     } catch {
-      setProfileImage(FALLBACK_IMG, true);
+      setProfileImage(FALLBACK, true);
     }
   }
 
-  // ---- 닉네임 검증 & 상태 ----
-  function validateNickname(v) {
-    return (
-      typeof v === 'string' && v.trim().length >= 2 && v.trim().length <= 10
-    );
-  }
+  // 닉네임 검증/상태
+  const validateNickname = (v) =>
+    typeof v === 'string' && (v = v.trim()).length >= 2 && v.length <= 10;
+
   function updateNicknameState() {
-    const v = els.nicknameInput?.value?.trim() || '';
+    const { nicknameInput, errorMsg, submitBtn } = state.els;
+    const v = nicknameInput?.value?.trim() || '';
     if (!validateNickname(v)) {
-      els.errorMsg.textContent = '닉네임은 2-10자로 입력해 주세요.';
-      els.submitBtn.classList.remove('active');
-      els.submitBtn.disabled = true;
+      errorMsg.textContent = '닉네임은 2-10자로 입력해 주세요.';
+      submitBtn.classList.remove('active');
+      submitBtn.disabled = true;
     } else {
-      els.errorMsg.textContent = '';
-      els.submitBtn.classList.add('active');
-      els.submitBtn.disabled = false;
+      errorMsg.textContent = '';
+      submitBtn.classList.add('active');
+      submitBtn.disabled = false;
     }
   }
 
-  // ---- 닉네임 변경 요청 (문서 스펙 반영) ----
+  // 닉네임 변경 요청
   async function changeNickname(newNickname) {
-    const res = await fetch(API_BASE + ENDPOINTS.changeNickname, {
+    const res = await fetch(`${API_BASE}${EP.nickname}`, {
       method: 'PATCH',
-      credentials: 'include', // 쿠키 전송
+      mode: 'cors',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'application/json, text/plain;q=0.9,*/*;q=0.8',
+        Accept: 'application/json',
       },
       body: JSON.stringify({ nickname: newNickname }),
+      cache: 'no-store',
     });
-
     if (!res.ok) {
-      // 서버가 text로 에러를 줄 수도 있으니 안전하게 처리
       let msg = '닉네임 변경 실패';
       try {
         const ct = res.headers.get('content-type') || '';
@@ -127,78 +128,31 @@
       } catch {}
       throw new Error(msg);
     }
-
-    // 성공 메시지도 JSON 또는 텍스트일 수 있음
-    let message = '닉네임이 정상적으로 변경되었습니다.';
-    try {
-      const ct = res.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        const data = await res.json();
-        if (typeof data?.message === 'string') message = data.message;
-      } else {
-        const txt = await res.text();
-        if (txt) message = txt;
-      }
-    } catch {}
-
-    return message;
+    return '닉네임이 정상적으로 변경되었습니다.';
   }
 
-  // ---- 제출 버튼 클릭 ----
-  els.submitBtn.addEventListener('click', async () => {
-    if (els.submitBtn.disabled) return;
-    const newNickname = (els.nicknameInput.value || '').trim();
-    if (!validateNickname(newNickname)) return;
-
-    // UX: 진행중 비활성화
-    els.submitBtn.disabled = true;
-    const prevLabel = els.submitBtn.textContent;
-    els.submitBtn.textContent = '저장 중...';
-
-    try {
-      const msg = await changeNickname(newNickname);
-      alert(msg);
-    } catch (e) {
-      els.errorMsg.textContent =
-        e.message || '닉네임 변경 중 오류가 발생했습니다.';
-    } finally {
-      els.submitBtn.textContent = prevLabel;
-      els.submitBtn.disabled = false;
-    }
-  });
-
-  // 입력 변화시 상태 업데이트
-  els.nicknameInput.addEventListener('input', updateNicknameState);
-  els.clearBtn.addEventListener('click', () => {
-    els.nicknameInput.value = '';
-    els.nicknameInput.focus();
-    updateNicknameState();
-  });
-
-  // ---- 프로필 이미지 업로드 ----
+  // 파일 선택 -> 프로필 이미지 업로드
   async function onFileChosen(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const fd = new FormData();
-    // 문서상의 키 이름과 동일하게!
-    fd.append('profileImage', file);
+    fd.append('profileImage', file); // 문서 스펙 키 이름
 
     try {
-      const res = await fetch(API_BASE + ENDPOINTS.changeProfileImage, {
+      const res = await fetch(API_BASE + EP.profileImage, {
         method: 'PATCH',
         credentials: 'include',
-        body: fd, // Content-Type 직접 설정하지 않기
+        body: fd, // Content-Type 직접 설정 금지
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || '프로필 이미지 변경 실패');
       }
       const data = await res.json(); // { message, imageUrl }
-      // 캐시 무시를 위해 쿼리 붙여서 즉시 반영
       setProfileImage(`${data.imageUrl}?t=${Date.now()}`, false);
       closeSheet();
-      els.albumInput.value = '';
+      state.els.albumInput.value = '';
       alert(data.message || '프로필 이미지가 정상적으로 변경되었습니다.');
     } catch (err) {
       console.error(err);
@@ -206,51 +160,76 @@
     }
   }
 
-  // ---- bottom sheet ----
-  function openSheet() {
-    els.sheet.style.display = 'flex';
-  }
-  function closeSheet() {
-    els.sheet.style.display = 'none';
-    els.albumBtn.classList.remove('selected');
-  }
+  // 바텀시트
+  const openSheet = () => (state.els.sheet.style.display = 'flex');
+  const closeSheet = () => {
+    state.els.sheet.style.display = 'none';
+    state.els.albumBtn.classList.remove('selected');
+  };
 
-  // ---- init ----
-  document.addEventListener('DOMContentLoaded', () => {
-    // 프로필/닉네임 현재값 불러오기
-    loadMyProfile();
+  // 이벤트 바인딩(단 한 번)
+  function bindEvents() {
+    const {
+      nicknameInput,
+      clearBtn,
+      submitBtn,
+      profileImgWrap,
+      closeBtn,
+      albumBtn,
+      albumInput,
+    } = state.els;
 
-    // 닉네임 입력/지우기/제출
-    els.nicknameInput.addEventListener('input', updateNicknameState);
-    els.clearBtn.addEventListener('click', () => {
-      els.nicknameInput.value = '';
-      els.nicknameInput.focus();
+    nicknameInput.addEventListener('input', updateNicknameState);
+    clearBtn.addEventListener('click', () => {
+      nicknameInput.value = '';
+      nicknameInput.focus();
       updateNicknameState();
     });
-    els.submitBtn.addEventListener('click', async () => {
-      if (els.submitBtn.disabled) return;
+
+    submitBtn.addEventListener('click', async () => {
+      if (submitBtn.disabled) return;
+      const v = nicknameInput.value.trim();
+      if (!validateNickname(v)) return;
+      const prev = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = '저장 중...';
       try {
-        await changeNickname(els.nicknameInput.value.trim());
+        await changeNickname(v);
         alert('닉네임이 정상적으로 변경되었습니다!');
       } catch (e) {
-        els.errorMsg.textContent =
+        state.els.errorMsg.textContent =
           e.message || '닉네임 변경 중 오류가 발생했습니다.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = prev;
       }
     });
 
-    // 이미지 바텀시트
-    els.profileImgWrap.addEventListener('click', openSheet);
-    els.closeBtn.addEventListener('click', closeSheet);
+    profileImgWrap.addEventListener('click', openSheet);
+    closeBtn.addEventListener('click', closeSheet);
 
-    // 앨범 버튼 효과 + 파일 선택
-    const press = () => els.albumBtn.classList.add('selected');
+    const press = () => albumBtn.classList.add('selected');
     const release = () =>
-      setTimeout(() => els.albumBtn.classList.remove('selected'), 180);
-    els.albumBtn.addEventListener('mousedown', press);
-    els.albumBtn.addEventListener('mouseup', release);
-    els.albumBtn.addEventListener('touchstart', press);
-    els.albumBtn.addEventListener('touchend', release);
-    els.albumBtn.addEventListener('click', () => els.albumInput.click());
-    els.albumInput.addEventListener('change', onFileChosen);
-  });
+      setTimeout(() => albumBtn.classList.remove('selected'), 180);
+    albumBtn.addEventListener('mousedown', press);
+    albumBtn.addEventListener('mouseup', release);
+    albumBtn.addEventListener('touchstart', press);
+    albumBtn.addEventListener('touchend', release);
+    albumBtn.addEventListener('click', () => albumInput.click());
+    albumInput.addEventListener('change', onFileChosen);
+  }
+
+  // 초기화
+  function init() {
+    cacheEls();
+    bindEvents();
+    loadMyProfile();
+    updateNicknameState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
