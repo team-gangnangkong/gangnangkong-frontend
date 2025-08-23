@@ -1,3 +1,7 @@
+console.info('[mypage] mypage.js loaded');
+window.addEventListener('error',  e => console.error('[JS ERROR]', e.message, e.error));
+window.addEventListener('unhandledrejection', e => console.error('[PROMISE REJECTION]', e.reason));
+
 (() => {
   const API_BASE = 'https://sorimap.it.com'; // 백엔드 도메인
   const PATHS = {
@@ -183,23 +187,26 @@ async function doLogout() {
     _isLoggingOut = true;
 
     const btn = document.querySelector(LOGOUT_BTN_SELECTOR);
-    if (btn) btn.disabled = true;
+    if (btn) {
+    btn.disabled = true;
+    btn.textContent = '로그아웃 중...';
+    btn.style.opacity = '0.6';
+  }
 
+  try {
+    const res = await fetch(`${API_BASE}${PATHS.logout}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    });
+    console.log('[logout] status', res.status);
+  } catch (e) {
+    console.warn('[logout] network ignored:', e);
+  } finally {
     try {
-      // 1) 서버에 로그아웃 요청 → 서버가 ACCESS/REFRESH 쿠키 Max-Age=0으로 삭제
-      await fetch(`${API_BASE}${PATHS.logout}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-      });
-    } catch (e) {
-      console.warn('[logout] network ignored:', e);
-    } finally {
-      // 2) 클라이언트 상태 정리 (있으면)
-      try {
-        localStorage.removeItem('userInfo');
-        sessionStorage.clear();
-      } catch (_) {}
+      localStorage.removeItem('userInfo');
+      sessionStorage.clear();
+    } catch {}
 
       // 3) 인덱스로 이동 (캐시 방지용 쿼리 붙임)
       location.replace(`index.html?loggedout=${Date.now()}`);
@@ -222,10 +229,13 @@ async function doLogout() {
   document.addEventListener('DOMContentLoaded', () => {
   guard(); // 로그인 아니면 index로
 
-  document.querySelector('#logout-button')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    doLogout();
-  });
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#logout-button');
+  if (!btn) return;
+  console.log('[logout] click'); // ← 클릭 여부 즉시 확인
+  e.preventDefault();
+  doLogout();
+});
 
   document.querySelector('.profile-row')?.addEventListener('click', () => {
     location.href = 'profile-edit.html';
