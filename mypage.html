@@ -30,7 +30,7 @@
         width: 48px;
         height: 48px;
         border-radius: 50%;
-        background: #ececec url("./image/index-char.png") center/cover no-repeat;
+        background: #ececec url('./image/index-char.png') center/cover no-repeat;
         border: 2.5px solid #fff;
       }
       .profile-name {
@@ -321,6 +321,23 @@
             </div>
           </div>
 
+          <!-- 로그아웃 버튼 -->
+          <div class="logout-button">
+            <button
+              id="logout-button"
+              style="
+                background: none;
+                border: none;
+                color: gray;
+                text-decoration: underline;
+                cursor: pointer;
+                font-size: 1rem;
+              "
+            >
+              로그아웃
+            </button>
+          </div>
+
           <!-- 하단바 -->
           <footer class="bottom-nav">
             <a href="map.html" class="nav-item">
@@ -339,7 +356,7 @@
               </svg>
               <span>지도</span>
             </a>
-            <a href="community.html" class="nav-item">
+            <a href="home.html" class="nav-item">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -388,31 +405,14 @@
             </a>
           </footer>
         </div>
-
-        <!-- 로그아웃 버튼 -->
-        <div class="logout-button">
-          <button
-            id="logout-button"
-            style="
-              background: none;
-              border: none;
-              color: gray;
-              text-decoration: underline;
-              cursor: pointer;
-              font-size: 1rem;
-            "
-          >
-            로그아웃
-          </button>
-        </div>
       </div>
     </div>
 
     <script>
       document
-        .querySelector(".profile-row")
-        .addEventListener("click", function () {
-          window.location.href = "profile-edit.html";
+        .querySelector('.profile-row')
+        .addEventListener('click', function () {
+          window.location.href = 'profile-edit.html';
         });
     </script>
   </body>
