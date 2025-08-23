@@ -1,9 +1,12 @@
 function getLocationIdFromURL() {
   const p = new URLSearchParams(location.search);
   const v = p.get('locationId');
+
   return v ? Number(v) : undefined;
 }
 const LOCATION_ID = getLocationIdFromURL();
+
+
 
 window.addEventListener('DOMContentLoaded', () => {
   if (!window.kakao || !kakao.maps || !kakao.maps.load) return;
@@ -11,6 +14,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==== API 기본 설정 ====
+
 const API_BASE = 'https://sorimap.it.com'; // 배포 시 교체
 
 const ENDPOINTS = {
@@ -42,7 +46,9 @@ const ENDPOINTS = {
   // 전체 피드 리스트
   feeds: ({ locationId } = {}) => {
     const q = new URLSearchParams({ ...(locationId ? { locationId } : {}) });
+
     return `/api/feeds${q.toString() ? `?${q}` : ''}`;
+
   },
 
   // 피드 상세
@@ -58,11 +64,14 @@ const ENDPOINTS = {
   searchSelect: () => `/search/select`,
 };
 
+
 async function api(path, { method = 'GET', body, signal, headers } = {}) {
+
   const finalHeaders = new Headers(headers || {});
   if (
     body &&
     !(body instanceof FormData) &&
+
     !finalHeaders.has('Content-Type')
   ) {
     finalHeaders.set('Content-Type', 'application/json');
@@ -70,6 +79,7 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
   // 필요시 JWT
   const token = localStorage.getItem('accessToken');
   if (token) finalHeaders.set('Authorization', `Bearer ${token}`);
+
 
   const res = await fetch(API_BASE + path, {
     method,
@@ -79,11 +89,13 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
         ? body
         : JSON.stringify(body)
       : undefined,
+
     credentials: 'include', // 쿠키세션 쓰면 유지, 아니면 'omit'
     signal,
   });
 
   const text = await res.text().catch(() => '');
+
   if (!res.ok) {
     const err = new Error(`HTTP ${res.status} ${method} ${path}`);
     err.status = res.status;
@@ -101,11 +113,13 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
 async function recordSelectedPlace({ id, name, addr, lat, lng }) {
   try {
     await api(ENDPOINTS.searchSelect(), {
+
       method: 'POST',
       body: {
         ...(id != null ? { id } : {}), // ← 있으면 포함
         name,
         address: addr || '',
+
         latitude: lat,
         longitude: lng,
       },
@@ -113,10 +127,12 @@ async function recordSelectedPlace({ id, name, addr, lat, lng }) {
     return true;
   } catch (e) {
     const msg = String(e?.message || e);
+
     console.warn('[search/select] fail', e);
     if (msg.includes('404')) {
       alert(
         '선택 저장 API 경로가 서버에 없어요(404). 프록시/백엔드 라우팅을 확인해 주세요.'
+
       );
     }
     return false;
@@ -125,6 +141,7 @@ async function recordSelectedPlace({ id, name, addr, lat, lng }) {
 
 // ===== 공통 변환/유틸 =====
 const CLUSTER_LEVEL_THRESHOLD = 7;
+
 const SENTI = { POS: 'POSITIVE', NEG: 'NEGATIVE', NEU: 'NEUTRAL' };
 
 const sentiToType = (s) => (s === 'NEGATIVE' ? 'neg' : 'pos');
@@ -133,6 +150,7 @@ const typeToSenti = (t) => (t === 'neg' ? SENTI.NEG : SENTI.POS);
 const statusToProgress = (s) =>
   s === 'RESOLVED' ? 100 : s === 'IN_PROGRESS' ? 60 : 10;
 
+
 // 패널/피드 → 지도 핀 모델
 function normalizeItem(row) {
   return {
@@ -140,12 +158,14 @@ function normalizeItem(row) {
     type: sentiToType(row.sentiment),
     lat: +row.lat,
     lng: +row.lng,
+
     title: row.title || (row.type === 'MINWON' ? '민원' : '문화'),
     addr: row.address || '',
     content: row.content || '',
     likes: row.likes ?? 0,
     likedByMe: !!row.likedByMe,
     status: row.status || 'OPEN',
+
     progress: Number.isFinite(row.progress)
       ? row.progress
       : statusToProgress(row.status),
@@ -155,7 +175,9 @@ function normalizeItem(row) {
 }
 
 async function init() {
+
   const container = document.getElementById('map');
+
   if (!container) return;
 
   if (container.clientWidth === 0 || container.clientHeight === 0) {
@@ -221,7 +243,9 @@ async function init() {
         type: sentiToType(c.sentiment),
       }));
     } catch (e) {
+
       console.warn('clusters fail', e);
+
       SV_CLUSTERS = [];
     } finally {
       _fetchingClusters = false;
@@ -251,7 +275,9 @@ async function init() {
       POINTS = [].concat(neg || [], pos || []).map(normalizeItem);
       attachCatFromCache(POINTS);
     } catch (e) {
+
       console.warn('panel fail', e);
+
       POINTS = [];
     } finally {
       _fetchingPins = false;
@@ -272,7 +298,9 @@ async function init() {
       await fetchPinsInView();
       renderMoodPins(POINTS);
     } catch (e) {
+
       console.warn('openPanelForType fail', e);
+
       openClusterPanel([], type);
     }
   }
@@ -280,8 +308,10 @@ async function init() {
   const getAllPoints = () => POINTS;
 
   // ==== 아이콘 파일 경로 ====
+
   const POS_URL = '/image/positive.png';
   const NEG_URL = '/image/negative.png';
+
 
   let _stickyMoodPin = null;
   let _stickyKey = null;
@@ -295,13 +325,17 @@ async function init() {
   function clearStickyMoodPin() {
     // 카드 강조들 제거
     try {
+
       panelListEl.querySelectorAll('.cp-card').forEach((c) => {
         c.classList.remove('bump', 'highlight', 'is-selected');
+
       });
     } catch (_) {}
     //원 배경 제거
     if (_stickyMoodPin)
+
       _stickyMoodPin.classList.remove('is-sticky', 'is-hover');
+
     _stickyMoodPin = null;
     _stickyKey = null;
   }
@@ -312,17 +346,21 @@ async function init() {
       return false;
     }
     if (_stickyMoodPin && _stickyMoodPin !== el) {
+
       _stickyMoodPin.classList.remove('is-sticky', 'is-hover');
     }
     _stickyMoodPin = el;
     _stickyKey = key;
     el.classList.add('is-sticky', 'is-hover');
+
     return true;
   }
   function applyStickyClasses(el) {
     if (!el) return;
     _stickyMoodPin = el;
+
     el.classList.add('is-sticky', 'is-hover');
+
   }
 
   // 좌표로 핀 강조
@@ -338,9 +376,11 @@ async function init() {
       if (sticky) {
         setStickyMoodPin(el, key);
       } else {
+
         el.classList.add('is-hover');
         setTimeout(() => {
           if (_stickyMoodPin !== el) el.classList.remove('is-hover');
+
         }, 1600);
       }
       return true;
@@ -381,15 +421,18 @@ async function init() {
   }
 
   function makeMoodOverlay(p) {
+
     const el = document.createElement('div');
     el.className = `mood-pin ${p.type}`;
     el.innerHTML = `<img src="${p.type === 'pos' ? POS_URL : NEG_URL}" alt="${
+
       p.type
     }">`;
 
     const latKey = p.origLat != null ? p.origLat : p.lat;
     const lngKey = p.origLng != null ? p.origLng : p.lng;
     const key = pinKey(p.type, latKey, lngKey);
+
 
     el.addEventListener('mouseenter', () => {
       if (_hoverAllowed || _stickyMoodPin === el) el.classList.add('is-hover');
@@ -399,9 +442,11 @@ async function init() {
       () => {
         if (_hoverAllowed || _stickyMoodPin === el)
           el.classList.add('is-hover');
+
       },
       { passive: true }
     );
+
 
     el.addEventListener('mouseleave', () => {
       if (_stickyMoodPin !== el) el.classList.remove('is-hover');
@@ -415,6 +460,7 @@ async function init() {
 
     // 클릭시 토글 + 패널 열기
     el.addEventListener('click', (e) => {
+
       e.preventDefault();
       const turnedOn = setStickyMoodPin(el, key);
 
@@ -422,7 +468,9 @@ async function init() {
       if (!turnedOn) {
         try {
           const card = findCardByLatLng(latKey, lngKey);
+
           card?.classList?.remove('bump', 'highlight', 'is-selected');
+
         } catch (_) {}
         return;
       }
@@ -437,7 +485,9 @@ async function init() {
       position: new kakao.maps.LatLng(p.lat, p.lng),
       content: el,
       yAnchor: 1,
+
       zIndex: p.type === 'neg' ? 60 : 50,
+
       clickable: true,
     });
     return { ov, el };
@@ -469,7 +519,9 @@ async function init() {
 
       if (_stickyKey && _stickyKey === key) applyStickyClasses(el);
     });
+
     window.dispatchEvent(new CustomEvent('moodpins-rendered'));
+
   }
 
   let _clusterOverlays = [];
@@ -506,6 +558,7 @@ async function init() {
 
     return buckets.map((b) => {
       const all = b.pts;
+
       const posArr = all.filter((p) => p.type === 'pos');
       const negArr = all.filter((p) => p.type === 'neg');
 
@@ -520,6 +573,7 @@ async function init() {
 
       const negCenter = negArr.length
         ? { lat: avg(negArr, 'lat'), lng: avg(negArr, 'lng') }
+
         : null;
 
       return {
@@ -535,6 +589,7 @@ async function init() {
   }
 
   function makeClusterOverlay(c, type, posLatLng, sizeOpt, zIndexOpt, onClick) {
+
     const el = document.createElement('div');
     el.className = `cluster-bubble ${type}`;
 
@@ -542,6 +597,7 @@ async function init() {
       c && typeof c.count === 'number'
         ? c.count
         : type === 'pos'
+
         ? c.pos
         : c.neg;
 
@@ -561,17 +617,21 @@ async function init() {
       clickable: true,
     });
 
+
     el.addEventListener('click', (e) => {
       e.preventDefault();
 
       if (typeof onClick === 'function') {
+
         onClick();
         return;
       }
 
       const allItems = c.items || [];
       const itemsOfType = allItems.filter((p) =>
+
         type === 'pos' ? p.type === 'pos' : p.type === 'neg'
+
       );
 
       const bounds = new kakao.maps.LatLngBounds();
@@ -580,7 +640,9 @@ async function init() {
       );
 
       if (
+
         typeof bounds.isEmpty === 'function'
+
           ? !bounds.isEmpty()
           : allItems.length
       ) {
@@ -597,6 +659,7 @@ async function init() {
   }
 
   // ===== 하단 패널 =====
+
   const appEl = document.querySelector('.app');
   const panelEl = document.getElementById('clusterPanel');
   const panelListEl = document.getElementById('cp-list');
@@ -605,15 +668,18 @@ async function init() {
   const panelCloseBtn = document.getElementById('cp-close');
   const panelSortBtn = document.getElementById('cp-sort');
 
+
   let _lastPanelItems = [];
   let _lastPanelType = null;
 
   try {
+
     const bc = new BroadcastChannel('feed-like');
     window._likeBC = bc;
 
     bc.onmessage = async (e) => {
       if (e.data?.type !== 'like-change') return;
+
       const { id, delta } = e.data;
 
       const p = POINTS.find((it) => String(it.id) === String(id));
@@ -622,8 +688,10 @@ async function init() {
         p.likedByMe = true;
       }
       renderMoodPins(POINTS);
+
       if (document.querySelector('.app')?.classList.contains('panel-open')) {
         openLastPanel(_lastPanelType || 'neg');
+
       }
     };
   } catch {}
@@ -644,17 +712,21 @@ async function init() {
     const H = snapHeights()[mode] || snapHeights().half;
     const maxH =
       parseInt(
+
         getComputedStyle(document.documentElement).getPropertyValue('--cp-max')
       ) || H;
     document.documentElement.style.setProperty(
       '--cp-height',
       Math.min(H, maxH) + 'px'
+
     );
   }
 
   // 드래그
   (function makePanelDraggable() {
+
     const grip = panelEl.querySelector('.cp-grip');
+
     const PANEL_MIN = 120; // 미니 스냅 높이
     const HIDE_THRESHOLD = 118;
     let startY = 0,
@@ -665,11 +737,13 @@ async function init() {
       dragging = true;
       startY = ev.touches ? ev.touches[0].clientY : ev.clientY;
       startH = panelEl.getBoundingClientRect().height;
+
       panelEl.style.transition = 'none';
       window.addEventListener('mousemove', onMove);
       window.addEventListener('touchmove', onMove, { passive: false });
       window.addEventListener('mouseup', onEnd);
       window.addEventListener('touchend', onEnd);
+
     }
     function onMove(ev) {
       if (!dragging) return;
@@ -679,16 +753,20 @@ async function init() {
       const maxH =
         parseInt(
           getComputedStyle(document.documentElement).getPropertyValue(
+
             '--cp-max'
           )
         ) || newH;
       if (newH > maxH) newH = maxH;
       document.documentElement.style.setProperty('--cp-height', newH + 'px');
+
       ev.preventDefault();
     }
     function onEnd() {
       dragging = false;
+
       panelEl.style.transition = '';
+
 
       const h = panelEl.getBoundingClientRect().height;
 
@@ -699,6 +777,7 @@ async function init() {
         const { mini, half, full } = snapHeights();
         const target =
           Math.abs(h - full) < 120
+
             ? 'full'
             : Math.abs(h - half) < 120
             ? 'half'
@@ -714,11 +793,13 @@ async function init() {
 
     grip.addEventListener('mousedown', onStart);
     grip.addEventListener('touchstart', onStart, { passive: true });
+
   })();
 
   function updatePanelMax() {
     const topGap = 160; // 화면 상단에서 150px 여백
     const maxH = window.innerHeight - topGap;
+
 
     document.documentElement.style.setProperty('--cp-max', maxH + 'px');
     const cur =
@@ -729,10 +810,12 @@ async function init() {
       ) || 0;
     if (cur > maxH) {
       document.documentElement.style.setProperty('--cp-height', maxH + 'px');
+
     }
   }
 
   updatePanelMax();
+
   window.addEventListener('resize', updatePanelMax);
 
   function escapeHTML(s) {
@@ -745,18 +828,23 @@ async function init() {
           '>': '&gt;',
           '"': '&quot;',
           "'": '&#39;',
+
         }[c])
     );
   }
 
   // 카테고리 자동 추가
 
+
   const CAT_CACHE_KEY = 'catCache.v1';
+
   const CAT_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30일
 
   function loadCatCache() {
     try {
+
       const raw = JSON.parse(localStorage.getItem(CAT_CACHE_KEY) || '[]');
+
       const now = Date.now();
       return new Map(
         raw
@@ -788,7 +876,9 @@ async function init() {
   function _pickCatName(place) {
     return (
       place.category_group_name ||
+
       (place.category_name || '').split('>').shift().trim()
+
     );
   }
 
@@ -796,18 +886,22 @@ async function init() {
     return `${(+it.lat).toFixed(6)}|${(+it.lng).toFixed(6)}|${it.title}`;
   }
 
+
   function guessCategoryFromTitle(title = '') {
     const t = title.toLowerCase();
     if (/(카페|coffee|cafe|루프탑|디저트)/i.test(title)) return '카페';
+
     if (
       /(식당|맛집|구이|분식|정식|라멘|라면|초밥|스시|돈까스|족발|보쌈|국밥)/i.test(
         title
       )
     )
+
       return '음식점';
     if (/(클라이밍|짐|헬스|요가|필라테스|볼링)/i.test(title)) return '운동';
     if (/(공원|전시|미술관|박물관|문화|공연)/i.test(title)) return '놀거리';
     return '';
+
   }
 
   function attachCatFromCache(items) {
@@ -839,9 +933,11 @@ async function init() {
           const cat = best
             ? _pickCatName(best)
             : guessCategoryFromTitle(it.title);
+
           resolve(cat || '');
         },
         { x: it.lng, y: it.lat, radius: 500, size: 5, sort: 'distance' }
+
       );
     });
   }
@@ -858,11 +954,13 @@ async function init() {
         _cachePut(_keyFor(it), cat);
 
         const card = findCardByLatLng(it.lat, it.lng);
+
         if (!card || card.querySelector('.cp-cat')) return;
         const titleBox = card.querySelector('.cp-title-txt');
         if (!titleBox) return;
         const badge = document.createElement('span');
         badge.className = 'cp-cat';
+
         badge.textContent = cat;
         titleBox.appendChild(badge);
       })
@@ -873,17 +971,20 @@ async function init() {
     attachCatFromCache(items);
     _lastPanelItems = items;
     _lastPanelType = type;
+
     const isPos = type === 'pos';
     const count = items.length;
 
     if (panelSortBtn) {
       panelSortBtn.textContent = '공감순'; // 라벨 고정(선택)
       panelSortBtn.classList.toggle('pos', isPos); // ★ 긍정이면 초록 적용
+
     }
 
     const sorted = [...items].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
 
     panelBadgeEl.hidden = true;
+
     const titleEl = document.querySelector('.cp-title');
     if (titleEl) {
       titleEl.innerHTML = `<span class="cp-dyn">${count}개의 ${
@@ -895,21 +996,26 @@ async function init() {
     panelBadgeEl.classList.remove('pos');
     panelBadgeEl.classList.toggle('pos', isPos);
 
+
     panelCountEl.textContent = String(items.length);
 
     panelListEl.innerHTML = sorted
       .map((it) => {
         const isPosType = isPos;
+
         const title = it.title || (isPosType ? '문화 장소' : '민원 글');
         const addr = it.addr || '주소 정보 없음';
+
         const likes = it.likes ?? 0;
 
         if (isPosType) {
           // === 문화 카드 ===
+
           const category = it.category || '';
           const rawReview = (it.review ?? it.content ?? '').trim();
           const review = escapeHTML(
             rawReview || '작성된 문화 후기/설명이 아직 없습니다.'
+
           );
           return `
 <article class="cp-card pos"
@@ -920,10 +1026,12 @@ async function init() {
   <div class="cp-row">
   <div class="cp-title-wrap">
     <h3 class="cp-title-txt">${escapeHTML(title)}</h3>
+
     ${category ? `<span class="cp-cat">${escapeHTML(category)}</span>` : ''}
   </div>
   <button class="cp-likebtn ${
     it.likedByMe ? 'is-liked' : ''
+
   }" type="button">👍공감해요</button>
 </div>
 
@@ -957,6 +1065,7 @@ async function init() {
         }
 
         // === 민원(neg) 카드 ===
+
         const raw = (it.content ?? it.snippet ?? '').trim();
         const content = escapeHTML(raw || '작성된 민원 내용이 아직 없습니다.');
 
@@ -969,7 +1078,9 @@ async function init() {
   <div class="cp-row">
     <div class="cp-title-txt">${title}</div>
     <button class="cp-likebtn ${
+
       it.likedByMe ? 'is-liked' : ''
+
     }" type="button">👍공감해요</button>
   </div>
 
@@ -1002,6 +1113,7 @@ async function init() {
   </div>
 </article>`;
       })
+
       .join('');
 
     enrichCategories(sorted);
@@ -1013,70 +1125,88 @@ async function init() {
   }
 
   function openLastPanel(fallbackType = 'neg') {
+
     const type = _lastPanelType ?? fallbackType;
     const items = POINTS.filter((it) => it.type === type); // ← 항상 최신
     if (items && items.length) {
       openClusterPanel(items, type);
+
       setPanelHeight('half');
+
       setHoverAllowed(true);
     }
   }
 
   function findCardByLatLng(lat, lng) {
+
     const list = document.getElementById('cp-list');
+
     if (!list) return null;
     const toKey = (a, b) => `${(+a).toFixed(6)}|${(+b).toFixed(6)}`;
     const key = toKey(lat, lng);
     return (
+
       Array.from(list.querySelectorAll('.cp-card')).find(
+
         (c) => toKey(c.dataset.lat, c.dataset.lng) === key
       ) || null
     );
   }
 
   function bumpCardToTop(lat, lng) {
+
     const list = document.getElementById('cp-list');
+
     if (!list) return;
     const card = findCardByLatLng(lat, lng);
     if (!card) return;
     list.insertBefore(card, list.firstChild);
+
     list.scrollTo({ top: 0, behavior: 'smooth' });
     card.classList.add('bump');
   }
 
   function focusPanelCardByLatLng(lat, lng, isPos) {
     const list = document.getElementById('cp-list');
+
     if (!list) return;
 
     const toKey = (a, b) => `${(+a).toFixed(6)}|${(+b).toFixed(6)}`;
     const targetKey = toKey(lat, lng);
 
     requestAnimationFrame(() => {
+
       const cards = Array.from(list.querySelectorAll('.cp-card'));
+
       const target = cards.find(
         (c) => toKey(c.dataset.lat, c.dataset.lng) === targetKey
       );
       if (!target) return;
 
       const top = target.offsetTop - 8;
+
       list.scrollTo({ top, behavior: 'smooth' });
 
       // 하이라이트 주고 얼마 뒤에 효과 없앨건지
       target.classList.add('highlight');
       setTimeout(() => target.classList.remove('highlight'), 3000);
+
     });
   }
 
   function closeClusterPanel() {
     setHoverAllowed(false);
     try {
+
       panelListEl.querySelectorAll('.cp-card').forEach((c) => {
         c.classList.remove('bump', 'highlight', 'is-selected');
+
       });
     } catch (_) {}
     try {
       clearStickyMoodPin?.();
       document
+
         .querySelectorAll('.mood-pin.is-hover, .mood-pin.is-sticky')
         .forEach((el) => el.classList.remove('is-hover', 'is-sticky'));
     } catch (_) {}
@@ -1087,6 +1217,7 @@ async function init() {
   }
   panelCloseBtn.addEventListener('click', closeClusterPanel);
 
+
   let _refreshingLikes = false;
   async function refreshLikesNow() {
     if (_refreshingLikes) return;
@@ -1094,19 +1225,24 @@ async function init() {
     try {
       await fetchPinsInView();
       renderMoodPins(POINTS);
+
       if (document.querySelector('.app')?.classList.contains('panel-open')) {
         openLastPanel(_lastPanelType || 'neg'); // ← 최신 POINTS로 다시 그림
+
       }
     } finally {
       _refreshingLikes = false;
     }
   }
+
   window.addEventListener('focus', refreshLikesNow);
   document.addEventListener('visibilitychange', () => {
+
     if (!document.hidden) refreshLikesNow();
   });
 
   // === 아래에서 위로 올려서 하단패널 열기 ===
+
   const edgeZone = document.createElement('div');
   edgeZone.id = 'cp-edge-open';
   document.body.appendChild(edgeZone);
@@ -1115,11 +1251,14 @@ async function init() {
     edgeZone.style.display = appEl.classList.contains('panel-open')
       ? 'none'
       : 'block';
+
   }
   syncEdgeZone();
   new MutationObserver(syncEdgeZone).observe(appEl, {
     attributes: true,
+
     attributeFilter: ['class'],
+
   });
 
   let ezStart = null;
@@ -1141,6 +1280,7 @@ async function init() {
     ezStart = null;
   }
 
+
   edgeZone.addEventListener('touchstart', onStart, { passive: true });
   edgeZone.addEventListener('touchmove', onMove, { passive: true });
   edgeZone.addEventListener('touchend', onEnd);
@@ -1151,9 +1291,11 @@ async function init() {
   // 좋아요 클릭 처리 부분
   panelListEl.addEventListener('click', async (e) => {
     const likeBtn = e.target.closest('.cp-likebtn');
+
     if (likeBtn) {
       e.preventDefault();
       e.stopPropagation();
+
 
       const card = likeBtn.closest('.cp-card');
       if (!card) return;
@@ -1164,6 +1306,7 @@ async function init() {
 
       if (likeBtn.classList.contains('is-liked')) return; // 중복 방지
       likeBtn.classList.add('is-liked');
+
       cntEl && (cntEl.textContent = String(++cur));
       const p = POINTS.find((it) => String(it.id) === String(id));
       if (p) {
@@ -1172,9 +1315,11 @@ async function init() {
       }
 
       try {
+
         const resp = await api(ENDPOINTS.reactionsLike(id), { method: 'POST' });
         if (typeof resp === 'string' && /이미/.test(resp)) {
           likeBtn.classList.remove('is-liked');
+
           cur = Math.max(0, cur - 1);
           if (cntEl) cntEl.textContent = String(cur);
           if (p) {
@@ -1183,32 +1328,40 @@ async function init() {
           } // ← 추가
           return;
         }
+
         window._likeBC?.postMessage({ type: 'like-change', id, delta: +1 });
       } catch (err) {
         likeBtn.classList.remove('is-liked');
+
         cur = Math.max(0, cur - 1);
         cntEl && (cntEl.textContent = String(cur));
         if (p) {
           p.likedByMe = false;
           p.likes = cur;
         }
+
         alert('공감 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+
       }
       return;
     }
 
     // 카드 클릭 → 해당 핀을 원배경 고정 + 지도 포커스
+
     const card = e.target.closest('.cp-card');
     if (!card) return;
 
     const type = card.dataset.type === 'pos' ? 'pos' : 'neg';
+
     const lat = parseFloat(card.dataset.lat);
     const lng = parseFloat(card.dataset.lng);
 
     panelListEl
+
       .querySelectorAll('.cp-card.is-selected')
       ?.forEach((c) => c.classList.remove('is-selected'));
     card.classList.add('is-selected');
+
 
     focusByCard(type, lat, lng);
   });
@@ -1241,6 +1394,7 @@ async function init() {
         delay: 80,
       });
     };
+
     window.addEventListener('moodpins-rendered', once, { once: true });
 
     if (needZoom) {
@@ -1248,6 +1402,7 @@ async function init() {
         kakao.maps.event.removeListener(map, 'idle', onIdle);
       };
       kakao.maps.event.addListener(map, 'idle', onIdle);
+
     }
   }
 
@@ -1274,10 +1429,12 @@ async function init() {
             map.setCenter(pos);
             map.setLevel(Math.max(4, CLUSTER_LEVEL_THRESHOLD - 1));
             const once = () => {
+
               kakao.maps.event.removeListener(map, 'idle', once);
               openPanelForType(c.type);
             };
             kakao.maps.event.addListener(map, 'idle', once);
+
           }
         );
 
@@ -1305,20 +1462,26 @@ async function init() {
     renderClustersOrPins(true);
   };
 
+
   kakao.maps.event.addListener(map, 'tilesloaded', bootOnce);
   kakao.maps.event.addListener(map, 'idle', bootOnce);
+
 
   setTimeout(() => {
     if (!_bootDone) bootOnce();
   }, 0);
 
+
   kakao.maps.event.addListener(map, 'idle', () => {
+
     renderClustersOrPins();
     checkStickyAutoClear();
   });
 
   // --------- 마커----------
+
   const HEADING_SVG = (color = '#F87171') => `
+
     <svg width="17" height="27" viewBox="0 0 17 27" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <circle cx="8.5" cy="18.5" r="8.5" fill="white"/>
       <circle cx="8.5" cy="18.5" r="5.5" fill="${color}"/>
@@ -1332,6 +1495,7 @@ async function init() {
   let pendingMyPos = false;
   let headingListenerOn = false;
 
+
   function ensureHeadingOverlay(pos, color = '#F87171') {
     if (!headingOverlay) {
       const el = document.createElement('div');
@@ -1344,6 +1508,7 @@ async function init() {
       headingSvgEl = el.firstElementChild;
       headingSvgEl.style.transformOrigin = '8.5px 18.5px';
 
+
       headingOverlay = new kakao.maps.CustomOverlay({
         position: pos,
         content: el,
@@ -1354,7 +1519,9 @@ async function init() {
     } else {
       headingOverlay.getContent().innerHTML = HEADING_SVG(color);
       headingSvgEl = headingOverlay.getContent().firstElementChild;
+
       headingSvgEl.style.transformOrigin = '8.5px 18.5px';
+
       headingOverlay.setPosition(pos);
       headingOverlay.setMap(map);
     }
@@ -1367,6 +1534,7 @@ async function init() {
   async function startDeviceOrientation() {
     try {
       if (
+
         typeof DeviceOrientationEvent !== 'undefined' &&
         typeof DeviceOrientationEvent.requestPermission === 'function'
       ) {
@@ -1375,6 +1543,7 @@ async function init() {
       }
       if (!headingListenerOn) {
         window.addEventListener('deviceorientation', onDeviceOrientation, true);
+
         headingListenerOn = true;
       }
     } catch (_) {
@@ -1384,14 +1553,18 @@ async function init() {
 
   function onDeviceOrientation(e) {
     let heading = null;
+
     if (typeof e.webkitCompassHeading === 'number')
       heading = e.webkitCompassHeading;
     else if (typeof e.alpha === 'number') heading = 360 - e.alpha;
+
     if (heading != null) rotateHeading(heading);
   }
 
   // --------- 내 위치 버튼 ----------
+
   const myposBtn = document.getElementById('mypos-btn');
+
 
   const svgGray = `
 <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1401,11 +1574,13 @@ async function init() {
 `;
 
   // 새 목록 버튼 만들기
+
   const listBtn = document.createElement('button');
   listBtn.id = 'openSearchBtn';
   listBtn.type = 'button';
   listBtn.className = 'map-fab';
   listBtn.setAttribute('aria-label', '장소 목록 열기');
+
   listBtn.innerHTML = `
 <svg width="36" height="36" viewBox="0 0 36 36" fill="none"
      xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -1419,17 +1594,20 @@ async function init() {
         fill="currentColor" stroke="currentColor" stroke-width="2"/>
 </svg>`;
 
+
   const ui = document.querySelector('.map-ui');
   let wrap = ui.querySelector('.map-fab-wrap');
   if (!wrap) {
     wrap = document.createElement('div');
     wrap.className = 'map-fab-wrap';
+
     ui.appendChild(wrap);
   }
   wrap.replaceChildren(listBtn);
   if (myposBtn) wrap.appendChild(myposBtn);
 
   function activateMyPos(loc) {
+
     ensureHeadingOverlay(loc, '#F87171');
     myPosLatLng = loc;
     map.setCenter(loc);
@@ -1439,6 +1617,7 @@ async function init() {
 
   function deactivateMyPos() {
     myposBtn?.classList.remove('active');
+
   }
 
   function distanceMeters(lat1, lon1, lat2, lon2) {
@@ -1457,7 +1636,9 @@ async function init() {
 
   function getLatLngFromKey(key) {
     if (!key) return null;
+
     const [t, slat, slng] = key.split('|');
+
     const lat = parseFloat(slat),
       lng = parseFloat(slng);
     if (Number.isFinite(lat) && Number.isFinite(lng)) {
@@ -1491,7 +1672,9 @@ async function init() {
     }
   }
 
+
   kakao.maps.event.addListener(map, 'zoom_changed', checkStickyAutoClear);
+
 
   const QUICK_OPTS = {
     enableHighAccuracy: false,
@@ -1505,28 +1688,36 @@ async function init() {
     e.stopPropagation();
     if (pendingMyPos) return;
     if (!navigator.geolocation) {
+
       alert('이 브라우저는 위치를 지원하지 않아요.');
+
       return;
     }
     pendingMyPos = true;
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+
         console.log('[QUICK] pos', pos.coords);
+
         const loc = new kakao.maps.LatLng(
           pos.coords.latitude,
           pos.coords.longitude
         );
         map.setCenter(loc);
         map.setLevel(MY_POS_LEVEL);
+
         ensureHeadingOverlay(loc, '#F87171');
         myPosLatLng = loc;
         myposBtn?.classList.add('active');
+
         startDeviceOrientation();
 
         navigator.geolocation.getCurrentPosition(
           (p2) => {
+
             console.log('[FRESH] pos', p2.coords);
+
             const loc2 = new kakao.maps.LatLng(
               p2.coords.latitude,
               p2.coords.longitude
@@ -1542,25 +1733,31 @@ async function init() {
             pendingMyPos = false;
           },
           (err) => {
+
             console.warn('[FRESH] fail', err);
+
             pendingMyPos = false;
           },
           FRESH_OPTS
         );
       },
       (err) => {
+
         console.warn('[QUICK] fail', err);
         navigator.geolocation.getCurrentPosition(
           (p2) => {
             console.log('[FRESH-only] pos', p2.coords);
+
             activateMyPos(
               new kakao.maps.LatLng(p2.coords.latitude, p2.coords.longitude)
             );
             pendingMyPos = false;
           },
           (err2) => {
+
             console.warn('[FRESH-only] fail', err2);
             alert('현재 위치를 가져오지 못했어요.');
+
             pendingMyPos = false;
           },
           FRESH_OPTS
@@ -1571,6 +1768,7 @@ async function init() {
   }
 
   if (myposBtn && navigator.geolocation) {
+
     myposBtn.addEventListener('pointerdown', onMyPosTap, { passive: false });
     myposBtn.addEventListener('click', onMyPosTap, { passive: false });
   }
@@ -1585,6 +1783,7 @@ async function init() {
     if (pendingMyPos) return;
     if (!myposBtn?.classList.contains('active') || !myPosLatLng) return;
 
+
     const c = map.getCenter();
     const dist = distanceMeters(
       myPosLatLng.getLat(),
@@ -1595,7 +1794,9 @@ async function init() {
     if (dist > LEAVE_THRESHOLD_M) deactivateMyPos();
   });
 
+
   window.addEventListener('resize', () => map.relayout());
+
 
   // ====== 같은 페이지 검색 전환 + 결과 선택 ======
   (function setupInlineSearch(map) {
@@ -1617,12 +1818,15 @@ async function init() {
 
     function makeSelectPinImage(size = 32) {
       const url =
+
         'data:image/svg+xml;charset=UTF-8,' +
+
         encodeURIComponent(SELECT_PIN_SVG);
       const s = new kakao.maps.Size(size, size);
       const offset = new kakao.maps.Point(size / 2, size - 1);
       return new kakao.maps.MarkerImage(url, s, { offset });
     }
+
 
     const app = document.querySelector('.app');
     const smallBar = document.querySelector('.search-bar');
@@ -1639,6 +1843,7 @@ async function init() {
         if (
           document.activeElement === inputFull &&
           !e.target.closest('.search-input-wrap')
+
         ) {
           inputFull.blur();
         }
@@ -1647,24 +1852,29 @@ async function init() {
     );
 
     // 상단 검색바
+
     const smallInput = document.getElementById('search-input');
     const sheet = document.getElementById('placeSheet');
     const psName = document.getElementById('ps-name');
     const psAddr = document.getElementById('ps-addr');
     const pickBtn = document.getElementById('placePickBtn');
+
     let _selectedPlace = null;
 
     const places = new kakao.maps.services.Places();
     const geocoder = new kakao.maps.services.Geocoder();
+
 
     inputFull.setAttribute('autocomplete', 'off');
     inputFull.setAttribute('autocorrect', 'off');
     inputFull.setAttribute('autocapitalize', 'off');
     inputFull.setAttribute('spellcheck', 'false');
 
+
     function openSearch() {
       try {
         sheet.hidden = true;
+
         app.classList.remove('pick-mode');
       } catch (_) {}
 
@@ -1672,15 +1882,18 @@ async function init() {
       app.classList.add('searching');
 
       let q = (inputFull.value || '').trim();
+
       if (!q && smallInput?.value) {
         q = smallInput.value.trim();
         if (q) inputFull.value = q;
       }
 
       if (q) {
+
         hint.style.display = 'none';
         list.style.display = 'block';
         clearBtn.style.display = 'block';
+
 
         clearTimeout(debounceId);
         const mySeq = ++querySeq;
@@ -1693,13 +1906,17 @@ async function init() {
     }
 
     // 새로 만든 목록 버튼이랑 연결
+
     document.getElementById('openSearchBtn')?.addEventListener('click', (e) => {
+
       e.preventDefault();
       openSearch();
     });
 
     function closeSearch() {
+
       app.classList.remove('searching');
+
       view.hidden = true;
       inputFull.blur();
       setTimeout(() => {
@@ -1709,10 +1926,12 @@ async function init() {
       }, 0);
     }
 
+
     smallBar?.addEventListener('click', openSearch);
     backBtn?.addEventListener('click', closeSearch);
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !view.hidden) closeSearch();
+
     });
 
     // ----- 검색/클리어 -----
@@ -1720,6 +1939,7 @@ async function init() {
     let querySeq = 0;
 
     function clearResults() {
+
       list.innerHTML = '';
       list.style.display = 'none';
       hint.style.display = 'block';
@@ -1729,6 +1949,7 @@ async function init() {
       const q = inputFull.value.trim();
       clearBtn.style.display = q ? 'block' : 'none';
 
+
       if (!q) {
         clearTimeout(debounceId);
         querySeq++;
@@ -1736,16 +1957,20 @@ async function init() {
         return;
       }
 
+
       hint.style.display = 'none';
       list.style.display = 'block';
+
 
       clearTimeout(debounceId);
       const mySeq = ++querySeq;
       debounceId = setTimeout(() => runSearch(q, mySeq), 250);
     });
 
+
     clearBtn?.addEventListener('click', () => {
       inputFull.value = '';
+
       clearTimeout(debounceId);
       querySeq++;
       clearResults();
@@ -1754,6 +1979,7 @@ async function init() {
 
     // --- 초성 판별 ---
     const CHO_LIST = [
+
       'ㄱ',
       'ㄲ',
       'ㄴ',
@@ -1773,6 +1999,7 @@ async function init() {
       'ㅌ',
       'ㅍ',
       'ㅎ',
+
     ];
     const CHO_INDEX = {
       ㄱ: 0,
@@ -1831,13 +2058,17 @@ async function init() {
             ? rows.map((r) => ({
                 id: r.id ?? r.placeId ?? null,
                 name: r.name,
+
                 addr: r.address || '',
+
                 lat: +(r.latitude ?? r.lat),
                 lng: +(r.longitude ?? r.lng),
               }))
             : [];
         } catch (e) {
+
           console.warn('[search?keyword] fail', e);
+
           return [];
         }
       })();
@@ -1848,7 +2079,9 @@ async function init() {
         return;
       }
       const center =
+
         map && typeof map.getCenter === 'function'
+
           ? map.getCenter()
           : DEFAULT_CENTER;
       const x = center.getLng(),
@@ -1875,7 +2108,9 @@ async function init() {
                     const items = data
                       .map((d) => ({
                         name: d.place_name,
+
                         addr: d.road_address_name || d.address_name || '',
+
                         lat: +d.y,
                         lng: +d.x,
                       }))
@@ -1890,7 +2125,9 @@ async function init() {
                     x,
                     y,
                     radius: RADIUS,
+
                     sort: 'distance',
+
                     size: SIZE_PER_SEED,
                   }
                 );
@@ -1901,7 +2138,9 @@ async function init() {
           const merged = [];
           const seen = new Set();
           results.forEach((r) => {
+
             if (r.status !== 'fulfilled') return;
+
             r.value.forEach((it) => {
               const key = `${it.name}|${it.lat.toFixed(6)}|${it.lng.toFixed(
                 6
@@ -1930,7 +2169,9 @@ async function init() {
             const items = data
               .map((d) => ({
                 name: d.place_name,
+
                 addr: d.road_address_name || d.address_name || '',
+
                 lat: +d.y,
                 lng: +d.x,
               }))
@@ -1962,7 +2203,9 @@ async function init() {
             });
           }
         },
+
         { x, y, radius: RADIUS, sort: 'distance', size: 15 }
+
       );
     }
 
@@ -1974,6 +2217,7 @@ async function init() {
       list.innerHTML = items
         .map(
           (it) => `
+
     <li data-id="${it.id ?? ''}" data-lat="${it.lat}" data-lng="${it.lng}">
       <div class="name">${it.name}</div>
       ${it.addr ? `<div class="addr">${it.addr}</div>` : ''}
@@ -1982,18 +2226,21 @@ async function init() {
         .join('');
       list.style.display = 'block';
       hint.style.display = 'none';
+
     }
 
     function pickFromList(li) {
       const lat = +li.dataset.lat;
       const lng = +li.dataset.lng;
       const id = li.dataset.id ? Number(li.dataset.id) : undefined;
+
       const name = li.querySelector('.name')?.textContent?.trim() || '';
       const addr = li.querySelector('.addr')?.textContent?.trim() || '';
       const pos = new kakao.maps.LatLng(lat, lng);
 
       try {
         typeof deactivateMyPos === 'function' && deactivateMyPos();
+
       } catch (_) {}
 
       // 지도 이동/확대 + 핀
@@ -2018,13 +2265,17 @@ async function init() {
       // 시트 열기
       _selectedPlace = { id, name, addr, lat, lng };
       psName.textContent = name;
+
       psAddr.textContent = addr || '주소 정보 없음';
+
       sheet.hidden = false;
 
       querySeq++;
       clearResults();
       closeSearch();
+
       app.classList.add('pick-mode');
+
     }
 
     // --- 리스트 탭 처리 ---
@@ -2033,9 +2284,11 @@ async function init() {
     let handledByTouch = false;
 
     list.addEventListener(
+
       'touchstart',
       (e) => {
         const li = e.target.closest('li');
+
         if (!li) return;
         const t = e.touches[0];
         tStart = { x: t.clientX, y: t.clientY, target: li };
@@ -2044,7 +2297,9 @@ async function init() {
     );
 
     list.addEventListener(
+
       'touchmove',
+
       (e) => {
         if (!tStart) return;
         const t = e.touches[0];
@@ -2055,13 +2310,17 @@ async function init() {
     );
 
     list.addEventListener(
+
       'touchend',
+
       (e) => {
         if (!tStart) return;
         const t = e.changedTouches[0];
 
         const endEl = document.elementFromPoint(t.clientX, t.clientY);
+
         const li = endEl && endEl.closest('li');
+
 
         const moved = Math.hypot(t.clientX - tStart.x, t.clientY - tStart.y);
         const ok = li && li === tStart.target && moved <= MOVE_TOLERANCE;
@@ -2080,16 +2339,21 @@ async function init() {
       { passive: false }
     );
 
+
     list.addEventListener('click', (e) => {
+
       if (handledByTouch) {
         e.preventDefault();
         return;
       }
+
       const li = e.target.closest('li');
+
       if (!li) return;
       if (document.activeElement === inputFull) inputFull.blur();
       pickFromList(li);
     });
+
 
     pickBtn?.addEventListener('click', async () => {
       if (!_selectedPlace) return;
@@ -2117,6 +2381,7 @@ async function init() {
       sheet.hidden = true;
       app.classList.remove('pick-mode');
 
+
       if (window._selMarker) {
         try {
           window._selMarker.setMap(null);
@@ -2124,6 +2389,7 @@ async function init() {
         window._selMarker = null;
       }
       if (inputFull) {
+
         inputFull.value = '';
         inputFull.blur();
       }

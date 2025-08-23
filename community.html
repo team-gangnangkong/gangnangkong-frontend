@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="index.css" />
+    <title>커뮤니티</title>
+    <style>
+      .community-header {
+        position: relative;
+        padding: 16px 18px 6px 18px;
+        background: #fff;
+      }
+      .community-title {
+        font-size: 19px;
+        font-weight: 600;
+        text-align: center;
+        display: block;
+        margin-bottom: 2px;
+      }
+      /* 검색창 */
+      .search-wrap {
+        padding: 0 18px 12px 18px;
+        background: #fff;
+        position: relative;
+      }
+      .search-bar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        border-radius: 10px;
+        background: #f3f4f6;
+        padding: 8px 12px;
+        gap: 7px;
+      }
+      .search-bar input {
+        border: none;
+        background: transparent;
+        outline: none;
+        width: 100%;
+        font-size: 16px;
+        padding: 2px 0;
+        color: #333;
+      }
+      .search-icon {
+        color: #f87171;
+        font-size: 20px;
+      }
+
+      /* 카드 리스트 */
+      .card-list {
+        margin-top: 4px;
+        padding-bottom: 18px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 7px 0 rgba(34, 41, 47, 0.06);
+        margin: 15px 18px 0 18px;
+        overflow: hidden;
+        position: relative;
+      }
+      .card-img-wrap {
+        position: relative;
+      }
+      .card-img {
+        width: 100%;
+        aspect-ratio: 360/168;
+        object-fit: cover;
+        display: block;
+        background: #eee;
+      }
+      .badge {
+        position: absolute;
+        left: 13px;
+        top: 13px;
+        background: #222;
+        color: #fff;
+        font-size: 13px;
+        padding: 3px 13px;
+        border-radius: 16px;
+        font-weight: 500;
+        opacity: 0.86;
+        z-index: 2;
+      }
+      .card-arrow {
+        position: absolute;
+        right: 11px;
+        top: 13px;
+        background: rgba(0, 0, 0, 0.43);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3;
+      }
+      .card-content {
+        padding: 12px 14px 12px 14px;
+      }
+      .card-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .card-title {
+        font-weight: 600;
+        font-size: 16px;
+        color: #222;
+        margin-bottom: 3px;
+      }
+      .card-like,
+      .card-comment {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 14px;
+        color: #f87171;
+        font-weight: 500;
+        margin-left: 10px;
+      }
+      .card-like,
+      .card-comment svg {
+        margin-right: 1px;
+        vertical-align: text-bottom;
+      }
+      .card-desc {
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        color: #9ca3af;
+        gap: 3px;
+      }
+      /* 반응형 */
+      @media (max-width: 430px) {
+        .app {
+          max-width: 100vw;
+        }
+        .card {
+          margin: 14px 9px 0 9px;
+        }
+        .community-btns,
+        .community-header,
+        .search-wrap {
+          padding-left: 6px;
+          padding-right: 6px;
+        }
+      }
+
+      /* 글쓰기 버튼 */
+      .fab-write {
+        position: fixed;
+        right: 18px;
+        bottom: 20px;
+        z-index: 200;
+
+        background: #f87171;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.25);
+
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0 20px 0 15px;
+        height: 46px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.16s;
+      }
+      .fab-write:hover {
+        background: #ff6565;
+      }
+      .fab-write svg {
+        width: 21px;
+        height: 21px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <svg style="display: none">
+      <!-- 화살표 svg -->
+      <symbol
+        id="icon-arrow"
+        viewBox="0 0 22 22"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M11 21C16.523 21 21 16.523 21 11C21 5.477 16.523 1 11 1C5.477 1 1 5.477 1 11C1 16.523 5.477 21 11 21Z"
+          stroke="white"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M9.5 15.5L14 11L9.5 6.5"
+          stroke="white"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+
+      <!-- 좋아요 svg -->
+      <symbol
+        id="icon-like"
+        viewBox="0 0 19 18"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M15.665 7.1625C15.3425 6.78 14.8775 6.5625 14.375 6.5625H11.3525V4.5C11.3525 3.36 10.43 2.4375 9.23 2.4375C8.705 2.4375 8.2325 2.7525 8.0225 3.24L6.1175 7.6875H4.715C3.7325 7.6875 2.9375 8.4825 2.9375 9.465V13.7925C2.9375 14.7675 3.74 15.5625 4.715 15.5625H13.385C14.2025 15.5625 14.9 14.9775 15.0425 14.1675L16.0325 8.5425C16.115 8.0475 15.98 7.545 15.6575 7.1625H15.665ZM4.715 14.4375C4.355 14.4375 4.0625 14.145 4.0625 13.7925V9.465C4.0625 9.105 4.355 8.8125 4.715 8.8125H5.9225V14.4375H4.715ZM13.94 13.9725C13.895 14.2425 13.6625 14.4375 13.385 14.4375H7.055V8.3625L9.0575 3.675C9.0875 3.6075 9.155 3.555 9.2975 3.555C9.815 3.555 10.2275 3.975 10.2275 4.4925V7.68H14.375C14.5475 7.68 14.6975 7.7475 14.8025 7.875C14.9075 8.0025 14.9525 8.1675 14.9225 8.34L13.9325 13.965L13.94 13.9725Z"
+          fill="#F87171"
+        />
+      </symbol>
+
+      <!-- 지도 아이콘 svg -->
+      <symbol
+        id="icon-location"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12.2427 3.09087C13.3443 4.19229 13.9743 5.67894 13.9995 7.23648C14.0248 8.79401 13.4433 10.3003 12.378 11.4369L12.2427 11.5769L9.41404 14.4049C9.05512 14.7636 8.57329 14.9724 8.06614 14.9891C7.55899 15.0058 7.06445 14.8291 6.6827 14.4949L6.5867 14.4049L3.75737 11.5762C2.63215 10.451 2 8.92484 2 7.33353C2 5.74222 2.63215 4.21609 3.75737 3.09087C4.8826 1.96564 6.40873 1.3335 8.00004 1.3335C9.59135 1.3335 11.1175 1.96564 12.2427 3.09087ZM8.00004 5.33353C7.73739 5.33353 7.47732 5.38526 7.23467 5.48577C6.99202 5.58628 6.77154 5.7336 6.58582 5.91932C6.40011 6.10504 6.25279 6.32552 6.15228 6.56817C6.05177 6.81082 6.00004 7.07089 6.00004 7.33353C6.00004 7.59618 6.05177 7.85625 6.15228 8.0989C6.25279 8.34155 6.40011 8.56203 6.58582 8.74775C6.77154 8.93346 6.99202 9.08078 7.23467 9.18129C7.47732 9.2818 7.73739 9.33353 8.00004 9.33353C8.53047 9.33353 9.03918 9.12282 9.41425 8.74775C9.78932 8.37267 10 7.86397 10 7.33353C10 6.8031 9.78932 6.29439 9.41425 5.91932C9.03918 5.54425 8.53047 5.33353 8.00004 5.33353Z"
+          fill="#9CA3AF"
+        />
+      </symbol>
+
+      <!-- 댓글 아이콘 -->
+      <symbol
+        id="icon-chat"
+        viewBox="0 0 26 26"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M13.0004 3.25C11.3088 3.24943 9.64622 3.68895 8.17594 4.52538C6.70567 5.3618 5.47829 6.56636 4.61442 8.02068C3.75055 9.475 3.2799 11.129 3.24873 12.8203C3.21755 14.5116 3.62692 16.1818 4.4366 17.667L3.28285 21.7133C3.24226 21.8553 3.24117 22.0058 3.27972 22.1484C3.31828 22.2911 3.395 22.4205 3.50164 22.5228C3.60827 22.6251 3.74079 22.6964 3.88492 22.729C4.02905 22.7616 4.17933 22.7542 4.3196 22.7078L8.11885 21.4419C9.41375 22.1901 10.8634 22.6305 12.3557 22.7289C13.8481 22.8273 15.343 22.581 16.7249 22.0092C18.1068 21.4374 19.3387 20.5554 20.3252 19.4313C21.3117 18.3072 22.0264 16.9713 22.414 15.5269C22.8016 14.0824 22.8517 12.5682 22.5604 11.1012C22.2692 9.63433 21.6444 8.25407 20.7343 7.06726C19.8243 5.88044 18.6535 4.91888 17.3124 4.25696C15.9713 3.59504 14.4959 3.2505 13.0004 3.25Z"
+          fill="#F87171"
+        />
+        <path
+          d="M9.75 11.375C9.75 11.1595 9.8356 10.9528 9.98798 10.8005C10.1403 10.6481 10.347 10.5625 10.5625 10.5625H15.4375C15.653 10.5625 15.8597 10.6481 16.012 10.8005C16.1644 10.9528 16.25 11.1595 16.25 11.375C16.25 11.5905 16.1644 11.7972 16.012 11.9495C15.8597 12.1019 15.653 12.1875 15.4375 12.1875H10.5625C10.347 12.1875 10.1403 12.1019 9.98798 11.9495C9.8356 11.7972 9.75 11.5905 9.75 11.375ZM10.5625 13.8125H13.8125C14.028 13.8125 14.2347 13.8981 14.387 14.0505C14.5394 14.2028 14.625 14.4095 14.625 14.625C14.625 14.8405 14.5394 15.0472 14.387 15.1995C14.2347 15.3519 14.028 15.4375 13.8125 15.4375H10.5625C10.347 15.4375 10.1403 15.3519 9.98798 15.1995C9.8356 15.0472 9.75 14.8405 9.75 14.625C9.75 14.4095 9.8356 14.2028 9.98798 14.0505C10.1403 13.8981 10.347 13.8125 10.5625 13.8125Z"
+          fill="white"
+        />
+      </symbol>
+    </svg>
+
+    <div class="viewport">
+      <div class="app">
+        <div class="container">
+          <!-- 뒤로가기 버튼 -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            viewBox="0 0 30 30"
+            fill="none"
+          >
+            <path
+              d="M18.75 22.5L11.25 15L18.75 7.5"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <!-- 커뮤니티 헤더 -->
+          <div class="community-header">
+            <span class="community-title">커뮤니티</span>
+          </div>
+          <!-- 검색창 -->
+          <div class="search-wrap">
+            <div class="search-bar">
+              <!-- 검색 아이콘 -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="26"
+                height="26"
+                viewBox="0 0 26 26"
+                fill="none"
+              >
+                <path
+                  d="M10.2917 17.3333C8.32361 17.3333 6.65817 16.6516 5.29533 15.288C3.9325 13.9244 3.25072 12.259 3.25 10.2917C3.24928 8.32433 3.93106 6.65889 5.29533 5.29533C6.65961 3.93178 8.32506 3.25 10.2917 3.25C12.2583 3.25 13.9241 3.93178 15.2891 5.29533C16.6541 6.65889 17.3355 8.32433 17.3333 10.2917C17.3333 11.0861 17.2069 11.8354 16.9542 12.5396C16.7014 13.2437 16.3583 13.8667 15.925 14.4083L21.9917 20.475C22.1903 20.6736 22.2896 20.9264 22.2896 21.2333C22.2896 21.5403 22.1903 21.7931 21.9917 21.9917C21.7931 22.1903 21.5403 22.2896 21.2333 22.2896C20.9264 22.2896 20.6736 22.1903 20.475 21.9917L14.4083 15.925C13.8667 16.3583 13.2438 16.7014 12.5396 16.9542C11.8354 17.2069 11.0861 17.3333 10.2917 17.3333ZM10.2917 15.1667C11.6458 15.1667 12.7971 14.6929 13.7453 13.7453C14.6936 12.7978 15.1674 11.6466 15.1667 10.2917C15.1659 8.93678 14.6922 7.78592 13.7453 6.83908C12.7985 5.89225 11.6473 5.41811 10.2917 5.41667C8.93606 5.41522 7.7852 5.88936 6.83908 6.83908C5.89297 7.78881 5.41883 8.93967 5.41667 10.2917C5.4145 11.6437 5.88864 12.7949 6.83908 13.7453C7.78953 14.6958 8.94039 15.1696 10.2917 15.1667Z"
+                  fill="#EF4444"
+                />
+              </svg>
+              <input type="text" placeholder="위치를 검색해 보세요" />
+            </div>
+          </div>
+          <!-- 카테고리 버튼 -->
+          <div class="community-btns">
+            <button class="category-btn active">전체</button>
+            <button class="category-btn">민원</button>
+            <button class="category-btn">문화</button>
+          </div>
+          <!-- 정렬 텍스트 -->
+          <div
+            style="
+              padding: 0 18px 0 18px;
+              font-size: 13px;
+              color: #a3a3a3;
+              margin-bottom: 5px;
+              text-align: right;
+            "
+          ></div>
+
+          <!-- 카드 리스트 -->
+          <div class="card-list">
+            <!-- 카드 리스트의 카드는 JS가 동적으로 추가함 -->
+            <div class="card">
+              <div class="card-img-wrap">
+                <img
+                  src="./image/dark.jpg"
+                  alt="어두운 골목길"
+                  class="card-img"
+                />
+                <span class="badge">수정구</span>
+                <span class="card-arrow">
+                  <svg width="22" height="22" fill="none">
+                    <use xlink:href="#icon-arrow" />
+                  </svg>
+                </span>
+              </div>
+              <div class="card-content">
+                <div class="card-title-row">
+                  <div class="card-title">모란역 3번 출구 쓰레기</div>
+                  <!-- 좋아요 -->
+                  <span class="card-like">
+                    <svg width="19" height="18" fill="none">
+                      <use xlink:href="#icon-like" />
+                    </svg>
+                    <span>20</span>
+                  </span>
+                  <!-- 댓글 -->
+                  <span class="card-comment">
+                    <svg width="19" height="18" fill="none">
+                      <use xlink:href="#icon-comment" />
+                    </svg>
+                    <span>20</span>
+                  </span>
+                </div>
+                <div class="card-desc">
+                  <svg width="16" height="16" fill="none">
+                    <use xlink:href="#icon-location" />
+                  </svg>
+                  <span>수정구 산성대로 100 지하</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 글쓰기 아이콘 -->
+          <button class="fab-write" id="writeBtn">
+            <img src="./image/tabler_pencil.svg" alt="연필 아이콘" />
+            <span>글쓰기</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="community.js"></script>
+  </body>
+</html>
