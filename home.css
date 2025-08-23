@@ -1,7 +1,27 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
 .hot-topic {
   width: 100%;
   background: #f8f4f5;
   min-height: 100px;
+  position: relative;
+  gap: 12px;
+  padding-top: 50px;
+}
+.hot-topic > p,
+.hot-topic .feed-error {
+  margin: 0 20px;
+  position: relative;
+  z-index: 1; /* 카드 위에 보이게 */
+}
+.hot-topic .card-list {
+  margin: 0; /* 위 여백은 grid gap이 처리 */
+  padding: 0 20px 10px; /* 좌우/아래 패딩만 */
   position: relative;
 }
 
@@ -9,7 +29,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 60px 40px 40px 40px;
+}
+.hot-topic .headlineWrap {
+  margin: -60px 20px 20px;
 }
 
 .headlineText {
@@ -41,16 +63,31 @@
   /* 필요시 object-fit: contain; */
 }
 
+.container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(95px + env(safe-area-inset-bottom));
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.container::-webkit-scrollbar {
+  display: none;
+}
+
 .article-container {
   background: #f8f4f5;
   border-radius: 22px 22px 0 0;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   position: relative;
-  z-index: 2;
+  margin-bottom: 16px;
   width: 100%;
+  z-index: auto;
   min-height: 200px;
   padding: 27px 0 18px 0;
   box-sizing: border-box;
+  margin: 0 0 4px 0;
 }
 
 /* 카드리스트 */
@@ -173,6 +210,12 @@
 
 .card-desc svg {
   flex-shrink: 0;
+}
+
+.recent-community {
+  position: relative;
+  z-index: 0;
+  margin-top: 8px;
 }
 
 .recent-community,
@@ -425,4 +468,82 @@
 }
 .faq-a-txt {
   color: #232323;
+}
+
+/* 하단바 */
+.bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  /* width: 100%; */
+  height: 95px;
+  background-color: white;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding-top: 15px;
+  z-index: 500;
+}
+
+.nav-item {
+  text-align: center;
+  font-size: 12px;
+  color: #aaa;
+  text-decoration: none;
+}
+
+.nav-item svg {
+  display: block;
+  margin: 0 auto 4px;
+}
+
+.nav-item.active span {
+  color: #f87171;
+}
+
+.nav-item.active svg {
+  fill: #f87171;
+}
+
+/* 바깥 */
+.viewport {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  background: #fef2f2;
+}
+
+/* 가운데 폰 화면 */
+.app {
+  width: min(100%, 480px);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 100dvh;
+}
+@supports (height: 100svh) {
+  .app {
+    min-height: 100svh;
+  }
+} /* 주소창 제외 */
+@supports (height: 100dvh) {
+  .app {
+    min-height: 100dvh;
+  }
+} /* 최신 브라우저 */
+
+/* 모바일에서는 꽉 차게 */
+@media (max-width: 600px) {
+  .app {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
