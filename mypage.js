@@ -96,13 +96,23 @@ window.addEventListener('unhandledrejection', (e) =>
     if (shouldUseFallback) {
       setBG(FALLBACK);
       avatarEl.classList.add('is-fallback');
-      avatarEl.style.backgroundImage = `url('${FALLBACK}')`;
+      // ✅ 편집 페이지용 세션 저장
+      sessionStorage.setItem('profileAvatarUrl', FALLBACK);
+      sessionStorage.setItem('profileAvatarIsFallback', '1');
     } else {
       avatarEl.classList.remove('is-fallback');
-      avatarEl.style.backgroundImage = `url('${avatarUrl}')`;
       const img = new Image();
-      img.onload = () => setBG(avatarUrl);
-      img.onerror = () => setBG(FALLBACK);
+      img.onload = () => {
+        setBG(avatarUrl);
+        // ✅ 정상 이미지도 저장
+        sessionStorage.setItem('profileAvatarUrl', avatarUrl);
+        sessionStorage.setItem('profileAvatarIsFallback', '0');
+      };
+      img.onerror = () => {
+        setBG(FALLBACK);
+        sessionStorage.setItem('profileAvatarUrl', FALLBACK);
+        sessionStorage.setItem('profileAvatarIsFallback', '1');
+      };
       img.src = avatarUrl;
     }
   }
@@ -185,6 +195,14 @@ window.addEventListener('unhandledrejection', (e) =>
       .join('');
   }
 
+  //-프로필 변경 전에 주소 넘겨주기
+  function getBgUrl(el) {
+    if (!el) return null;
+    const bg = getComputedStyle(el).backgroundImage; // url("...") 형태
+    const m = bg && bg.match(/url\(["']?(.*?)["']?\)/);
+    return m ? m[1] : null;
+  }
+
   // ── 로그아웃 ───────────────────────────────────────────────────────────
   async function doLogout() {
     if (_isLoggingOut) return;
@@ -243,9 +261,14 @@ window.addEventListener('unhandledrejection', (e) =>
       doLogout();
     });
 
-    document.querySelector('.profile-row')?.addEventListener('click', () => {
-      location.href = 'profile-edit.html';
-    });
+    const row = document.querySelector('.profile-row');
+    if (row) {
+      row.addEventListener('click', (e) => {
+        e.preventDefault();
+        location.href = 'profile-edit.html';
+      });
+    }
+
     fetchMyPage();
     fetchMyFeeds();
   });
