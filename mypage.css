@@ -177,7 +177,7 @@
 }
 .profile-avatar.is-fallback {
   /* 기본 이미지일 때만 덜 확대 */
-  background-size: 90% auto; /* 95%~85% 사이로 취향껏 조절 */
+  background-size: 50% auto; /* 95%~85% 사이로 취향껏 조절 */
 }
 
 /* 하단바 */
