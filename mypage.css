@@ -22,7 +22,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #ececec url('./image/index-char.png') center/cover no-repeat;
+  background: #ececec url('./image/profile_default.png') center/cover no-repeat;
   border: 2.5px solid #fff;
 }
 .profile-name {
@@ -174,7 +174,13 @@
   background-size: cover;
   background-position: center;
   border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ececec url('./image/profile_default.png') center/cover no-repeat;
+  border: 2.5px solid #fff;
 }
+
 .profile-avatar.is-fallback {
   /* 기본 이미지일 때만 덜 확대 */
   background-size: 50% auto; /* 95%~85% 사이로 취향껏 조절 */
