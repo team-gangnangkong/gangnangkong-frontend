@@ -84,10 +84,23 @@
         color: #d81341;
         font-weight: 600;
       }
-      .category-btn.selected.selected-culture {
+
+      /*  긍정 색깔 #15803d 부정 색깔  #d81341;*/
+      /* .category-btn.selected.selected-MUNHWA {
         background: #dcfce7 !important;
         border: none;
-        color: #15803d !important;
+        color: #15803d !important; 
+        color: #d81341 !important; 
+      } */
+
+      /* 문화 카테고리 버튼 */
+      .category-btn.selected.munhwa-positive {
+        background: #22c55e;
+        color: #dcfce7;
+      }
+      .category-btn.selected.munhwa-negative {
+        background: #f87171;
+        color: #fef2f2;
       }
 
       .location-input {
@@ -198,11 +211,17 @@
               <button
                 type="button"
                 class="category-btn selected"
-                data-type="COMPLAINT"
+                data-type="MINWON"
+                id="minwonBtn"
               >
                 민원
               </button>
-              <button type="button" class="category-btn" data-type="CULTURE">
+              <button
+                type="button"
+                class="category-btn"
+                data-type="MUNHWA"
+                id="munhwaBtn"
+              >
                 문화
               </button>
             </div>

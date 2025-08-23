@@ -165,12 +165,8 @@ async function filterFeedsByCategory(category) {
   try {
     let url = "https://sorimap.it.com/api/feeds";
 
-    if (category === "MINWON" || category === "CULTURE") {
-      // 민원 또는 문화일 경우 status별이 아니라 type별 필터링이 필요하므로,
-      // API에 맞게 요청 URL 조정이 필요할 수 있습니다.
-
-      // 지역구(badge), 민원/문화(type)은 어디다가 설정?
-      // 여기서는 type 필터 쿼리 파라미터 가정 예시:
+    if (category === "MINWON" || category === "MUNHWA") {
+      // 지역구(badge)는 address로 불러오는건가?
       url += `?type=${category}`;
     }
     // 전체(ALL)는 필터 없이 모든 피드 조회
@@ -206,7 +202,7 @@ categoryButtons.forEach((btn) => {
     } else if (selected === "민원".toUpperCase()) {
       currentCategory = "MINWON";
     } else if (selected === "문화".toUpperCase()) {
-      currentCategory = "CULTURE";
+      currentCategory = "MUNHWA";
     } else {
       currentCategory = "ALL"; // 기본값 fallback
     }
