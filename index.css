@@ -1,5 +1,5 @@
 /* 기본 세팅 */
-/* * {
+* {
   box-sizing: border-box;
 }
 html,
@@ -12,20 +12,6 @@ body {
 body {
   margin: 0;
   overflow: hidden;
-} */
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "Noto Sans KR", sans-serif;
-}
-
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
 }
 
 /* 화면 정중앙 배치 */
@@ -35,13 +21,9 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  /* padding: 14vh 16px 6vh; */ /* 로그인 로고 영역 */
+  padding: 14vh 16px 6vh;
   gap: 24px;
-  /* overflow-y: scroll; */
-  overflow-x: hidden;
-
-  flex: 1 1 auto;
-  -webkit-overflow-scrolling: touch;
+  min-height: 100%;
 }
 
 /* 로고+캐릭터 묶음 */
@@ -58,9 +40,7 @@ body {
   width: 100%;
   /* width: clamp(280px, 45vw, 320px); */
   aspect-ratio: 288 / 82;
-
   background: url('./image/index-logo.png') center/contain no-repeat;
-
 }
 
 /* 캐릭터(로고 기준 비율 위치) */
@@ -71,9 +51,7 @@ body {
   transform: translate(10%, -45%);
   width: clamp(40px, 8vw, 66px);
   aspect-ratio: 66 / 89;
-
   background: url('./image/index-char.png') center/contain no-repeat;
-
 }
 
 /* 버튼 묶음 */
@@ -130,7 +108,6 @@ body {
   justify-content: center;
   align-items: stretch;
   background: #fef2f2;
-  overflow-x: hidden; /* 가로 넘침 방지 */
 }
 
 /* 가운데 폰 화면 */
@@ -142,21 +119,10 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 100svh; /*세로 스크롤을 위한 크기 지정*/
-  max-width: 100%; /* 작은 화면에서 넘침 차단 */
 }
-
-
-@media (max-width: 600px) {
-  .app {
-    width: 100%;
-    border-radius: 0;
-    box-shadow: none;
-  }
 
 .container {
   min-height: 100%;
-
 }
 
 /* 미세 조정 */
@@ -204,96 +170,4 @@ body {
     border-radius: 0;
     box-shadow: none;
   }
-}
-
-/* 뒤로가기 버튼 */
-.back-arrow {
-  font-size: 25px;
-  margin-right: 20px;
-  cursor: pointer;
-}
-
-/* 카테고리 */
-.community-btns {
-  margin-top: 17px;
-  margin-bottom: 10px;
-  display: flex;
-  gap: 11px;
-}
-
-.category-btn {
-  padding: 7px 21px;
-  font-size: 15px;
-  border-radius: 19px;
-  background: #f8f4f5;
-  color: #f87171;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.18s, color 0.18s;
-  border: none;
-  display: inline-block;
-}
-.category-btn.active {
-  background: #f87171;
-  color: #fff;
-}
-
-/* 좋아요, 댓글 */
-
-.card-like,
-.card-comment {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 14px;
-  color: #f87171;
-  font-weight: 500;
-  margin-left: 10px;
-}
-.card-like,
-.card-comment svg {
-  margin-right: 1px;
-  vertical-align: text-bottom;
-}
-
-/* 하단바 */
-.bottom-nav {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 480px;
-  height: 95px;
-  background-color: white;
-  border-top: 1px solid #eee;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  padding-top: 15px;
-  z-index: 100;
-}
-
-.nav-item {
-  text-align: center;
-  font-size: 12px;
-  color: #aaa;
-  text-decoration: none;
-}
-
-.nav-item svg {
-  display: block;
-  margin: 0 auto 4px;
-}
-
-.nav-item.active span {
-  color: #f87171;
-}
-
-.nav-item.active svg {
-  fill: #f87171;
-}
-
-/* 스크롤바 감추기 */
-.card-list::-webkit-scrollbar {
-  display: none;
 }
