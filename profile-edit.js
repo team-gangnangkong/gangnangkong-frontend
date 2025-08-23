@@ -6,6 +6,28 @@ document.addEventListener('DOMContentLoaded', () => {
   if (savedUrl && profileImg) {
     profileImg.src = savedUrl;
     if (isFallback) profileImg.classList.add('is-fallback');
+  } else {
+    // ✅ 세션에 없으면 서버에서 가져오기 (최후의 보루)
+    (async () => {
+      try {
+        const res = await fetch('https://sorimap.it.com/api/mypage', {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const d = await res.json();
+        const url =
+          d?.profileImageUrl ||
+          d?.profile_image_url ||
+          d?.profile?.profile_image_url ||
+          './image/profile_default.png';
+        if (profileImg) profileImg.src = url;
+
+        const fallback = /profile_default\.png/i.test(url);
+        if (fallback) profileImg.classList.add('is-fallback');
+        sessionStorage.setItem('profileAvatarUrl', url);
+        sessionStorage.setItem('profileAvatarIsFallback', fallback ? '1' : '0');
+      } catch {}
+    })();
   }
 
   // === 닉네임 변경 기능 ===

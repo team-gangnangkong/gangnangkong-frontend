@@ -37,7 +37,6 @@
   display: block;
   border: 0;
   object-fit: cover;
-  border: 1.5px solid #f3f3f6;
   cursor: pointer;
   background: transparent;
 }

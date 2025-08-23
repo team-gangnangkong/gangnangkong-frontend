@@ -198,8 +198,8 @@ window.addEventListener('unhandledrejection', (e) =>
   //-프로필 변경 전에 주소 넘겨주기
   function getBgUrl(el) {
     if (!el) return null;
-    const bg = getComputedStyle(el).backgroundImage; // url("...") 형태
-    const m = bg && bg.match(/url\(["']?(.*?)["']?\)/);
+    const bg = getComputedStyle(el).backgroundImage || '';
+    const m = bg.match(/url\(["']?(.*?)["']?\)/);
     return m ? m[1] : null;
   }
 
@@ -251,20 +251,40 @@ window.addEventListener('unhandledrejection', (e) =>
 
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    guard(); // 로그인 아니면 index로
+    guard();
 
+    // 로그아웃 버튼 위임 리스너 (기존)
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('#logout-button');
       if (!btn) return;
-      console.log('[logout] click'); // ← 클릭 여부 즉시 확인
       e.preventDefault();
       doLogout();
     });
 
+    // ✅ 프로필 행 클릭: 보이는 이미지를 저장하고 이동
     const row = document.querySelector('.profile-row');
     if (row) {
       row.addEventListener('click', (e) => {
         e.preventDefault();
+        const avatarEl = document.querySelector('.profile-avatar');
+        let url = getBgUrl(avatarEl);
+        const isFallback =
+          avatarEl?.classList.contains('is-fallback') ||
+          /profile_default\.png/i.test(url || '');
+
+        // fetch 저장이 아직 안 된 경우 대비
+        if (!url) {
+          url =
+            sessionStorage.getItem('profileAvatarUrl') ||
+            './image/profile_default.png';
+        }
+
+        sessionStorage.setItem('profileAvatarUrl', url);
+        sessionStorage.setItem(
+          'profileAvatarIsFallback',
+          isFallback ? '1' : '0'
+        );
+
         location.href = 'profile-edit.html';
       });
     }
