@@ -186,45 +186,71 @@ async function doLogout() {
   if (_isLoggingOut) return;
   _isLoggingOut = true;
 
-  try {
-    let used = null, lastStatus = 0;
+  const logoutCandidates = LOGOUT_CANDIDATES;
+  const isSameSite = new URL(API_BASE).origin === location.origin;
+  let used = null;
 
-    // 1) 정상 fetch POST 시도
-    for (const p of LOGOUT_CANDIDATES) {
-      const res = await fetch(api(p), { method: 'POST', credentials: 'include' });
-      lastStatus = res.status;
-      if (res.ok || res.status === 204) { used = p; break; }
+  try {
+    // 1) 보통 로그아웃(쿠키 포함)
+    for (const p of logoutCandidates) {
+      try {
+        const res = await fetch(api(p), {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-store',
+          mode: 'cors',
+        });
+        if (res.ok || res.status === 204) { used = p; break; }
+      } catch {}
     }
 
-    // 2) hidden iframe + form POST로 한 번 더 확실히(크로스도메인 쿠키 삭제 우회)
-    const iframe = document.createElement('iframe');
-    iframe.name = 'logout_iframe';
-    iframe.hidden = true;
-    document.body.appendChild(iframe);
+    // 2) 잠깐 대기 (Set-Cookie 반영 여유)
+    await new Promise(r => setTimeout(r, 150));
 
-    const form = document.createElement('form');
-    form.action = api(used || LOGOUT_CANDIDATES[0]);
-    form.method = 'POST';
-    form.target = 'logout_iframe';
-    document.body.appendChild(form);
-    form.submit();
+    // 3) 서버 기준 인증 끊겼는지 검증
+    let meStatus = 0;
+    try {
+      const me = await fetch(api(PATHS.me), {
+        credentials: 'include',
+        cache: 'no-store',
+        mode: 'cors',
+      });
+      meStatus = me.status;
+    } catch { meStatus = 0; }
 
-    // 3) 쿠키 반영 여유
-    await new Promise(r => setTimeout(r, 200));
+    if (meStatus === 401) {
+      // ✅ 진짜 로그아웃 완료
+      clearClientAndGoHome();
+      return;
+    }
 
-    // 4) 캐시/플래그 정리 (clear 먼저, 플래그 나중)
-    sessionStorage.clear();
-    sessionStorage.setItem('justLoggedOut', '1');
-    localStorage.removeItem('userInfo');
+    // 4) 실패 시: 백엔드 도메인으로 "최상위 이동" (서드파티 쿠키 차단 우회)
+    const logoutPath = used || logoutCandidates[0];
+    const backUrl = `${location.origin}/index.html`; // 돌아올 URL
+    const hard = `${api(logoutPath)}?redirect=${encodeURIComponent(backUrl)}`;
 
-    // 5) 절대경로로 리다이렉트 (SPA 경로 문제 예방)
-    location.replace('/');
+    if (isSameSite) {
+      // 같은 사이트면 그냥 이동해도 OK
+      location.href = hard;
+    } else {
+      // 교차 사이트면 무조건 최상위 네비게이션 필요
+      location.href = hard;
+    }
   } catch (e) {
     console.error(e);
     alert('로그아웃 중 오류가 발생했습니다.');
     _isLoggingOut = false;
   }
 }
+
+function clearClientAndGoHome() {
+  try {
+    sessionStorage.clear();
+    localStorage.removeItem('userInfo');
+  } catch {}
+  location.replace('index.html');
+}
+
 
 
   // ──  초기 로드 ─────────────────────────────────────────

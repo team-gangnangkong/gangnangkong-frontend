@@ -52,10 +52,6 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('justLoggedOut') === '1') {
-      sessionStorage.removeItem('justLoggedOut');
-      return;
-    }
     bindUI();
     checkLogin(); // 첫 진입 시 로그인 여부 체크
     console.log('[AUTH_URL]', AUTH_URL);
