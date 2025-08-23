@@ -4,13 +4,20 @@
     me: '/api/user/me',
     mypage: '/api/mypage',
     myFeeds: '/api/feeds/my',
-    logout: '/api/auth/logout',
+    logout: '/api/user/logout',
   };
+  const LOGOUT_CANDIDATES = [
+    '/api/user/logout',
+    '/api/auth/logout',
+    '/api/logout',
+    '/logout',
+  ];
+  let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;
   const isJson = (res) =>
     res.headers.get('content-type')?.includes('application/json');
 
-  // ── 마이페이지 전체 정보 불러와서 화면에 주입 ─────────────────────────────
+  // ── 마이페이지 정보 불러오기 ─────────────────────────────
   async function fetchMyPage() {
     try {
       const res = await fetch(api(PATHS.mypage), {
@@ -32,7 +39,7 @@
     }
   }
 
-  // 닉네임/프로필 이미지 세팅
+  // 닉네임/프로필
   function hydrateProfile(data) {
     const name =
       data?.nickname ||
@@ -83,7 +90,7 @@
       .join('');
   }
 
-  // ── 내가 작성한 피드 목록 ──────────────────────────────────────────────
+  // ── 내가 작성한 민원 목록 ──────────────────────────────────────────────
   async function fetchMyFeeds() {
     try {
       const res = await fetch(api(PATHS.myFeeds), {
@@ -140,21 +147,50 @@
 
   // ── 로그아웃 ───────────────────────────────────────────────────────────
   async function doLogout() {
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
+
     try {
-      const res = await fetch(api(PATHS.logout), {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('로그아웃 실패');
-      alert('로그아웃 되었습니다.');
-      location.href = 'home.html';
-    } catch (err) {
-      console.error(err);
+      let ok = false,
+        lastStatus = 0;
+      for (const p of LOGOUT_CANDIDATES) {
+        const url = api(p);
+        console.log('[try logout]', url);
+        const res = await fetch(url, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        lastStatus = res.status;
+        if (res.ok) {
+          ok = true;
+          break;
+        }
+        if (res.status === 204) {
+          ok = true;
+          break;
+        } // No Content도 성공 취급
+        // 404면 다음 후보 계속 시도
+      }
+
+      if (!ok)
+        throw new Error('logout 404/실패 (마지막 상태=' + lastStatus + ')');
+
+      // 로컬 저장소 정리 (혹시 모를 캐시)
+      try {
+        sessionStorage.clear();
+        localStorage.removeItem('userInfo');
+      } catch {}
+
+      // 뒤로가기 방지
+      location.replace('index.html');
+    } catch (e) {
+      console.error(e);
       alert('로그아웃 중 오류가 발생했습니다.');
+      _isLoggingOut = false;
     }
   }
 
-  // ── 이벤트 바인딩 & 초기 로드 ─────────────────────────────────────────
+  // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.profile-row')?.addEventListener('click', () => {
       location.href = 'profile-edit.html';
@@ -163,7 +199,7 @@
       .getElementById('logout-button')
       ?.addEventListener('click', doLogout);
 
-    fetchMyPage(); // 닉네임/아바타/히스토리
-    fetchMyFeeds(); // 내 피드
+    fetchMyPage(); // 닉네임
+    fetchMyFeeds(); // 내 민원
   });
 })();
