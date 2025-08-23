@@ -1,19 +1,15 @@
-import "./community.js";
-
-// 내가 작성한 피드 상세 조회 API 호출 및 화면 표시
-
 async function fetchFeedDetail(feedId) {
   try {
     const response = await fetch(`/api/feeds/my/${feedId}`, {
-      method: "GET",
-      credentials: "include", // 쿠키 포함
+      method: 'GET',
+      credentials: 'include', // 쿠키 포함
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
     if (!response.ok) {
-      throw new Error("피드 상세 조회 실패");
+      throw new Error('피드 상세 조회 실패');
     }
 
     const feed = await response.json();
@@ -21,13 +17,13 @@ async function fetchFeedDetail(feedId) {
   } catch (error) {
     console.error(error);
     document.querySelector(
-      "#feed-detail"
+      '#feed-detail'
     ).innerHTML = `<p>피드 상세정보를 불러오는 중 오류가 발생했습니다.</p>`;
   }
 }
 
 function renderFeedDetail(feed) {
-  const container = document.querySelector("#feed-detail");
+  const container = document.querySelector('#feed-detail');
   container.innerHTML = `
     <h2>${feed.title}</h2>
     <p><strong>위치:</strong> ${feed.location}</p>
@@ -54,19 +50,19 @@ function renderFeedDetail(feed) {
         </li>
       `
         )
-        .join("")}
+        .join('')}
     </ul>
   `;
 }
 
 function formatStatus(status) {
   switch (status) {
-    case "OPEN":
-      return "미해결";
-    case "WORKING":
-      return "해결중";
-    case "DONE":
-      return "해결완료";
+    case 'OPEN':
+      return '미해결';
+    case 'WORKING':
+      return '해결중';
+    case 'DONE':
+      return '해결완료';
     default:
       return status;
   }
@@ -81,6 +77,6 @@ function formatDate(isoString) {
 // 예: fetchFeedDetail(1);
 
 // 상세 피드 1번 호출
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   fetchFeedDetail(1);
 });
