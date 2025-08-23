@@ -1,6 +1,10 @@
 console.info('[mypage] mypage.js loaded');
-window.addEventListener('error',  e => console.error('[JS ERROR]', e.message, e.error));
-window.addEventListener('unhandledrejection', e => console.error('[PROMISE REJECTION]', e.reason));
+window.addEventListener('error', (e) =>
+  console.error('[JS ERROR]', e.message, e.error)
+);
+window.addEventListener('unhandledrejection', (e) =>
+  console.error('[PROMISE REJECTION]', e.reason)
+);
 
 (() => {
   const API_BASE = 'https://sorimap.it.com'; // 백엔드 도메인
@@ -10,7 +14,7 @@ window.addEventListener('unhandledrejection', e => console.error('[PROMISE REJEC
     myFeeds: '/api/feeds/my',
     logout: '/api/user/logout',
   };
-   const LOGOUT_BTN_SELECTOR = '#logout-button';
+  const LOGOUT_BTN_SELECTOR = '#logout-button';
 
   let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;
@@ -39,69 +43,69 @@ window.addEventListener('unhandledrejection', e => console.error('[PROMISE REJEC
     }
   }
 
- // ── 닉네임/프로필 ─────────────────────────────────────────────
-function hydrateProfile(data) {
-  const name =
-    data?.nickname ||
-    data?.name ||
-    data?.username ||
-    data?.profile?.nickname ||
-    '사용자';
+  // ── 닉네임/프로필 ─────────────────────────────────────────────
+  function hydrateProfile(data) {
+    const name =
+      data?.nickname ||
+      data?.name ||
+      data?.username ||
+      data?.profile?.nickname ||
+      '사용자';
 
-  document.querySelector('.profile-name')?.textContent = name;
+    const nameEl = document.querySelector('.profile-name');
+    if (nameEl) nameEl.textContent = name;
 
-  const avatarUrl =
-    data?.profileImageUrl ||
-    data?.profile_image_url ||
-    data?.profile_image ||
-    data?.profile?.profile_image_url ||
-    data?.picture ||
-    '';
+    const avatarUrl =
+      data?.profileImageUrl ||
+      data?.profile_image_url ||
+      data?.profile_image ||
+      data?.profile?.profile_image_url ||
+      data?.picture ||
+      '';
 
-  const isDefaultFlag =
-    data?.isDefaultImage ??
-    data?.is_default_image ??
-    data?.profile?.is_default_image ??
-    null;
+    const isDefaultFlag =
+      data?.isDefaultImage ??
+      data?.is_default_image ??
+      data?.profile?.is_default_image ??
+      null;
 
-  const kakaoDefaultPatterns = [
-    /kakaocdn\.net\/.*default_profile/i,
-    /kakaocdn\.net\/account_images\/default_/i,
-  ];
-  const isKakaoDefaultUrl =
-    typeof avatarUrl === 'string' &&
-    kakaoDefaultPatterns.some((re) => re.test(avatarUrl));
+    const kakaoDefaultPatterns = [
+      /kakaocdn\.net\/.*default_profile/i,
+      /kakaocdn\.net\/account_images\/default_/i,
+    ];
+    const isKakaoDefaultUrl =
+      typeof avatarUrl === 'string' &&
+      kakaoDefaultPatterns.some((re) => re.test(avatarUrl));
 
-  // ✅ 네가 말한 기본 이미지 파일명 사용
-  const FALLBACK = './image/profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
+    // ✅ 네가 말한 기본 이미지 파일명 사용
+    const FALLBACK = './image/profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
 
-  const shouldUseFallback =
-    !avatarUrl || isDefaultFlag === true || isKakaoDefaultUrl;
+    const shouldUseFallback =
+      !avatarUrl || isDefaultFlag === true || isKakaoDefaultUrl;
 
-  const avatarEl = document.querySelector('.profile-avatar');
-  if (!avatarEl) return;
+    const avatarEl = document.querySelector('.profile-avatar');
+    if (!avatarEl) return;
 
-  const setBG = (url) => {
-    avatarEl.style.backgroundImage = `url('${url}')`;
-    avatarEl.style.backgroundSize = 'cover';
-    avatarEl.style.backgroundPosition = 'center';
-    avatarEl.style.borderRadius = '50%';
-  };
+    const setBG = (url) => {
+      avatarEl.style.backgroundImage = `url('${url}')`;
+      avatarEl.style.backgroundSize = 'cover';
+      avatarEl.style.backgroundPosition = 'center';
+      avatarEl.style.borderRadius = '50%';
+    };
 
-  if (shouldUseFallback) {
-    setBG(FALLBACK);
+    if (shouldUseFallback) {
+      setBG(FALLBACK);
       avatarEl.classList.add('is-fallback');
-  avatarEl.style.backgroundImage = `url('${FALLBACK}')`;
-  } else {
-    avatarEl.classList.remove('is-fallback');
-  avatarEl.style.backgroundImage = `url('${avatarUrl}')`;
-    const img = new Image();
-    img.onload = () => setBG(avatarUrl);
-    img.onerror = () => setBG(FALLBACK);
-    img.src = avatarUrl;
+      avatarEl.style.backgroundImage = `url('${FALLBACK}')`;
+    } else {
+      avatarEl.classList.remove('is-fallback');
+      avatarEl.style.backgroundImage = `url('${avatarUrl}')`;
+      const img = new Image();
+      img.onload = () => setBG(avatarUrl);
+      img.onerror = () => setBG(FALLBACK);
+      img.src = avatarUrl;
+    }
   }
-}
-
 
   // 공감 히스토리 채우기 (기존 리스트 갈아끼움)
   function hydrateLikeHistory(list) {
@@ -182,31 +186,31 @@ function hydrateProfile(data) {
   }
 
   // ── 로그아웃 ───────────────────────────────────────────────────────────
-async function doLogout() {
+  async function doLogout() {
     if (_isLoggingOut) return;
     _isLoggingOut = true;
 
     const btn = document.querySelector(LOGOUT_BTN_SELECTOR);
     if (btn) {
-    btn.disabled = true;
-    btn.textContent = '로그아웃 중...';
-    btn.style.opacity = '0.6';
-  }
+      btn.disabled = true;
+      btn.textContent = '로그아웃 중...';
+      btn.style.opacity = '0.6';
+    }
 
-  try {
-    const res = await fetch(`${API_BASE}${PATHS.logout}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { Accept: 'application/json' },
-    });
-    console.log('[logout] status', res.status);
-  } catch (e) {
-    console.warn('[logout] network ignored:', e);
-  } finally {
     try {
-      localStorage.removeItem('userInfo');
-      sessionStorage.clear();
-    } catch {}
+      const res = await fetch(`${API_BASE}${PATHS.logout}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      });
+      console.log('[logout] status', res.status);
+    } catch (e) {
+      console.warn('[logout] network ignored:', e);
+    } finally {
+      try {
+        localStorage.removeItem('userInfo');
+        sessionStorage.clear();
+      } catch {}
 
       // 3) 인덱스로 이동 (캐시 방지용 쿼리 붙임)
       location.replace(`index.html?loggedout=${Date.now()}`);
@@ -216,7 +220,9 @@ async function doLogout() {
   // (옵션) 마이페이지 접근 가드: 로그인 아니면 인덱스로 돌려보내기
   async function guard() {
     try {
-      const res = await fetch(`${API_BASE}${PATHS.me}`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE}${PATHS.me}`, {
+        credentials: 'include',
+      });
       if (res.status === 401 || res.status === 403) {
         location.replace('index.html');
       }
@@ -227,21 +233,20 @@ async function doLogout() {
 
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-  guard(); // 로그인 아니면 index로
+    guard(); // 로그인 아니면 index로
 
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('#logout-button');
-  if (!btn) return;
-  console.log('[logout] click'); // ← 클릭 여부 즉시 확인
-  e.preventDefault();
-  doLogout();
-});
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('#logout-button');
+      if (!btn) return;
+      console.log('[logout] click'); // ← 클릭 여부 즉시 확인
+      e.preventDefault();
+      doLogout();
+    });
 
-  document.querySelector('.profile-row')?.addEventListener('click', () => {
-    location.href = 'profile-edit.html';
+    document.querySelector('.profile-row')?.addEventListener('click', () => {
+      location.href = 'profile-edit.html';
+    });
+    fetchMyPage();
+    fetchMyFeeds();
   });
-  fetchMyPage();
-  fetchMyFeeds();
-});
-
 })();
