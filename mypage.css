@@ -1,3 +1,10 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* ✅ 바깥 스크롤 잠금 */
+}
+
 .mypage-title {
   font-weight: 700;
   font-size: 22px;
@@ -243,8 +250,47 @@
   min-height: 100dvh;
 }
 
+.app-scroll {
+  flex: 1;
+  min-height: 0; /* flex overflow 방지 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
+
+  /* 하단바 + 플로팅 버튼에 가리지 않도록 여백 확보 */
+  padding-bottom: calc(var(--nav-h) + max(32px, env(safe-area-inset-bottom)));
+}
+
 /* 로그아웃 버튼 */
+:root {
+  --nav-h: 95px;
+} /* 네 하단바 높이와 동일하게 */
+
 .logout-button {
-  text-align: center;
-  margin: 30px 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--nav-h) + max(16px, env(safe-area-inset-bottom)));
+  display: flex;
+  justify-content: center;
+  z-index: 150; /* 하단바(100)보다 크게 */
+  pointer-events: none; /* 컨테이너는 클릭 막고 */
+}
+
+.btn-logout {
+  pointer-events: auto; /* 버튼만 클릭 가능 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 22px;
+  border: 0;
+  border-radius: 11px;
+
+  background: #f87171; /* 사진 느낌의 코랄 레드 */
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
 }
