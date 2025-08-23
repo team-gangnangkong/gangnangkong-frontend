@@ -15,6 +15,12 @@ window.addEventListener('unhandledrejection', (e) =>
     logout: '/api/user/logout',
   };
   const LOGOUT_BTN_SELECTOR = '#logout-button';
+  const toHttps = (u) =>
+    typeof u === 'string'
+      ? u.startsWith('//')
+        ? 'https:' + u
+        : u.replace(/^http:\/\//, 'https://')
+      : u;
 
   let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;
@@ -55,13 +61,15 @@ window.addEventListener('unhandledrejection', (e) =>
     const nameEl = document.querySelector('.profile-name');
     if (nameEl) nameEl.textContent = name;
 
-    const avatarUrl =
+    const raw =
       data?.profileImageUrl ||
       data?.profile_image_url ||
       data?.profile_image ||
       data?.profile?.profile_image_url ||
       data?.picture ||
       '';
+
+    const avatarUrl = toHttps(raw);
 
     const isDefaultFlag =
       data?.isDefaultImage ??
@@ -94,16 +102,17 @@ window.addEventListener('unhandledrejection', (e) =>
     };
 
     if (shouldUseFallback) {
-      setBG(FALLBACK);
       avatarEl.classList.add('is-fallback');
-      // ✅ 편집 페이지용 세션 저장
+      setBG(FALLBACK);
+
+      // ✅ 편집 페이지에서도 바로 쓰도록 저장
       sessionStorage.setItem('profileAvatarUrl', FALLBACK);
       sessionStorage.setItem('profileAvatarIsFallback', '1');
     } else {
       avatarEl.classList.remove('is-fallback');
       const img = new Image();
       img.onload = () => {
-        setBG(avatarUrl);
+        setBG(avatarUrl); // https로 정리된 URL
         // ✅ 정상 이미지도 저장
         sessionStorage.setItem('profileAvatarUrl', avatarUrl);
         sessionStorage.setItem('profileAvatarIsFallback', '0');
