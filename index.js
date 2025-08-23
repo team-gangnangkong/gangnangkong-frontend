@@ -1,110 +1,60 @@
-// const AUTH = {
-//   // 나중에 백엔드 주소로 변경
-//   baseUrl: '#', // 백엔드 베이스 URL
-//   loginPath: '/oauth2/authorization/kakao', // 백엔드 OAuth 시작 경로
-//   mePath: '/api/auth/me', // 로그인 여부 확인 API
-//   logoutPath: '/api/auth/logout', // 로그아웃 API (옵션)
-//   afterLogin: '/map.html', // 로그인 성공 후 이동
-//   afterSignup: '/signup.html', // 신규 회원 이동(옵션)
-//   callbackUrl: location.origin + '/auth-callback.html', // 콜백 페이지
-//   MOCK: true, // 백엔드 없으면 true
-// };
+(() => {
+  const API_BASE = 'https://sorimap.it.com'; // 배포 백엔드
+  const CLIENT_ID = '21a378dd1e0ed38b3f458c67dd55f414'; // 카카오 앶 키
+  const CALLBACK_PATH = '/kakao/callback';
+  const REDIRECT_URI = `${API_BASE}${CALLBACK_PATH}`; //https://sorimap.it.com/kakao/callback
+  const SCOPE = 'profile_nickname,profile_image';
 
-// /** fetch JSON 래퍼 */
-// async function fetchJSON(url, options = {}) {
-//   const res = await fetch(url, {
-//     credentials: 'include', // 쿠키 포함
-//     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-//     ...options,
-//   });
-//   if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
-//   return res.status === 204 ? null : res.json();
-// }
+  // 카카오 권한요청 URL
+  const AUTH_URL =
+    `https://kauth.kakao.com/oauth/authorize` +
+    `?response_type=code` +
+    `&client_id=${encodeURIComponent(CLIENT_ID)}` +
+    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+    `&scope=${encodeURIComponent(SCOPE)}`;
 
-// /** 로그인 상태 확인 */
-// async function checkLogin() {
-//   if (AUTH.MOCK) {
-//     const user = JSON.parse(localStorage.getItem('mockUser') || 'null');
-//     return user ? { ok: true, user } : { ok: false };
-//   }
-//   try {
-//     const me = await fetchJSON(AUTH.baseUrl + AUTH.mePath);
-//     return { ok: !!me?.id, user: me };
-//   } catch {
-//     return { ok: false };
-//   }
-// }
+  // 로그인 여부 확인 API
+  const ME_PATH = '/api/user/me';
+  const isJson = (res) =>
+    res.headers.get('content-type')?.includes('application/json');
 
-// /** 로그인 시작 */
-// function startLogin() {
-//   if (AUTH.MOCK) {
-//     // MOCK 모드 → 바로 로그인된 것처럼 저장
-//     const mock = { id: 1, name: '테스트유저', provider: 'kakao' };
-//     localStorage.setItem('mockUser', JSON.stringify(mock));
-//     location.replace(AUTH.afterLogin);
-//     return;
-//   }
-//   const params = new URLSearchParams({
-//     next: AUTH.callbackUrl, // 백엔드에서 사용할 리다이렉트 URL
-//   });
-//   location.href = `${AUTH.baseUrl}${AUTH.loginPath}?${params}`;
-// }
+  async function checkLogin() {
+    try {
+      const res = await fetch(`${API_BASE}${ME_PATH}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (res.ok && isJson(res)) {
+        // 로그인 상태면 지도 화면으로
+        location.replace('map.html');
+      }
+      // 401/403/HTML이면 현재 페이지 유지
+    } catch (e) {
+      console.warn('[checkLogin] network ignored:', e);
+    }
+  }
 
-// /** 콜백 처리 */
-// async function handleAuthCallback() {
-//   const qs = new URLSearchParams(location.search);
+  function bindUI() {
+    const loginBtn = document.querySelector('#kakao-login-btn');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        location.href = AUTH_URL; // 카카오 로그인 시작
+      });
+    }
+    const admin = document.querySelector('.admin-login');
+    if (admin) {
+      admin.addEventListener('click', (e) => {
+        e.preventDefault();
+        location.href = 'manage.html';
+      });
+    }
+  }
 
-//   if (AUTH.MOCK) {
-//     const mock = { id: 1, name: '테스트유저', provider: 'kakao' };
-//     localStorage.setItem('mockUser', JSON.stringify(mock));
-//     location.replace(AUTH.afterLogin);
-//     return;
-//   }
-
-//   if (qs.get('error')) {
-//     alert(decodeURIComponent(qs.get('message') || '로그인 실패'));
-//     location.replace('/');
-//     return;
-//   }
-
-//   if (qs.get('signup') === 'true') {
-//     location.replace(AUTH.afterSignup);
-//     return;
-//   }
-
-//   const me = await checkLogin();
-//   if (me.ok) {
-//     location.replace(AUTH.afterLogin);
-//   } else {
-//     alert('세션 확인 실패. 다시 로그인해주세요.');
-//     location.replace('/');
-//   }
-// }
-
-// /** 로그아웃 */
-// async function logout() {
-//   if (AUTH.MOCK) {
-//     localStorage.removeItem('mockUser');
-//     location.replace('/');
-//     return;
-//   }
-//   try {
-//     await fetchJSON(AUTH.baseUrl + AUTH.logoutPath, { method: 'POST' });
-//   } finally {
-//     location.replace('/');
-//   }
-// }
-
-// /** 초기 실행 */
-// document.addEventListener('DOMContentLoaded', async () => {
-//   const loginBtn = document.getElementById('kakao-login-btn');
-//   if (loginBtn) {
-//     loginBtn.addEventListener('click', startLogin);
-//   }
-
-//   const me = await checkLogin();
-//   if (me.ok) {
-//     // 이미 로그인 상태면 홈으로 이동
-//     location.replace(AUTH.afterLogin);
-//   }
-// });
+  document.addEventListener('DOMContentLoaded', () => {
+    bindUI();
+    checkLogin(); // 첫 진입 시 로그인 여부 체크
+    console.log('[AUTH_URL]', AUTH_URL);
+    console.log('[REDIRECT_URI]', REDIRECT_URI);
+  });
+})();

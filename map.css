@@ -465,7 +465,9 @@ body {
   margin-left: auto;
   border: 0;
   background: transparent;
+
   font: 500 13px/1 "Noto Sans KR", system-ui;
+
   letter-spacing: -0.2px;
   color: var(--cp-color-neg); /* 기본: 민원 빨강 */
 }
@@ -508,7 +510,9 @@ body {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
+
   font: 700 12px/1 "Noto Sans KR", system-ui;
+
   color: #fff;
   background: var(--cp-color-neg); /* 기본: 민원 */
 }
@@ -600,7 +604,9 @@ body {
   align-self: center;
   border-radius: 11px;
   padding: 12px 14px;
+
   font: 700 14px/1 "Noto Sans KR";
+
   color: #fff;
   background: var(--cp-color-neg);
 }
@@ -650,7 +656,9 @@ body {
   border-radius: 999px;
   background: #eaf7ef;
   color: #16a34a;
+
   font: 700 11px/1 "Noto Sans KR", system-ui;
+
   vertical-align: middle;
 }
 
@@ -679,7 +687,9 @@ body {
   padding: 0;
   border-radius: 0;
   color: #9ca3af; /* 회색 */
+
   font: 500 13px/1 "Noto Sans KR", system-ui;
+
   white-space: nowrap;
   flex: 0 0 auto;
 }
@@ -882,7 +892,9 @@ body {
 
 /* 원(기본은 보이지 않음) */
 .mood-pin::before {
-  content: "";
+
+  content: '';
+
   position: absolute;
   left: 79%;
   top: 64%;
