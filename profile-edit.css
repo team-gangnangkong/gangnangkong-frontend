@@ -138,6 +138,7 @@
 
 /* 프로필 사진 수정 */
 .bottom-sheet {
+  position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
