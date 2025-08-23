@@ -151,8 +151,10 @@
     _isLoggingOut = true;
 
     try {
-      let ok = false,
+      let used = null,
         lastStatus = 0;
+
+      // 1) 후보 엔드포인트들 시도
       for (const p of LOGOUT_CANDIDATES) {
         const url = api(p);
         console.log('[try logout]', url);
@@ -161,27 +163,35 @@
           credentials: 'include',
         });
         lastStatus = res.status;
-        if (res.ok) {
-          ok = true;
+        if (res.ok || res.status === 204) {
+          used = p;
           break;
         }
-        if (res.status === 204) {
-          ok = true;
-          break;
-        } // No Content도 성공 취급
-        // 404면 다음 후보 계속 시도
+      }
+      if (!used)
+        throw new Error('logout 실패 (마지막 상태=' + lastStatus + ')');
+
+      // 2) 진짜 로그아웃됐는지 확인(토큰이 살아있으면 바로 200 나옴)
+      await new Promise((r) => setTimeout(r, 120)); // 쿠키 반영 여유
+      const me = await fetch(api(PATHS.me), {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      if (me.status === 200) {
+        // 3) 하드 로그아웃: API 엔드포인트로 "최상위 네비게이션" 이동 (1st-party 컨텍스트에서 Set-Cookie 확실히 반영)
+        // 서버가 리다이렉트를 지원하면 ?redirect= 로 우리 사이트로 돌아오게 하면 베스트
+        const hardUrl = api(used);
+        console.warn('[hard logout redirect]', hardUrl);
+        location.href = hardUrl; // 서버에서 200만 주면 API 응답 화면이 잠깐 보일 수 있음(임시 우회)
+        return;
       }
 
-      if (!ok)
-        throw new Error('logout 404/실패 (마지막 상태=' + lastStatus + ')');
-
-      // 로컬 저장소 정리 (혹시 모를 캐시)
+      // 4) 성공 → 클라이언트 캐시 정리 후 인덱스로
       try {
         sessionStorage.clear();
         localStorage.removeItem('userInfo');
       } catch {}
-
-      // 뒤로가기 방지
       location.replace('index.html');
     } catch (e) {
       console.error(e);
