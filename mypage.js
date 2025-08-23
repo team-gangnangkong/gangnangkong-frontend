@@ -6,12 +6,8 @@
     myFeeds: '/api/feeds/my',
     logout: '/api/user/logout',
   };
-  const LOGOUT_CANDIDATES = [
-    '/api/user/logout',
-    '/api/auth/logout',
-    '/api/logout',
-    '/logout',
-  ];
+   const LOGOUT_BTN_SELECTOR = '#logout-button';
+
   let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;
   const isJson = (res) =>
@@ -183,86 +179,59 @@ function hydrateProfile(data) {
 
   // ── 로그아웃 ───────────────────────────────────────────────────────────
 async function doLogout() {
-  if (_isLoggingOut) return;
-  _isLoggingOut = true;
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
 
-  const logoutCandidates = LOGOUT_CANDIDATES;
-  const isSameSite = new URL(API_BASE).origin === location.origin;
-  let used = null;
+    const btn = document.querySelector(LOGOUT_BTN_SELECTOR);
+    if (btn) btn.disabled = true;
 
-  try {
-    // 1) 보통 로그아웃(쿠키 포함)
-    for (const p of logoutCandidates) {
-      try {
-        const res = await fetch(api(p), {
-          method: 'POST',
-          credentials: 'include',
-          cache: 'no-store',
-          mode: 'cors',
-        });
-        if (res.ok || res.status === 204) { used = p; break; }
-      } catch {}
-    }
-
-    // 2) 잠깐 대기 (Set-Cookie 반영 여유)
-    await new Promise(r => setTimeout(r, 150));
-
-    // 3) 서버 기준 인증 끊겼는지 검증
-    let meStatus = 0;
     try {
-      const me = await fetch(api(PATHS.me), {
+      // 1) 서버에 로그아웃 요청 → 서버가 ACCESS/REFRESH 쿠키 Max-Age=0으로 삭제
+      await fetch(`${API_BASE}${PATHS.logout}`, {
+        method: 'POST',
         credentials: 'include',
-        cache: 'no-store',
-        mode: 'cors',
+        headers: { 'Accept': 'application/json' },
       });
-      meStatus = me.status;
-    } catch { meStatus = 0; }
+    } catch (e) {
+      console.warn('[logout] network ignored:', e);
+    } finally {
+      // 2) 클라이언트 상태 정리 (있으면)
+      try {
+        localStorage.removeItem('userInfo');
+        sessionStorage.clear();
+      } catch (_) {}
 
-    if (meStatus === 401) {
-      // ✅ 진짜 로그아웃 완료
-      clearClientAndGoHome();
-      return;
+      // 3) 인덱스로 이동 (캐시 방지용 쿼리 붙임)
+      location.replace(`index.html?loggedout=${Date.now()}`);
     }
-
-    // 4) 실패 시: 백엔드 도메인으로 "최상위 이동" (서드파티 쿠키 차단 우회)
-    const logoutPath = used || logoutCandidates[0];
-    const backUrl = `${location.origin}/index.html`; // 돌아올 URL
-    const hard = `${api(logoutPath)}?redirect=${encodeURIComponent(backUrl)}`;
-
-    if (isSameSite) {
-      // 같은 사이트면 그냥 이동해도 OK
-      location.href = hard;
-    } else {
-      // 교차 사이트면 무조건 최상위 네비게이션 필요
-      location.href = hard;
-    }
-  } catch (e) {
-    console.error(e);
-    alert('로그아웃 중 오류가 발생했습니다.');
-    _isLoggingOut = false;
   }
-}
 
-function clearClientAndGoHome() {
-  try {
-    sessionStorage.clear();
-    localStorage.removeItem('userInfo');
-  } catch {}
-  location.replace('index.html');
-}
-
-
+  // (옵션) 마이페이지 접근 가드: 로그인 아니면 인덱스로 돌려보내기
+  async function guard() {
+    try {
+      const res = await fetch(`${API_BASE}${PATHS.me}`, { credentials: 'include' });
+      if (res.status === 401 || res.status === 403) {
+        location.replace('index.html');
+      }
+    } catch (e) {
+      console.warn('[guard] ignored:', e);
+    }
+  }
 
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    document.querySelector('.profile-row')?.addEventListener('click', () => {
-      location.href = 'profile-edit.html';
-    });
-    document
-      .getElementById('logout-button')
-      ?.addEventListener('click', doLogout);
+  guard(); // 로그인 아니면 index로
 
-    fetchMyPage(); // 닉네임
-    fetchMyFeeds(); // 내 민원
+  document.querySelector('#logout-button')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    doLogout();
   });
+
+  document.querySelector('.profile-row')?.addEventListener('click', () => {
+    location.href = 'profile-edit.html';
+  });
+  fetchMyPage();
+  fetchMyFeeds();
+});
+
 })();
