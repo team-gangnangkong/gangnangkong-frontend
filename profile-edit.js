@@ -7,16 +7,21 @@
   };
   const FALLBACK = './image/profile_default.png';
 
+  // ✅ http → https 강제 (프로토콜 상대 URL도 처리)
+  const toHttps = (u) => {
+    if (typeof u !== 'string') return u;
+    if (u.startsWith('//')) return 'https:' + u;
+    return u.replace(/^http:\/\//, 'https://');
+  };
+
   const state = { els: {} };
   const q = (s) => document.querySelector(s);
 
-  // kakao 기본 이미지 판별
   const isKakaoDefaultUrl = (u = '') =>
     /kakaocdn\.net\/.*default_profile|kakaocdn\.net\/account_images\/default_/i.test(
       u
     );
 
-  // DOM 요소 캐싱
   function cacheEls() {
     state.els = {
       profileImg: q('.profile-img'),
@@ -32,20 +37,19 @@
     };
   }
 
-  // 프로필 이미지 세팅
   function setProfileImage(url, isFallback = false) {
     const img = state.els.profileImg;
     if (!img) return;
-    img.classList.toggle('is-fallback', isFallback || !url);
+    const safe = toHttps(url);
+    img.classList.toggle('is-fallback', isFallback || !safe);
     img.onerror = () => {
       img.onerror = null;
       img.src = FALLBACK;
       img.classList.add('is-fallback');
     };
-    img.src = url || FALLBACK;
+    img.src = safe || FALLBACK; // ✅ 여기서도 https로 강제
   }
 
-  // 내 정보 불러오기 -> 이미지/닉네임 초기화
   async function loadMyProfile() {
     try {
       const res = await fetch(API_BASE + EP.me, {
@@ -56,7 +60,7 @@
       if (!res.ok) throw new Error('unauthorized');
       const me = await res.json();
 
-      const imgUrl =
+      const raw =
         me?.profileImageUrl ||
         me?.profile_image_url ||
         me?.profile_image ||
@@ -64,6 +68,7 @@
         me?.picture ||
         '';
 
+      const imgUrl = toHttps(raw); // ✅ 받아오자마자 https로
       const isDefault =
         me?.isDefaultImage ??
         me?.is_default_image ??
@@ -73,8 +78,8 @@
       if (!imgUrl || isDefault === true || isKakaoDefaultUrl(imgUrl)) {
         setProfileImage(FALLBACK, true);
       } else {
-        // 캐시 버스트로 즉시 반영
-        setProfileImage(`${imgUrl}?t=${Date.now()}`, false);
+        const bust = (imgUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+        setProfileImage(imgUrl + bust, false); // ✅ 캐시 버스트도 보존
       }
 
       const initialName = me?.nickname || me?.name || me?.username || '';
@@ -87,7 +92,6 @@
     }
   }
 
-  // 닉네임 검증/상태
   const validateNickname = (v) =>
     typeof v === 'string' && (v = v.trim()).length >= 2 && v.length <= 10;
 
@@ -105,7 +109,6 @@
     }
   }
 
-  // 닉네임 변경 요청
   async function changeNickname(newNickname) {
     const res = await fetch(`${API_BASE}${EP.nickname}`, {
       method: 'PATCH',
@@ -113,7 +116,7 @@
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        Accept: 'application/json',
+        Accept: 'application/json, text/plain;q=0.9,*/*;q=0.8',
       },
       body: JSON.stringify({ nickname: newNickname }),
       cache: 'no-store',
@@ -131,44 +134,43 @@
     return '닉네임이 정상적으로 변경되었습니다.';
   }
 
-  // 파일 선택 -> 프로필 이미지 업로드
   async function onFileChosen(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const fd = new FormData();
-    fd.append('profileImage', file); // 문서 스펙 키 이름
+    fd.append('profileImage', file);
 
     try {
       const res = await fetch(API_BASE + EP.profileImage, {
         method: 'PATCH',
         credentials: 'include',
-        body: fd, // Content-Type 직접 설정 금지
+        body: fd,
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || '프로필 이미지 변경 실패');
       }
       const data = await res.json(); // { message, imageUrl }
-      setProfileImage(`${data.imageUrl}?t=${Date.now()}`, false);
+      const safe = toHttps(data.imageUrl);
+      const bust = (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
+      setProfileImage(safe + bust, false); // ✅ 업로드 응답도 https 강제
       closeSheet();
       state.els.albumInput.value = '';
       alert(data.message || '프로필 이미지가 정상적으로 변경되었습니다.');
     } catch (err) {
       console.error(err);
       alert(err.message || '프로필 이미지 변경 중 오류가 발생했습니다.');
-      console.lod('오류');
+      console.log('오류'); // ✅ lod → log
     }
   }
 
-  // 바텀시트
   const openSheet = () => (state.els.sheet.style.display = 'flex');
   const closeSheet = () => {
     state.els.sheet.style.display = 'none';
     state.els.albumBtn.classList.remove('selected');
   };
 
-  // 이벤트 바인딩(단 한 번)
   function bindEvents() {
     const {
       nicknameInput,
@@ -180,14 +182,14 @@
       albumInput,
     } = state.els;
 
-    nicknameInput.addEventListener('input', updateNicknameState);
-    clearBtn.addEventListener('click', () => {
+    nicknameInput?.addEventListener('input', updateNicknameState);
+    clearBtn?.addEventListener('click', () => {
       nicknameInput.value = '';
       nicknameInput.focus();
       updateNicknameState();
     });
 
-    submitBtn.addEventListener('click', async () => {
+    submitBtn?.addEventListener('click', async () => {
       if (submitBtn.disabled) return;
       const v = nicknameInput.value.trim();
       if (!validateNickname(v)) return;
@@ -206,21 +208,20 @@
       }
     });
 
-    profileImgWrap.addEventListener('click', openSheet);
-    closeBtn.addEventListener('click', closeSheet);
+    profileImgWrap?.addEventListener('click', openSheet);
+    closeBtn?.addEventListener('click', closeSheet);
 
     const press = () => albumBtn.classList.add('selected');
     const release = () =>
       setTimeout(() => albumBtn.classList.remove('selected'), 180);
-    albumBtn.addEventListener('mousedown', press);
-    albumBtn.addEventListener('mouseup', release);
-    albumBtn.addEventListener('touchstart', press);
-    albumBtn.addEventListener('touchend', release);
-    albumBtn.addEventListener('click', () => albumInput.click());
-    albumInput.addEventListener('change', onFileChosen);
+    albumBtn?.addEventListener('mousedown', press);
+    albumBtn?.addEventListener('mouseup', release);
+    albumBtn?.addEventListener('touchstart', press);
+    albumBtn?.addEventListener('touchend', release);
+    albumBtn?.addEventListener('click', () => albumInput.click());
+    albumInput?.addEventListener('change', onFileChosen);
   }
 
-  // 초기화
   function init() {
     cacheEls();
     bindEvents();
