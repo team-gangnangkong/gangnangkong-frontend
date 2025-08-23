@@ -157,6 +157,7 @@
     } catch (err) {
       console.error(err);
       alert(err.message || '프로필 이미지 변경 중 오류가 발생했습니다.');
+      console.lod('오류');
     }
   }
 
