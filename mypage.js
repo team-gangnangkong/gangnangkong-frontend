@@ -73,7 +73,7 @@ function hydrateProfile(data) {
     kakaoDefaultPatterns.some((re) => re.test(avatarUrl));
 
   // ✅ 네가 말한 기본 이미지 파일명 사용
-  const FALLBACK = 'profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
+  const FALLBACK = './image/profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
 
   const shouldUseFallback =
     !avatarUrl || isDefaultFlag === true || isKakaoDefaultUrl;
@@ -182,70 +182,51 @@ function hydrateProfile(data) {
   }
 
   // ── 로그아웃 ───────────────────────────────────────────────────────────
-  async function doLogout() {
-    if (_isLoggingOut) return;
-    _isLoggingOut = true;
+async function doLogout() {
+  if (_isLoggingOut) return;
+  _isLoggingOut = true;
 
-    try {
-      let ok = false,
-        lastStatus = 0,
-        used = null;
+  try {
+    let used = null, lastStatus = 0;
 
-      // 1) 정상 fetch POST 시도(쿠키 포함)
-      for (const p of LOGOUT_CANDIDATES) {
-        const url = api(p);
-        console.log('[try logout]', url);
-        const res = await fetch(url, {
-          method: 'POST',
-          credentials: 'include',
-        });
-        lastStatus = res.status;
-        if (res.ok || res.status === 204) {
-          ok = true;
-          used = p;
-          break;
-        }
-        // 404면 다음 후보 계속
-      }
-
-      // 2) fetch로 쿠키가 안 지워졌을 수 있으니(크로스도메인 Set-Cookie 미반영 등)
-      //    폼 POST를 hidden iframe으로 한 번 더 날려 확실하게 처리 (CORS 미적용)
-      const iframe = document.createElement('iframe');
-      iframe.name = 'logout_iframe';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-
-      const form = document.createElement('form');
-      form.action = api(used || LOGOUT_CANDIDATES[0]); // 가장 유력한 경로로
-      form.method = 'POST';
-      form.target = 'logout_iframe';
-      document.body.appendChild(form);
-      form.submit();
-
-      // 3) 쿠키 반영 시간 잠깐 주고 /me로 성공 여부 확인
-      await new Promise((r) => setTimeout(r, 200));
-      const me = await fetch(api(PATHS.me), {
-        credentials: 'include',
-        cache: 'no-store',
-      });
-
-      // 4) 성공 처리
-      try {
-        sessionStorage.setItem('justLoggedOut', '1');
-      } catch {}
-      try {
-        sessionStorage.clear();
-        localStorage.removeItem('userInfo');
-      } catch {}
-
-      // 5) 인덱스로 (GET으로 API로 이동 절대 금지! 405 원인)
-      location.replace('index.html');
-    } catch (e) {
-      console.error(e);
-      alert('로그아웃 중 오류가 발생했습니다.');
-      _isLoggingOut = false;
+    // 1) 정상 fetch POST 시도
+    for (const p of LOGOUT_CANDIDATES) {
+      const res = await fetch(api(p), { method: 'POST', credentials: 'include' });
+      lastStatus = res.status;
+      if (res.ok || res.status === 204) { used = p; break; }
     }
+
+    // 2) hidden iframe + form POST로 한 번 더 확실히(크로스도메인 쿠키 삭제 우회)
+    const iframe = document.createElement('iframe');
+    iframe.name = 'logout_iframe';
+    iframe.hidden = true;
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.action = api(used || LOGOUT_CANDIDATES[0]);
+    form.method = 'POST';
+    form.target = 'logout_iframe';
+    document.body.appendChild(form);
+    form.submit();
+
+    // 3) 쿠키 반영 여유
+    await new Promise(r => setTimeout(r, 200));
+
+    // 4) 캐시/플래그 정리 (clear 먼저, 플래그 나중)
+    sessionStorage.clear();
+    sessionStorage.setItem('justLoggedOut', '1');
+    localStorage.removeItem('userInfo');
+
+    // 5) 절대경로로 리다이렉트 (SPA 경로 문제 예방)
+    location.replace('/');
+  } catch (e) {
+    console.error(e);
+    alert('로그아웃 중 오류가 발생했습니다.');
+    _isLoggingOut = false;
   }
+}
+
+
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.profile-row')?.addEventListener('click', () => {
