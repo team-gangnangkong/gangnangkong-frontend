@@ -85,14 +85,15 @@
     }
   }
 
-  // ---- 닉네임 변경 ----
+  // ---- 닉네임 검증 & 상태 ----
   function validateNickname(v) {
-    return v.length >= 2 && v.length <= 10;
+    return (
+      typeof v === 'string' && v.trim().length >= 2 && v.trim().length <= 10
+    );
   }
-
   function updateNicknameState() {
-    const val = (els.nicknameInput?.value || '').trim();
-    if (!validateNickname(val)) {
+    const v = els.nicknameInput?.value?.trim() || '';
+    if (!validateNickname(v)) {
       els.errorMsg.textContent = '닉네임은 2-10자로 입력해 주세요.';
       els.submitBtn.classList.remove('active');
       els.submitBtn.disabled = true;
@@ -103,18 +104,76 @@
     }
   }
 
+  // ---- 닉네임 변경 요청 (문서 스펙 반영) ----
   async function changeNickname(newNickname) {
     const res = await fetch(API_BASE + ENDPOINTS.changeNickname, {
       method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // 쿠키 전송
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/plain;q=0.9,*/*;q=0.8',
+      },
       body: JSON.stringify({ nickname: newNickname }),
     });
+
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || '닉네임 변경 실패');
+      // 서버가 text로 에러를 줄 수도 있으니 안전하게 처리
+      let msg = '닉네임 변경 실패';
+      try {
+        const ct = res.headers.get('content-type') || '';
+        msg = ct.includes('application/json')
+          ? (await res.json()).message || msg
+          : (await res.text()) || msg;
+      } catch {}
+      throw new Error(msg);
     }
+
+    // 성공 메시지도 JSON 또는 텍스트일 수 있음
+    let message = '닉네임이 정상적으로 변경되었습니다.';
+    try {
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const data = await res.json();
+        if (typeof data?.message === 'string') message = data.message;
+      } else {
+        const txt = await res.text();
+        if (txt) message = txt;
+      }
+    } catch {}
+
+    return message;
   }
+
+  // ---- 제출 버튼 클릭 ----
+  els.submitBtn.addEventListener('click', async () => {
+    if (els.submitBtn.disabled) return;
+    const newNickname = (els.nicknameInput.value || '').trim();
+    if (!validateNickname(newNickname)) return;
+
+    // UX: 진행중 비활성화
+    els.submitBtn.disabled = true;
+    const prevLabel = els.submitBtn.textContent;
+    els.submitBtn.textContent = '저장 중...';
+
+    try {
+      const msg = await changeNickname(newNickname);
+      alert(msg);
+    } catch (e) {
+      els.errorMsg.textContent =
+        e.message || '닉네임 변경 중 오류가 발생했습니다.';
+    } finally {
+      els.submitBtn.textContent = prevLabel;
+      els.submitBtn.disabled = false;
+    }
+  });
+
+  // 입력 변화시 상태 업데이트
+  els.nicknameInput.addEventListener('input', updateNicknameState);
+  els.clearBtn.addEventListener('click', () => {
+    els.nicknameInput.value = '';
+    els.nicknameInput.focus();
+    updateNicknameState();
+  });
 
   // ---- 프로필 이미지 업로드 ----
   async function onFileChosen(e) {
