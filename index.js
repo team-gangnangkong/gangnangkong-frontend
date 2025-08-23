@@ -58,9 +58,17 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     bindUI();
+
     const q = new URLSearchParams(location.search);
-    const skipAuto = q.has('loggedout'); // mypage에서 붙여준 쿼리
-    if (!skipAuto) checkLogin();
+    const loggedOut = q.has('loggedout');
+
+    if (loggedOut) {
+      // 쿼리 제거 (주소 깔끔 + 다음 방문부터는 checkLogin 정상동작)
+      history.replaceState(null, '', location.pathname);
+    } else {
+      checkLogin();
+    }
+
     console.log('[AUTH_URL]', AUTH_URL);
     console.log('[REDIRECT_URI]', REDIRECT_URI);
   });
