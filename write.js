@@ -538,35 +538,37 @@ updateButtonColor();
 
     if (kakaoPlaceId) {
       try {
-        // ✅ JSON → FormData로 변경(헤더 설정 X) → 프리플라이트 회피
-        const fd2 = new FormData();
-        fd2.append('kakaoPlaceId', kakaoPlaceId);
-        fd2.append('name', name);
-        fd2.append('address', addr || '');
-        fd2.append('latitude', String(lat));
-        fd2.append('longitude', String(lng));
-
-        await fetch('https://sorimap.it.com/search/select', {
+        const res = await fetch('https://sorimap.it.com/search/select', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' }, // JSON 필요
           credentials: 'include',
-          body: fd2,
+          body: JSON.stringify({
+            kakaoPlaceId,
+            name,
+            address: addr || '',
+            latitude: lat,
+            longitude: lng,
+          }),
         });
+        if (!res.ok) {
+          console.warn(
+            '[search/select] 실패',
+            res.status,
+            await res.text().catch(() => '')
+          );
+        }
       } catch (e) {
-        console.warn('[search/select] 실패', e);
+        console.warn('[search/select] 네트워크 오류', e);
       }
     }
 
-    // 폼에 주입 (도로명 > 지번 우선으로 addr 이미 설정되어 있음)
     addrInput.value = addr || name;
     latInput.value = String(lat || 0);
     lngInput.value = String(lng || 0);
     kidInput.value = kakaoPlaceId || '';
-
     try {
       updateButtonColor?.();
     } catch {}
-
-    // 오버레이 닫고 다음 번을 위해 검색 UI 상태로 리셋
     overlay.hidden = true;
     showSearchUI();
   });
