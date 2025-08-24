@@ -30,6 +30,11 @@ window.addEventListener('unhandledrejection', (e) =>
     typeof u === 'string' &&
     /\/(default[-_]?profile|profile[-_]?default)(\.\w+)?(?:\?.*)?$/i.test(u);
 
+  const isKakaoDefault = (u = '') =>
+    /kakaocdn\.net\/.*default_profile|kakaocdn\.net\/account_images\/default_/i.test(
+      u
+    );
+
   let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;
   const isJson = (res) =>
@@ -299,26 +304,51 @@ window.addEventListener('unhandledrejection', (e) =>
     guard();
     const just = sessionStorage.getItem('profileImageJustUpdated');
     if (just) {
-      const safeJust = toHttps(just); // ✅ 상대경로면 API_BASE 붙음
-      const bust =
-        safeJust + (safeJust.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const safeJust = toHttps(just);
 
-      document
-        .querySelectorAll('.profile-img')
-        .forEach((img) => (img.src = bust));
+      // ✅ 기본이미지(서버/카카오)면 폴백으로 전환하고 'just'를 비워줌
+      if (isServerDefaultProfile(safeJust) || isKakaoDefault(safeJust)) {
+        const FALLBACK = './image/profile_default.png';
+        const bustFb = FALLBACK + '?t=' + Date.now();
 
-      const avatar = document.querySelector('.profile-avatar');
-      if (avatar) {
-        avatar.style.backgroundImage = `url('${bust}')`;
-        avatar.style.backgroundSize = 'cover';
-        avatar.style.backgroundPosition = 'center';
-        avatar.style.borderRadius = '50%';
-        avatar.classList.remove('is-fallback');
+        document
+          .querySelectorAll('.profile-img')
+          .forEach((img) => (img.src = bustFb));
+
+        const avatar = document.querySelector('.profile-avatar');
+        if (avatar) {
+          avatar.style.backgroundImage = `url('${bustFb}')`;
+          avatar.style.backgroundSize = 'cover';
+          avatar.style.backgroundPosition = 'center';
+          avatar.style.borderRadius = '50%';
+          avatar.classList.add('is-fallback');
+        }
+
+        sessionStorage.setItem('profileAvatarUrl', FALLBACK);
+        sessionStorage.setItem('profileAvatarIsFallback', '1');
+        sessionStorage.removeItem('profileImageJustUpdated'); // 🔑 더는 기본이미지로 시도하지 않게
+      } else {
+        // 기존 로직 (업로드 성공한 커스텀 이미지일 때)
+        const bust =
+          safeJust + (safeJust.includes('?') ? '&' : '?') + 't=' + Date.now();
+
+        document
+          .querySelectorAll('.profile-img')
+          .forEach((img) => (img.src = bust));
+
+        const avatar = document.querySelector('.profile-avatar');
+        if (avatar) {
+          avatar.style.backgroundImage = `url('${bust}')`;
+          avatar.style.backgroundSize = 'cover';
+          avatar.style.backgroundPosition = 'center';
+          avatar.style.borderRadius = '50%';
+          avatar.classList.remove('is-fallback');
+        }
+
+        sessionStorage.setItem('profileAvatarUrl', safeJust);
+        sessionStorage.setItem('profileAvatarIsFallback', '0');
+        sessionStorage.removeItem('profileImageJustUpdated');
       }
-
-      sessionStorage.setItem('profileAvatarUrl', safeJust); // ✅ 절대경로 저장
-      sessionStorage.setItem('profileAvatarIsFallback', '0');
-      sessionStorage.removeItem('profileImageJustUpdated');
     }
 
     applyOptimisticFromSession();
