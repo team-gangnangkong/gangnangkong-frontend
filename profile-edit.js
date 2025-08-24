@@ -92,7 +92,7 @@
 
   function cacheEls() {
     state.els = {
-      profileImg: q('.profile-img'),
+      profileImgs: Array.from(document.querySelectorAll('.profile-img')),
       profileImgWrap: q('.profile-img-wrap'),
       sheet: q('#sheet'),
       albumBtn: q('#album-btn'),
@@ -106,16 +106,17 @@
   }
 
   function setProfileImage(url, isFallback = false) {
-    const img = state.els.profileImg;
-    if (!img) return;
     const safe = toHttps(url);
-    img.classList.toggle('is-fallback', isFallback || !safe);
-    img.onerror = () => {
-      img.onerror = null;
-      img.src = FALLBACK;
-      img.classList.add('is-fallback');
-    };
-    img.src = safe || FALLBACK; // ✅ 여기서도 https로 강제
+    state.els.profileImgs?.forEach((img) => {
+      if (!img) return;
+      img.classList.toggle('is-fallback', isFallback || !safe);
+      img.onerror = () => {
+        img.onerror = null;
+        img.src = FALLBACK;
+        img.classList.add('is-fallback');
+      };
+      img.src = safe || FALLBACK;
+    });
   }
 
   async function loadMyProfile() {
@@ -228,13 +229,24 @@
 
       // 3) 성공 처리
       const data = await res.json(); // { message, imageUrl }
-      const safe = toHttps(data.imageUrl);
-      const bust = (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
-      setProfileImage(safe + bust, false);
+      const safe = toHttps(data.imageUrl || '');
+      if (!safe) throw new Error('이미지 URL을 받지 못했어요.');
+
+      // 즉시 미리보기(선택)
+      const bustPreview =
+        safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
+      setProfileImage(bustPreview, false);
+
+      // ✅ 마이페이지에서 바로 적용될 수 있도록 세션에 저장
+      sessionStorage.setItem('profileImageJustUpdated', safe);
+      sessionStorage.setItem('profileAvatarUrl', safe);
+      sessionStorage.setItem('profileAvatarIsFallback', '0');
 
       closeSheet();
       state.els.albumInput.value = '';
+
       alert(data.message || '프로필 이미지가 정상적으로 변경되었습니다.');
+      location.assign('mypage.html');
     } catch (err) {
       console.error(err);
       alert(err.message || '프로필 이미지 변경 중 오류가 발생했습니다.');

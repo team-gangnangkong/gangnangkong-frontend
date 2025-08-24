@@ -286,6 +286,32 @@ window.addEventListener('unhandledrejection', (e) =>
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     guard();
+    const just = sessionStorage.getItem('profileImageJustUpdated');
+    if (just) {
+      const bust = just + (just.includes('?') ? '&' : '?') + 't=' + Date.now();
+
+      // <img class="profile-img"> 사용하는 곳 있으면 교체
+      document
+        .querySelectorAll('.profile-img')
+        .forEach((img) => (img.src = bust));
+
+      // .profile-avatar(배경이미지)도 교체
+      const avatar = document.querySelector('.profile-avatar');
+      if (avatar) {
+        avatar.style.backgroundImage = `url('${bust}')`;
+        avatar.style.backgroundSize = 'cover';
+        avatar.style.backgroundPosition = 'center';
+        avatar.style.borderRadius = '50%';
+        avatar.classList.remove('is-fallback');
+      }
+
+      // 이후 방문에도 동일하게 보이도록 세션 키 동기화
+      sessionStorage.setItem('profileAvatarUrl', just);
+      sessionStorage.setItem('profileAvatarIsFallback', '0');
+
+      // 단발성 키는 제거
+      sessionStorage.removeItem('profileImageJustUpdated');
+    }
     applyOptimisticFromSession();
 
     // 로그아웃 버튼 위임 리스너 (기존)
