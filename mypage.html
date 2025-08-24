@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>마이페이지</title>
+    <link rel="stylesheet" href="mypage.css" />
+  </head>
+  <body>
+    <div class="viewport">
+      <div class="app">
+        <main class="app-scroll">
+          <div class="mypage-title">마이페이지</div>
+          <div class="profile-card">
+            <div class="profile-row">
+              <div class="profile-avatar"></div>
+              <div class="profile-name">을랑이</div>
+              <div
+                tabindex="0"
+                role="button"
+                aria-label="프로필수정"
+                style="cursor: pointer"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="21"
+                  viewBox="0 0 20 21"
+                  fill="none"
+                >
+                  <path
+                    d="M7.5 5.85205L12.5 10.8521L7.5 15.8521"
+                    stroke="#6B7280"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div class="history-title">나의 공감 히스토리</div>
+            <div class="like-history-list">
+              <div class="like-history-row">
+                <div class="like-history-label">8월 1주</div>
+                <span class="like-bar-icon">👍🏻</span>
+                <div class="like-bar-bg">
+                  <div class="like-bar-fill" style="width: 28%"></div>
+                </div>
+                <span class="like-count">6</span>
+              </div>
+              <div class="like-history-row">
+                <div class="like-history-label">8월 2주</div>
+                <span class="like-bar-icon">👍🏻</span>
+                <div class="like-bar-bg">
+                  <div class="like-bar-fill" style="width: 59%"></div>
+                </div>
+                <span class="like-count">12</span>
+              </div>
+              <div class="like-history-row">
+                <div class="like-history-label">8월 3주</div>
+                <span class="like-bar-icon">👍🏻</span>
+                <div class="like-bar-bg">
+                  <div class="like-bar-fill" style="width: 0"></div>
+                </div>
+                <span class="like-count">0</span>
+              </div>
+              <div class="like-history-row">
+                <div class="like-history-label">8월 4주</div>
+                <span class="like-bar-icon">👍🏻</span>
+                <div class="like-bar-bg">
+                  <div class="like-bar-fill" style="width: 80%"></div>
+                </div>
+                <span class="like-count">15</span>
+              </div>
+            </div>
+          </div>
+          <!-- 내가 작성한 민원 피드 -->
+          <div class="section-title-row">
+            <span>내가 작성한 민원</span>
+            <a class="my-community-more" href="mypage-community.html">더보기</a>
+          </div>
+          <div class="request-list">
+            <!-- 민원 카드 나올장소 -->
+          </div>
+        </main>
+
+        <!-- 하단바 -->
+        <footer class="bottom-nav">
+          <a href="map.html" class="nav-item">
+            <svg
+              width="25"
+              height="25"
+              viewBox="0 0 24 24"
+              fill="#aaa"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M12 2c-4.418 0-8 3.134-8 7 0 5.5 8 13 8 13s8-7.5 8-13c0-3.866-3.582-7-8-7zm0 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+              />
+            </svg>
+            <span>지도</span>
+          </a>
+          <a href="home.html" class="nav-item">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="#aaa"
+              aria-hidden="true"
+            >
+              <g transform="translate(24,0) scale(-1,1)">
+                <path
+                  d="M12 2C6.48 2 2 6 2 10.5c0 2.07.9 3.98 2.39 5.44L4 22l5.02-2.36c1.01.23 2.05.36 3.13.36 5.52 0 10-4.02 10-9.5S17.52 2 12 2z"
+                />
+                <rect
+                  x="7"
+                  y="9"
+                  width="10"
+                  height="1.8"
+                  rx="0.9"
+                  fill="white"
+                />
+                <rect
+                  x="7"
+                  y="12.5"
+                  width="8"
+                  height="1.8"
+                  rx="0.9"
+                  fill="white"
+                />
+              </g>
+            </svg>
+            <span>소통</span>
+          </a>
+          <a href="mypage.html" class="nav-item active">
+            <svg
+              width="25"
+              height="25"
+              fill="#aaa"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10ZM4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6v1H4v-1Z"
+              />
+            </svg>
+            <span>내 활동</span>
+          </a>
+        </footer>
+      </div>
+      <!-- 로그아웃 버튼 -->
+      <div class="logout-button">
+        <button id="logout-button" type="button" class="btn-logout">
+          로그아웃
+        </button>
+      </div>
+    </div>
+    <script src="mypage.js" defer></script>
+  </body>
+</html>

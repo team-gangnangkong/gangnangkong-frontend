@@ -1,3 +1,6 @@
+// @ts-nocheck
+/* global kakao */
+
 function getLocationIdFromURL() {
   const p = new URLSearchParams(location.search);
   const v = p.get('locationId');
@@ -11,7 +14,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==== API 기본 설정 ====
-const API_BASE = 'http://localhost:8080'; // 배포 시 교체
+const API_BASE = 'https://sorimap.it.com'; // 배포 시 교체
 
 const ENDPOINTS = {
   // 지도 클러스터 (줌아웃 시)
@@ -58,7 +61,6 @@ const ENDPOINTS = {
   searchSelect: () => `/search/select`,
 };
 
-// 공통 fetch
 async function api(path, { method = 'GET', body, signal, headers } = {}) {
   const finalHeaders = new Headers(headers || {});
   if (
@@ -68,6 +70,10 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
   ) {
     finalHeaders.set('Content-Type', 'application/json');
   }
+  // 필요시 JWT
+  const token = localStorage.getItem('accessToken');
+  if (token) finalHeaders.set('Authorization', `Bearer ${token}`);
+
   const res = await fetch(API_BASE + path, {
     method,
     headers: finalHeaders,
@@ -76,12 +82,18 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
         ? body
         : JSON.stringify(body)
       : undefined,
-    credentials: 'include',
+    credentials: 'include', // 쿠키세션 쓰면 유지, 아니면 'omit'
     signal,
   });
-  if (!res.ok) throw new Error(`${method} ${path} ${res.status}`);
 
-  const text = await res.text();
+  const text = await res.text().catch(() => '');
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status} ${method} ${path}`);
+    err.status = res.status;
+    err.url = API_BASE + path;
+    err.body = text;
+    throw err;
+  }
   try {
     return text ? JSON.parse(text) : null;
   } catch {
@@ -89,11 +101,18 @@ async function api(path, { method = 'GET', body, signal, headers } = {}) {
   }
 }
 
-async function recordSelectedPlace({ name, addr, lat, lng }) {
+async function recordSelectedPlace({ id, kakaoPlaceId, name, addr, lat, lng }) {
   try {
+    if (!kakaoPlaceId) {
+      alert(
+        '카카오 장소 결과에서 선택해 주세요. (kakaoPlaceId가 없는 항목은 저장할 수 없어요)'
+      );
+      return false;
+    }
     await api(ENDPOINTS.searchSelect(), {
       method: 'POST',
       body: {
+        kakaoPlaceId,
         name,
         address: addr || '',
         latitude: lat,
@@ -102,7 +121,17 @@ async function recordSelectedPlace({ name, addr, lat, lng }) {
     });
     return true;
   } catch (e) {
+    const msg = String(e?.message || e);
     console.warn('[search/select] fail', e);
+    if (msg.includes('404')) {
+      alert(
+        '선택 저장 API 경로가 서버에 없어요(404). 프록시/백엔드 라우팅을 확인해 주세요.'
+      );
+    } else {
+      // 서버 에러 메시지가 있으면 같이 보여주면 원인 파악 빨라집니다.
+      const more = e?.body ? `\n\n서버 응답: ${e.body.slice(0, 300)}` : '';
+      alert('서버에 선택 결과를 저장하지 못했습니다.' + more);
+    }
     return false;
   }
 }
@@ -1813,6 +1842,8 @@ async function init() {
           const rows = await api(ENDPOINTS.searchKeyword(q));
           return Array.isArray(rows)
             ? rows.map((r) => ({
+                id: r.id ?? null, // 서버 PK(있을 때만)
+                kakaoPlaceId: r.placeId || r.kakaoPlaceId || null,
                 name: r.name,
                 addr: r.address || '',
                 lat: +(r.latitude ?? r.lat),
@@ -1861,6 +1892,7 @@ async function init() {
                         addr: d.road_address_name || d.address_name || '',
                         lat: +d.y,
                         lng: +d.x,
+                        kakaoPlaceId: d.id,
                       }))
                       .filter(
                         (it) =>
@@ -1916,6 +1948,7 @@ async function init() {
                 addr: d.road_address_name || d.address_name || '',
                 lat: +d.y,
                 lng: +d.x,
+                kakaoPlaceId: d.id,
               }))
               .filter((it) => distanceMeters(y, x, it.lat, it.lng) <= RADIUS);
             render(items);
@@ -1957,10 +1990,11 @@ async function init() {
       list.innerHTML = items
         .map(
           (it) => `
-      <li data-lat="${it.lat}" data-lng="${it.lng}">
-        <div class="name">${it.name}</div>
-        ${it.addr ? `<div class="addr">${it.addr}</div>` : ''}
-      </li>`
+    <li data-sid="${it.id ?? ''}" data-kid="${it.kakaoPlaceId ?? ''}"
+    data-lat="${it.lat}" data-lng="${it.lng}">
+      <div class="name">${it.name}</div>
+      ${it.addr ? `<div class="addr">${it.addr}</div>` : ''}
+    </li>`
         )
         .join('');
       list.style.display = 'block';
@@ -1968,8 +2002,10 @@ async function init() {
     }
 
     function pickFromList(li) {
-      const lat = +li.dataset.lat,
-        lng = +li.dataset.lng;
+      const lat = +li.dataset.lat;
+      const lng = +li.dataset.lng;
+      const sid = li.dataset.sid ? Number(li.dataset.sid) : undefined; // 서버 PK(있을 때만)
+      const kid = li.dataset.kid || undefined;
       const name = li.querySelector('.name')?.textContent?.trim() || '';
       const addr = li.querySelector('.addr')?.textContent?.trim() || '';
       const pos = new kakao.maps.LatLng(lat, lng);
@@ -1998,10 +2034,12 @@ async function init() {
       if (smallInput) smallInput.value = name;
 
       // 시트 열기
-      _selectedPlace = { name, addr, lat, lng };
+      _selectedPlace = { id: sid, kakaoPlaceId: kid, name, addr, lat, lng };
       psName.textContent = name;
       psAddr.textContent = addr || '주소 정보 없음';
       sheet.hidden = false;
+
+      if (pickBtn) pickBtn.disabled = !_selectedPlace.kakaoPlaceId;
 
       querySeq++;
       clearResults();
@@ -2085,7 +2123,7 @@ async function init() {
           );
       } finally {
         pickBtn.disabled = false;
-        pickBtn.textContent = '이 장소 선택';
+        pickBtn.textContent = '선택하기';
       }
 
       const sheet = document.getElementById('placeSheet');

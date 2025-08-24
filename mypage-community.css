@@ -1,0 +1,219 @@
+html,
+body {
+  height: 100%;
+  overflow: hidden; /* 바깥 페이지 스크롤 금지 */
+}
+body {
+  margin: 0;
+}
+
+.community-header {
+  position: relative;
+  padding: 16px 18px 6px 18px;
+  background: #fff;
+}
+.community-title {
+  font-size: 19px;
+  font-weight: 600;
+  text-align: center;
+  display: block;
+  margin-bottom: 2px;
+}
+/* 검색창 */
+.search-wrap {
+  padding: 0 18px 12px 18px;
+  background: #fff;
+  position: relative;
+}
+.search-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  background: #f3f4f6;
+  padding: 8px 12px;
+  gap: 7px;
+}
+.search-bar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 16px;
+  padding: 2px 0;
+  color: #333;
+}
+.search-icon {
+  color: #f87171;
+  font-size: 20px;
+}
+
+/* 카드 리스트 */
+.card-list {
+  margin-top: 4px;
+  padding-bottom: 18px;
+}
+.card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 7px 0 rgba(34, 41, 47, 0.06);
+  margin: 15px 18px 0 18px;
+  overflow: hidden;
+  position: relative;
+}
+.card-img-wrap {
+  position: relative;
+}
+.card-img {
+  width: 100%;
+  aspect-ratio: 360/168;
+  object-fit: cover;
+  display: block;
+  background: #eee;
+}
+.badge {
+  position: absolute;
+  left: 13px;
+  top: 13px;
+  background: #222;
+  color: #fff;
+  font-size: 13px;
+  padding: 3px 13px;
+  border-radius: 16px;
+  font-weight: 500;
+  opacity: 0.86;
+  z-index: 2;
+}
+.card-arrow {
+  position: absolute;
+  right: 11px;
+  top: 13px;
+  background: rgba(0, 0, 0, 0.43);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+.card-content {
+  padding: 12px 14px 12px 14px;
+}
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #222;
+  margin-bottom: 3px;
+}
+.card-like,
+.card-comment {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 14px;
+  color: #f87171;
+  font-weight: 500;
+  margin-left: 10px;
+}
+.card-like,
+.card-comment svg {
+  margin-right: 1px;
+  vertical-align: text-bottom;
+}
+.card-desc {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #9ca3af;
+  gap: 3px;
+}
+/* 반응형 */
+@media (max-width: 430px) {
+  .app {
+    max-width: 100vw;
+  }
+  .card {
+    margin: 14px 9px 0 9px;
+  }
+  .community-btns,
+  .community-header,
+  .search-wrap {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
+
+.community-btns {
+  margin-bottom: 10px;
+}
+
+/* 바깥 */
+.viewport {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  background: #fef2f2;
+}
+
+/* 가운데 폰 화면 */
+.app {
+  width: min(100%, 480px);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  height: 100dvh; /* 고정 높이 */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden; /* .app 자체 스크롤 막기 */
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; /* ★ flex overflow를 위해 중요 */
+}
+.scroll-area {
+  flex: 1 1 auto; /* 남는 높이 전부 차지 */
+  min-height: 0; /* ★ 자식 overflow 위해 중요 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: 90px; /* FAB와 겹치지 않도록 여백 (원하는 값으로 조정) */
+
+  /* 스크롤바 숨김 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge(레거시) */
+}
+.scroll-area::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* 정렬 텍스트(기존 인라인 → 클래스로) */
+.sort-row {
+  padding: 0 18px;
+  font-size: 13px;
+  color: #a3a3a3;
+  margin-bottom: 5px;
+  text-align: right;
+}
+
+/* 모바일에서는 꽉 차게 */
+@media (max-width: 600px) {
+  .app {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

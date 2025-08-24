@@ -1,3 +1,5 @@
+<!-- 해결중인 민원은 데이터를 어떻게 받아와야하는지 -->
+
 <!DOCTYPE html>
 <html lang="ko">
   <head>
@@ -5,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="stylesheet" href="index.css" />
-    <title>커뮤니티</title>
+    <title>해결중인 민원</title>
     <style>
       .community-header {
         position: relative;
@@ -18,34 +20,6 @@
         text-align: center;
         display: block;
         margin-bottom: 2px;
-      }
-      /* 검색창 */
-      .search-wrap {
-        padding: 0 18px 12px 18px;
-        background: #fff;
-        position: relative;
-      }
-      .search-bar {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        border-radius: 10px;
-        background: #f3f4f6;
-        padding: 8px 12px;
-        gap: 7px;
-      }
-      .search-bar input {
-        border: none;
-        background: transparent;
-        outline: none;
-        width: 100%;
-        font-size: 16px;
-        padding: 2px 0;
-        color: #333;
-      }
-      .search-icon {
-        color: #f87171;
-        font-size: 20px;
       }
 
       /* 카드 리스트 */
@@ -149,39 +123,6 @@
           padding-right: 6px;
         }
       }
-
-      /* 글쓰기 버튼 */
-      .fab-write {
-        position: fixed;
-        right: 18px;
-        bottom: 20px;
-        z-index: 200;
-
-        background: #f87171;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.25);
-
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        padding: 0 20px 0 15px;
-        height: 46px;
-        font-size: 18px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.16s;
-      }
-      .fab-write:hover {
-        background: #ff6565;
-      }
-      .fab-write svg {
-        width: 21px;
-        height: 21px;
-        display: inline-block;
-        vertical-align: middle;
-      }
     </style>
   </head>
   <body>
@@ -248,6 +189,43 @@
           fill="white"
         />
       </symbol>
+      <!-- 체크 아이콘 -->
+      <symbol id="icon-check" viewBox="0 0 22 22" fill="none">
+        <g clip-path="url(#clip0)">
+          <mask
+            id="mask0"
+            style="mask-type: luminance"
+            maskUnits="userSpaceOnUse"
+            x="0"
+            y="0"
+            width="22"
+            height="22"
+          >
+            <path
+              d="M10.9997 20.1668C12.2037 20.1683 13.3961 19.9319 14.5085 19.4711C15.6208 19.0104 16.6311 18.3343 17.4814 17.4819C18.3339 16.6316 19.0099 15.6213 19.4706 14.5089C19.9314 13.3966 20.1678 12.2042 20.1663 11.0002C20.1678 9.79617 19.9314 8.60374 19.4706 7.49139C19.0099 6.37905 18.3339 5.36871 17.4814 4.51842C16.6311 3.66599 15.6208 2.98998 14.5085 2.52921C13.3961 2.06845 12.2037 1.83202 10.9997 1.8335C9.79568 1.83202 8.60325 2.06845 7.49091 2.52921C6.37856 2.98998 5.36822 3.66599 4.51793 4.51842C3.66551 5.36871 2.98949 6.37905 2.52873 7.49139C2.06796 8.60374 1.83153 9.79617 1.83301 11.0002C1.83153 12.2042 2.06796 13.3966 2.52873 14.5089C2.98949 15.6213 3.66551 16.6316 4.51793 17.4819C5.36822 18.3343 6.37856 19.0104 7.49091 19.4711C8.60325 19.9319 9.79568 20.1683 10.9997 20.1668Z"
+              fill="white"
+              stroke="white"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M7.33301 11L10.083 13.75L15.583 8.25"
+              stroke="black"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </mask>
+          <g mask="url(#mask0)">
+            <path d="M0 0H22V22H0V0Z" fill="#F87171" />
+          </g>
+        </g>
+        <defs>
+          <clipPath id="clip0">
+            <rect width="22" height="22" fill="white" />
+          </clipPath>
+        </defs>
+      </symbol>
     </svg>
 
     <div class="viewport">
@@ -269,34 +247,9 @@
               stroke-linejoin="round"
             />
           </svg>
-          <!-- 커뮤니티 헤더 -->
+          <!-- 해결중인 민원 헤더 -->
           <div class="community-header">
-            <span class="community-title">커뮤니티</span>
-          </div>
-          <!-- 검색창 -->
-          <div class="search-wrap">
-            <div class="search-bar">
-              <!-- 검색 아이콘 -->
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="26"
-                height="26"
-                viewBox="0 0 26 26"
-                fill="none"
-              >
-                <path
-                  d="M10.2917 17.3333C8.32361 17.3333 6.65817 16.6516 5.29533 15.288C3.9325 13.9244 3.25072 12.259 3.25 10.2917C3.24928 8.32433 3.93106 6.65889 5.29533 5.29533C6.65961 3.93178 8.32506 3.25 10.2917 3.25C12.2583 3.25 13.9241 3.93178 15.2891 5.29533C16.6541 6.65889 17.3355 8.32433 17.3333 10.2917C17.3333 11.0861 17.2069 11.8354 16.9542 12.5396C16.7014 13.2437 16.3583 13.8667 15.925 14.4083L21.9917 20.475C22.1903 20.6736 22.2896 20.9264 22.2896 21.2333C22.2896 21.5403 22.1903 21.7931 21.9917 21.9917C21.7931 22.1903 21.5403 22.2896 21.2333 22.2896C20.9264 22.2896 20.6736 22.1903 20.475 21.9917L14.4083 15.925C13.8667 16.3583 13.2438 16.7014 12.5396 16.9542C11.8354 17.2069 11.0861 17.3333 10.2917 17.3333ZM10.2917 15.1667C11.6458 15.1667 12.7971 14.6929 13.7453 13.7453C14.6936 12.7978 15.1674 11.6466 15.1667 10.2917C15.1659 8.93678 14.6922 7.78592 13.7453 6.83908C12.7985 5.89225 11.6473 5.41811 10.2917 5.41667C8.93606 5.41522 7.7852 5.88936 6.83908 6.83908C5.89297 7.78881 5.41883 8.93967 5.41667 10.2917C5.4145 11.6437 5.88864 12.7949 6.83908 13.7453C7.78953 14.6958 8.94039 15.1696 10.2917 15.1667Z"
-                  fill="#EF4444"
-                />
-              </svg>
-              <input type="text" placeholder="위치를 검색해 보세요" />
-            </div>
-          </div>
-          <!-- 카테고리 버튼 -->
-          <div class="community-btns">
-            <button class="category-btn active">전체</button>
-            <button class="category-btn">민원</button>
-            <button class="category-btn">문화</button>
+            <span class="community-title">해결중인 민원</span>
           </div>
           <!-- 정렬 텍스트 -->
           <div
@@ -329,20 +282,6 @@
               <div class="card-content">
                 <div class="card-title-row">
                   <div class="card-title">모란역 3번 출구 쓰레기</div>
-                  <!-- 좋아요 -->
-                  <span class="card-like">
-                    <svg width="19" height="18" fill="none">
-                      <use xlink:href="#icon-like" />
-                    </svg>
-                    <span>20</span>
-                  </span>
-                  <!-- 댓글 -->
-                  <span class="card-comment">
-                    <svg width="19" height="18" fill="none">
-                      <use xlink:href="#icon-comment" />
-                    </svg>
-                    <span>20</span>
-                  </span>
                 </div>
                 <div class="card-desc">
                   <svg width="16" height="16" fill="none">
@@ -353,16 +292,8 @@
               </div>
             </div>
           </div>
-
-          <!-- 글쓰기 아이콘 -->
-          <button class="fab-write" id="writeBtn">
-            <img src="./image/tabler_pencil.svg" alt="연필 아이콘" />
-            <span>글쓰기</span>
-          </button>
         </div>
       </div>
     </div>
-
-    <script src="community.js"></script>
   </body>
 </html>

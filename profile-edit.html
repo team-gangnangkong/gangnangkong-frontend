@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>프로필 변경</title>
+    <link rel="stylesheet" href="profile-edit.css" />
+  </head>
+  <body>
+    <div class="viewport">
+      <div class="app">
+        <div class="header">
+          <span class="back-arrow" onclick="history.back()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30"
+              height="30"
+              viewBox="0 0 30 30"
+              fill="none"
+            >
+              <path
+                d="M18.75 22.5L11.25 15L18.75 7.5"
+                stroke="black"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+        </div>
+        <div class="profile-img-wrap">
+          <img
+            class="profile-img"
+            src="./image/index-char.png"
+            alt="프로필 이미지"
+          />
+          <label class="camera-btn">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="17"
+              height="15"
+              viewBox="0 0 17 15"
+              fill="none"
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M6.64866 15H10.352C12.9528 15 14.2537 15 15.1878 14.3875C15.591 14.1235 15.9382 13.7825 16.2095 13.3842C16.8337 12.4675 16.8337 11.19 16.8337 8.63671C16.8337 6.08337 16.8337 4.80587 16.2095 3.88921C15.9382 3.49087 15.591 3.14992 15.1878 2.88587C14.5878 2.49171 13.8362 2.35087 12.6853 2.30087C12.1362 2.30087 11.6637 1.89254 11.5562 1.36337C11.474 0.975763 11.2605 0.628402 10.9519 0.379998C10.6432 0.131593 10.2582 -0.00262068 9.86199 3.87757e-05H7.13866C6.31533 3.87757e-05 5.60616 0.570872 5.44449 1.36337C5.33699 1.89254 4.86449 2.30087 4.31533 2.30087C3.16533 2.35087 2.41366 2.49254 1.81283 2.88587C1.40994 3.15001 1.06305 3.49095 0.791992 3.88921C0.166992 4.80587 0.166992 6.08254 0.166992 8.63671C0.166992 11.1909 0.166992 12.4667 0.791159 13.3842C1.06116 13.7809 1.40783 14.1217 1.81283 14.3875C2.74699 15 4.04783 15 6.64866 15ZM8.50033 5.22754C6.58283 5.22754 5.02783 6.75337 5.02783 8.63587C5.02783 10.5184 6.58366 12.0467 8.50033 12.0467C10.417 12.0467 11.9728 10.52 11.9728 8.63754C11.9728 6.75504 10.417 5.22754 8.50033 5.22754ZM8.50033 6.59087C7.35033 6.59087 6.41699 7.50671 6.41699 8.63671C6.41699 9.76587 7.35033 10.6817 8.50033 10.6817C9.65032 10.6817 10.5837 9.76587 10.5837 8.63671C10.5837 7.50754 9.65032 6.59087 8.50033 6.59087ZM12.4353 5.9092C12.4353 5.53254 12.7462 5.22754 13.1303 5.22754H14.0553C14.4387 5.22754 14.7503 5.53254 14.7503 5.9092C14.7486 6.09162 14.6745 6.26588 14.5443 6.39369C14.4141 6.52151 14.2386 6.59243 14.0562 6.59087H13.1303C13.0399 6.59175 12.9502 6.57482 12.8664 6.54104C12.7825 6.50725 12.7062 6.45729 12.6416 6.39399C12.5771 6.33069 12.5257 6.2553 12.4903 6.17212C12.4549 6.08894 12.4362 5.9996 12.4353 5.9092Z"
+                fill="white"
+              />
+            </svg>
+          </label>
+        </div>
+
+        <!-- 닉네임 영역 -->
+        <label class="nickname-label" for="nickname-input">닉네임</label>
+        <div class="nickname-wrap">
+          <input
+            type="text"
+            id="nickname-input"
+            class="nickname-input"
+            maxlength="10"
+            value=""
+            autocomplete="off"
+          />
+          <button
+            class="clear-btn"
+            type="button"
+            id="clear-btn"
+            title="닉네임 지우기"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="nickname-error" id="nickname-error"></div>
+        <button class="submit-btn" id="submit-btn">변경하기</button>
+
+        <!-- 프로필 사진 변경 -->
+        <div class="bottom-sheet" id="sheet" style="display: none">
+          <button class="sheet-btn" id="album-btn">앨범에서 선택</button>
+          <input
+            type="file"
+            id="album-input"
+            accept="image/*"
+            style="display: none"
+          />
+          <button class="sheet-btn sheet-close-btn" id="close-btn">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="profile-edit.js" defer></script>
+  </body>
+</html>
