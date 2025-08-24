@@ -28,7 +28,7 @@ window.addEventListener('unhandledrejection', (e) =>
 
   const isServerDefaultProfile = (u = '') =>
     typeof u === 'string' &&
-    /\/(default[-_]?profile|profile[-_]?default)(\.\w+)?$/i.test(u);
+    /\/(default[-_]?profile|profile[-_]?default)(\.\w+)?(?:\?.*)?$/i.test(u);
 
   let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;

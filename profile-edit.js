@@ -122,13 +122,13 @@
         img.src = FALLBACK;
         img.classList.add('is-fallback');
       };
-      img.src = safe || FALLBACK;
+      const isServerDefaultProfile = (u = '') => (img.src = safe || FALLBACK);
     });
   }
 
   const isServerDefaultProfile = (u = '') =>
     typeof u === 'string' &&
-    /\/(default[-_]?profile|profile[-_]?default)(\.\w+)?$/i.test(u);
+    /\/(default[-_]?profile|profile[-_]?default)(\.\w+)?(?:\?.*)?$/i.test(u);
 
   async function loadMyProfile() {
     try {
