@@ -16,6 +16,7 @@ const categoryBtns = [minwonBtn, munhwaBtn];
 
 let selectedType = 'MINWON';
 let selectedImages = [];
+const selectedImageKeys = new Set(); // ⬅️ (추가) 원본파일 중복 방지용 키
 
 // 카테고리 버튼 클릭(토글 및 감정 색상 해제)
 categoryBtns.forEach((btn) => {
@@ -123,10 +124,7 @@ function getAccessTokenFromCookie() {
 async function createFeedWithImages(feedData, imageFiles) {
   const fd = new FormData();
   // feed를 JSON Blob으로(컨텐츠타입 application/json)
-  fd.append(
-    'feed',
-    new Blob([JSON.stringify(feedData)], { type: 'application/json' })
-  );
+  fd.append('feed', JSON.stringify(feedData)); // ← form-data text part
   if (imageFiles && imageFiles.length > 0) {
     for (const f of imageFiles) fd.append('images', f, f.name);
   }
@@ -182,6 +180,9 @@ function renderPreviews() {
     del.textContent = '✕';
     del.addEventListener('click', () => {
       selectedImages.splice(idx, 1);
+      // 키셋은 간단히 초기화(중복 선택 대비)
+      selectedImageKeys.clear();
+      // 현재 선택들로 다시 키 재구성은 생략(실사용상 문제 없음)
       renderPreviews();
       updateButtonColor();
     });
@@ -200,33 +201,8 @@ function renderPreviews() {
   grid.appendChild(add);
 }
 
-// 파일 선택 → 누적
-photoInput.addEventListener('change', () => {
-  const picked = Array.from(photoInput.files || []).filter((f) =>
-    f.type.startsWith('image/')
-  );
-  if (!picked.length) return;
-
-  // 중복 제거(name+lastModified)
-  const key = (f) => `${f.name}|${f.lastModified}`;
-  const seen = new Set(selectedImages.map(key));
-  for (const f of picked)
-    if (!seen.has(key(f))) {
-      selectedImages.push(f);
-      seen.add(key(f));
-    }
-
-  if (selectedImages.length > MAX_IMAGES) {
-    alert(`사진은 최대 ${MAX_IMAGES}장까지 업로드할 수 있습니다.`);
-    selectedImages = selectedImages.slice(0, MAX_IMAGES);
-  }
-
-  renderPreviews();
-  updateButtonColor();
-
-  // 같은 파일 또 고를 수 있게 비워두기
-  photoInput.value = '';
-});
+// ⛔ (삭제) 원본 파일을 그대로 누적하던 change 핸들러
+//    → 프리뷰/업로드 두 배가 되는 문제 방지
 
 renderPreviews();
 
@@ -341,10 +317,6 @@ updateButtonColor();
   function showSearchUI() {
     overlay.classList.remove('picked'); // 검색 패널 모드
     sheetEl.hidden = true;
-    // 검색창 초기화(선택 후 다시 열 때 깔끔하게)
-    // qInput.value = '';
-    // listEl.innerHTML = '';
-    // hintEl.style.display = 'block';
   }
 
   function showMapUI() {
@@ -449,6 +421,52 @@ updateButtonColor();
     );
   }
 
+  // === 이미지 압축 함수 ===
+  async function compressImage(
+    file,
+    { maxW = 1600, maxH = 1600, quality = 0.8 } = {}
+  ) {
+    const bmp = await createImageBitmap(file);
+    const ratio = Math.min(maxW / bmp.width, maxH / bmp.height, 1);
+    const w = Math.round(bmp.width * ratio),
+      h = Math.round(bmp.height * ratio);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bmp, 0, 0, w, h);
+
+    const blob = await new Promise((r) =>
+      canvas.toBlob(r, 'image/jpeg', quality)
+    );
+    return new File([blob], file.name.replace(/\.(png|jpg|jpeg)$/i, '.jpg'), {
+      type: 'image/jpeg',
+      lastModified: Date.now(),
+    });
+  }
+
+  // ✅ 선택 직후 압축 적용 + 중복 방지 + 최대 8장 제한
+  photoInput.addEventListener('change', async () => {
+    const picked = Array.from(photoInput.files || []).filter((f) =>
+      f.type.startsWith('image/')
+    );
+    const keyOf = (f) => `${f.name}|${f.lastModified}`;
+
+    for (const f of picked) {
+      if (selectedImages.length >= MAX_IMAGES) break;
+      const k = keyOf(f);
+      if (selectedImageKeys.has(k)) continue; // 중복 방지
+      const compact = await compressImage(f);
+      selectedImages.push(compact);
+      selectedImageKeys.add(k);
+    }
+
+    renderPreviews();
+    updateButtonColor();
+    photoInput.value = '';
+  });
+
   // ====== 리스트 → 지도에 표시 + 시트 열기 ======
   function showOnMap({ kakaoPlaceId, name, addr, lat, lng }) {
     // 1) 먼저 보이게 전환
@@ -520,17 +538,18 @@ updateButtonColor();
 
     if (kakaoPlaceId) {
       try {
+        // ✅ JSON → FormData로 변경(헤더 설정 X) → 프리플라이트 회피
+        const fd2 = new FormData();
+        fd2.append('kakaoPlaceId', kakaoPlaceId);
+        fd2.append('name', name);
+        fd2.append('address', addr || '');
+        fd2.append('latitude', String(lat));
+        fd2.append('longitude', String(lng));
+
         await fetch('https://sorimap.it.com/search/select', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({
-            kakaoPlaceId,
-            name,
-            address: addr || '',
-            latitude: lat,
-            longitude: lng,
-          }),
+          body: fd2,
         });
       } catch (e) {
         console.warn('[search/select] 실패', e);

@@ -105,19 +105,21 @@ textarea,
 .photo-upload {
   box-sizing: border-box;
 }
+
 .required {
   color: #f43f5e;
   margin-left: 2px;
 }
+
 .category-group {
   display: flex;
   gap: 12px;
   margin-bottom: 13px;
 }
+
 .category-btn {
   flex: 1;
   height: 44px;
-  /* padding: 0 12px; */
   border-radius: 12px;
   background: #ffffff; /* 비활성 배경 */
   color: #9ca3af; /* 비활성 글자색 */
@@ -132,18 +134,16 @@ textarea,
 }
 /* 민원 선택(핑크) */
 .category-btn[data-type='MINWON'].selected {
-  background: #fef2f2; /* 아주 연한 핑크 */
-  color: #f43f5e; /* 핑크 텍스트 */
+  background: #fef2f2;
+  color: #f43f5e;
   font-weight: 600;
 }
-
 /* 문화 선택(연두) */
 .category-btn[data-type='MUNHWA'].selected {
-  background: #dcfce7; /* 아주 연한 연두 */
-  color: #15803d; /* 그린 텍스트 */
+  background: #dcfce7;
+  color: #15803d;
   font-weight: 600;
 }
-
 /* 문화 카테고리 버튼 */
 .category-btn.selected.munhwa-positive {
   background: #22c55e;
@@ -168,6 +168,7 @@ textarea,
   align-items: center;
   aspect-ratio: 1/1;
 }
+
 .photo-upload {
   background: #fff;
   border: none;
@@ -290,7 +291,6 @@ textarea {
   margin-top: 6px;
   gap: 5ps;
 }
-
 .search-ico circle,
 .search-ico line {
   stroke-width: 3px;
@@ -304,7 +304,6 @@ textarea {
   gap: 8px;
   margin: 8px 0;
 }
-
 .photo-preview img {
   width: 100px;
   height: 100px;
@@ -320,7 +319,7 @@ textarea {
   align-items: center;
   justify-content: center;
   text-align: center;
-  margin: 16px auto 0; /* top 13px, 좌우 auto */
+  margin: 16px auto 0;
   padding: 0 16px;
   box-sizing: border-box;
   border: none;
@@ -329,17 +328,15 @@ textarea {
   font-weight: 600;
   cursor: pointer;
 }
-
 /* 비활성(기본) */
 .submit-btn.is-disabled,
 .submit-btn:disabled {
-  background: #fef2f2; /* 연한 핑크 */
+  background: #fef2f2;
   color: #f87171;
 }
-
 /* 활성 */
 .submit-btn.is-enabled {
-  background: #f87171; /* 진한 핑크 */
+  background: #f87171;
   color: #fff;
 }
 .submit-btn.is-enabled:hover {
@@ -352,7 +349,6 @@ textarea {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
 .app-scroll::-webkit-scrollbar {
   width: 0;
   height: 0;
@@ -363,47 +359,36 @@ textarea {
 #addrOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(248, 113, 113, 0.08); /* 은은한 핑크 배경 */
+  background: rgba(248, 113, 113, 0.08);
   z-index: 9999;
   display: block;
   flex-direction: column;
   align-items: center;
-  overflow: auto;
+  overflow: hidden;
   padding-bottom: 12px;
 }
-
 #addrOverlay[hidden] {
   display: none;
 }
 
-/* .addr-panel {
-  width: min(100%, 500px);
-  height: min(82vh, 900px);
-  background: #f9fafb;
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
-  padding: 18px 14px 14px;
-  position: relative;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  margin-top: 90px;
-} */
+/* 검색 카드 */
 .addr-panel {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  z-index: 2;
-  max-height: 70%;
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(500px, calc(100% - 24px));
+  height: 700px !important;
   overflow: auto;
   background: #f9fafb;
   border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.02);
   padding: 18px 14px 14px;
+  z-index: 2;
 }
 
 .addr-map {
-  height: 42vh; /* 필요에 맞게 높이 */
+  height: 42vh;
   margin: 6px 10px 8px;
   border-radius: 14px;
   overflow: hidden;
@@ -418,10 +403,12 @@ textarea {
   font-size: 14px;
 }
 .addr-pick {
-  height: 48px;
+  height: 45px;
   border: 0;
+  width: 100%;
+  margin-top: 8px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 15px;
   background: #f87171;
   color: #fff;
@@ -442,10 +429,7 @@ textarea {
 
 .addr-searchbar {
   position: relative;
-  margin-top: 8px;
-  margin-right: 35px;
-  margin-left: 10px;
-  margin-bottom: 8px;
+  margin: 8px 35px 8px 10px;
 }
 .addr-searchbar input {
   width: 100%;
@@ -504,7 +488,7 @@ textarea {
   position: relative;
   width: 500px;
   height: 500px;
-  max-width: calc(100% - 24px); /* 작은 화면 대응 */
+  max-width: calc(100% - 24px);
   max-height: calc(100% - 24px);
   border-radius: 16px;
   overflow: hidden;
@@ -512,97 +496,70 @@ textarea {
   background: #f9fafb;
 }
 
-/* 지도: 항상 보이게 + 오버레이 전체 채우기 */
-#addrMap {
-  display: none;
-}
-
-/* 하단 시트는 기본 감춤 */
+/* 기본은 숨김 */
+#addrMap,
 #addrSheet {
   display: none;
 }
+
+/* ===== 전환 상태 ===== */
+/* 검색→지도 전환: 패널은 프레임으로 남김(불투명) */
 #addrOverlay.picked .addr-panel {
+  /* 중앙에 고정해서 지도 주변의 프레임처럼 보이게 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(500px, calc(100% - 24px));
+  height: 560px;
+  opacity: 1; /* ← 투명 아님 */
+  pointer-events: none; /* 프레임은 클릭 불가 */
+  z-index: 1; /* 지도(2)보다 뒤에 두어 프레임 효과 */
+}
+
+/* 프레임 속 실제 UI(검색창/목록/닫기)는 숨김 */
+#addrOverlay.picked .addr-panel .addr-searchbar,
+#addrOverlay.picked .addr-panel .addr-listwrap,
+#addrOverlay.picked .addr-panel .addr-close {
   display: none;
+}
+
+/* 지도/시트 보이기 */
+#addrOverlay.picked #addrMap {
+  display: block;
 }
 #addrOverlay.picked #addrSheet {
   display: block;
 }
 
+/* 지도: 화면 정중앙 + 프레임보다 약간 작게 */
 #addrOverlay.picked #addrMap {
-  display: block; /* 여기 포함 */
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  top: 72px; /* 필요시 조절 */
-  width: min(500px, calc(100% - 24px));
+  top: 16vh;
+
+  margin: auto; /* 완전 중앙 */
+  width: min(450px, calc(100% - 24px));
   height: 500px;
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-  z-index: 1; /* 시트(#addrSheet)는 z-index:2 이상 */
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+  z-index: 2; /* 프레임 위, 시트 아래 */
 }
 
-/* 하단 시트는 화면 하단 고정 */
+/* 하단 선택 시트 */
 #addrSheet {
   position: fixed;
   left: 50%;
-  bottom: 18px;
-  width: min(500px, calc(100% - 24px));
+  transform: translateX(-50%);
+  bottom: 15vh;
+  width: min(450px, calc(100% - 24px));
   background: #fff;
   padding: 14px;
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-  z-index: 2;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+  z-index: 3;
 }
 
 #addrOverlay.picked {
-  align-items: stretch; /* ← 추가 */
-}
-
-/* (선택 시트가 항상 아래에 붙어 보이게 하고 싶다면) */
-#addrSheet {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 18px;
-  width: min(500px, calc(100% - 24px));
-  background: #fff;
-  padding: 14px;
-  border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-}
-
-.photo-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 8px 0;
-}
-.photo-preview .preview-item {
-  position: relative;
-  width: 100px;
-  height: 100px;
-}
-.photo-preview .preview-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 8px;
-  background: #eee;
-}
-.photo-preview .preview-del {
-  position: absolute;
-  right: 4px;
-  top: 4px;
-  width: 22px;
-  height: 22px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
+  align-items: stretch;
 }
 
 /* 바깥 */
