@@ -145,6 +145,7 @@
       const me = await res.json();
 
       const raw =
+        me?.imageUrl ||
         me?.profileImageUrl ||
         me?.profile_image_url ||
         me?.profile_image ||
@@ -152,14 +153,13 @@
         me?.picture ||
         '';
 
-      const imgUrl = absolutize(raw); // ✅ 절대경로화
+      const imgUrl = absolutize(raw);
       const isDefault =
         me?.isDefaultImage ??
         me?.is_default_image ??
         me?.profile?.is_default_image ??
         null;
 
-      // ✅ 서버/카카오 기본이미지까지 폴백 처리
       const useFallback =
         !imgUrl ||
         isDefault === true ||
@@ -278,16 +278,20 @@
         res.headers.get('Location') ||
         res.headers.get('location');
 
-      const safe = absolutize(urlCandidate || '');
-      if (!safe) throw new Error('이미지 URL을 받지 못했어요.');
-
-      const bustPreview =
-        safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
-      setProfileImage(bustPreview, false);
-
-      sessionStorage.setItem('profileImageJustUpdated', safe);
-      sessionStorage.setItem('profileAvatarUrl', safe);
-      sessionStorage.setItem('profileAvatarIsFallback', '0');
+      if (!urlCandidate || String(urlCandidate).toUpperCase() === 'DEFAULT') {
+        setProfileImage(FALLBACK, true);
+        sessionStorage.setItem('profileAvatarUrl', FALLBACK);
+        sessionStorage.setItem('profileAvatarIsFallback', '1');
+        sessionStorage.setItem('profileImageJustUpdated', FALLBACK);
+      } else {
+        const safe = absolutize(urlCandidate);
+        const bustPreview =
+          safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
+        setProfileImage(bustPreview, false);
+        sessionStorage.setItem('profileAvatarUrl', safe);
+        sessionStorage.setItem('profileAvatarIsFallback', '0');
+        sessionStorage.setItem('profileImageJustUpdated', safe);
+      }
 
       closeSheet();
       state.els.albumInput.value = '';

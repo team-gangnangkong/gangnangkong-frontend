@@ -76,6 +76,7 @@ window.addEventListener('unhandledrejection', (e) =>
     if (nameEl) nameEl.textContent = name;
 
     const raw =
+      data?.imageUrl || // ✅ NEW
       data?.profileImageUrl ||
       data?.profile_image_url ||
       data?.profile_image ||
@@ -305,6 +306,7 @@ window.addEventListener('unhandledrejection', (e) =>
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     guard();
+    applyOptimisticFromSession();
     const just = sessionStorage.getItem('profileImageJustUpdated');
     if (just) {
       const safeJust = toHttps(just);
