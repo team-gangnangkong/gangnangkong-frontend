@@ -213,7 +213,7 @@
       }
       const resized = await compressImage(file);
       const previewUrl = URL.createObjectURL(resized);
-      if (state.els.profileImg) state.els.profileImg.src = previewUrl;
+      (state.els.profileImgs || []).forEach((img) => (img.src = previewUrl));
 
       const res = await uploadProfileImageWithFallback(resized);
 
@@ -227,17 +227,15 @@
         throw new Error(err.message || '프로필 이미지 변경 실패');
       }
 
-      // 3) 성공 처리
-      const data = await res.json(); // { message, imageUrl }
+      // 성공시 처리
+      const data = await res.json();
       const safe = toHttps(data.imageUrl || '');
       if (!safe) throw new Error('이미지 URL을 받지 못했어요.');
 
-      // 즉시 미리보기(선택)
       const bustPreview =
         safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
       setProfileImage(bustPreview, false);
 
-      // ✅ 마이페이지에서 바로 적용될 수 있도록 세션에 저장
       sessionStorage.setItem('profileImageJustUpdated', safe);
       sessionStorage.setItem('profileAvatarUrl', safe);
       sessionStorage.setItem('profileAvatarIsFallback', '0');
