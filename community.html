@@ -7,17 +7,36 @@
     <link rel="stylesheet" href="index.css" />
     <title>커뮤니티</title>
     <style>
-      .community-header {
+      .feed-area {
+        width: 100%;
+        max-width: 440px;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 17px 0 13px 0;
+        border-bottom: 1px solid #ececec;
         position: relative;
-        padding: 16px 18px 6px 18px;
         background: #fff;
+        margin-bottom: 24px;
+      }
+
+      .header .back-arrow {
+        position: absolute;
+        left: 18px;
+        font-size: 23px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #222;
       }
       .community-title {
         font-size: 19px;
         font-weight: 600;
-        text-align: center;
+        /* text-align: center;
         display: block;
-        margin-bottom: 2px;
+        margin-bottom: 2px; */
       }
       /* 검색창 */
       .search-wrap {
@@ -46,6 +65,40 @@
       .search-icon {
         color: #f87171;
         font-size: 20px;
+      }
+
+      /* 카테고리 버튼 */
+      .community-btns {
+        display: flex;
+        gap: 10px; /* 버튼 간격 */
+        margin: 16px 0;
+        align-items: center;
+        padding: 0 18px;
+        margin-bottom: 32px;
+      }
+
+      .category-btn {
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 18px;
+        padding: 8px 20px;
+        background: #fef2f2;
+        color: #f87171;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        display: flex;
+        align-items: center;
+      }
+
+      .category-btn.active {
+        /* 활성화 시 진한 분홍 배경 + 흰색 글씨 */
+        background: #f87171;
+        color: #fff;
+      }
+
+      .category-btn:not(.active):hover {
+        background: #fae4e3;
       }
 
       /* 카드 리스트 */
@@ -143,7 +196,7 @@
           margin: 14px 9px 0 9px;
         }
         .community-btns,
-        .community-header,
+        .header,
         .search-wrap {
           padding-left: 6px;
           padding-right: 6px;
@@ -253,102 +306,107 @@
     <div class="viewport">
       <div class="app">
         <div class="container">
-          <!-- 뒤로가기 버튼 -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="30"
-            height="30"
-            viewBox="0 0 30 30"
-            fill="none"
-          >
-            <path
-              d="M18.75 22.5L11.25 15L18.75 7.5"
-              stroke="black"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <!-- 커뮤니티 헤더 -->
-          <div class="community-header">
-            <span class="community-title">커뮤니티</span>
-          </div>
-          <!-- 검색창 -->
-          <div class="search-wrap">
-            <div class="search-bar">
-              <!-- 검색 아이콘 -->
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="26"
-                height="26"
-                viewBox="0 0 26 26"
-                fill="none"
-              >
-                <path
-                  d="M10.2917 17.3333C8.32361 17.3333 6.65817 16.6516 5.29533 15.288C3.9325 13.9244 3.25072 12.259 3.25 10.2917C3.24928 8.32433 3.93106 6.65889 5.29533 5.29533C6.65961 3.93178 8.32506 3.25 10.2917 3.25C12.2583 3.25 13.9241 3.93178 15.2891 5.29533C16.6541 6.65889 17.3355 8.32433 17.3333 10.2917C17.3333 11.0861 17.2069 11.8354 16.9542 12.5396C16.7014 13.2437 16.3583 13.8667 15.925 14.4083L21.9917 20.475C22.1903 20.6736 22.2896 20.9264 22.2896 21.2333C22.2896 21.5403 22.1903 21.7931 21.9917 21.9917C21.7931 22.1903 21.5403 22.2896 21.2333 22.2896C20.9264 22.2896 20.6736 22.1903 20.475 21.9917L14.4083 15.925C13.8667 16.3583 13.2438 16.7014 12.5396 16.9542C11.8354 17.2069 11.0861 17.3333 10.2917 17.3333ZM10.2917 15.1667C11.6458 15.1667 12.7971 14.6929 13.7453 13.7453C14.6936 12.7978 15.1674 11.6466 15.1667 10.2917C15.1659 8.93678 14.6922 7.78592 13.7453 6.83908C12.7985 5.89225 11.6473 5.41811 10.2917 5.41667C8.93606 5.41522 7.7852 5.88936 6.83908 6.83908C5.89297 7.78881 5.41883 8.93967 5.41667 10.2917C5.4145 11.6437 5.88864 12.7949 6.83908 13.7453C7.78953 14.6958 8.94039 15.1696 10.2917 15.1667Z"
-                  fill="#EF4444"
-                />
-              </svg>
-              <input type="text" placeholder="위치를 검색해 보세요" />
-            </div>
-          </div>
-          <!-- 카테고리 버튼 -->
-          <div class="community-btns">
-            <button class="category-btn active">전체</button>
-            <button class="category-btn">민원</button>
-            <button class="category-btn">문화</button>
-          </div>
-          <!-- 정렬 텍스트 -->
-          <div
-            style="
-              padding: 0 18px 0 18px;
-              font-size: 13px;
-              color: #a3a3a3;
-              margin-bottom: 5px;
-              text-align: right;
-            "
-          ></div>
-
-          <!-- 카드 리스트 -->
-          <div class="card-list">
-            <!-- 카드 리스트의 카드는 JS가 동적으로 추가함 -->
-            <div class="card">
-              <div class="card-img-wrap">
-                <img
-                  src="./image/dark.jpg"
-                  alt="어두운 골목길"
-                  class="card-img"
-                />
-                <span class="badge">수정구</span>
-                <span class="card-arrow">
-                  <svg width="22" height="22" fill="none">
-                    <use xlink:href="#icon-arrow" />
-                  </svg>
-                </span>
+          <div class="feed-area">
+            <!-- 커뮤니티 헤더 -->
+            <div class="header">
+              <!-- 뒤로가기 버튼 -->
+              <div class="back-arrow">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="30"
+                  height="30"
+                  viewBox="0 0 30 30"
+                  fill="none"
+                >
+                  <path
+                    d="M18.75 22.5L11.25 15L18.75 7.5"
+                    stroke="black"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
               </div>
-              <div class="card-content">
-                <div class="card-title-row">
-                  <div class="card-title">모란역 3번 출구 쓰레기</div>
-                  <!-- 좋아요 -->
-                  <span class="card-like">
-                    <svg width="19" height="18" fill="none">
-                      <use xlink:href="#icon-like" />
+              <span class="community-title">커뮤니티</span>
+            </div>
+
+            <!-- 검색창 -->
+            <div class="search-wrap">
+              <div class="search-bar">
+                <!-- 검색 아이콘 -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26"
+                  height="26"
+                  viewBox="0 0 26 26"
+                  fill="none"
+                >
+                  <path
+                    d="M10.2917 17.3333C8.32361 17.3333 6.65817 16.6516 5.29533 15.288C3.9325 13.9244 3.25072 12.259 3.25 10.2917C3.24928 8.32433 3.93106 6.65889 5.29533 5.29533C6.65961 3.93178 8.32506 3.25 10.2917 3.25C12.2583 3.25 13.9241 3.93178 15.2891 5.29533C16.6541 6.65889 17.3355 8.32433 17.3333 10.2917C17.3333 11.0861 17.2069 11.8354 16.9542 12.5396C16.7014 13.2437 16.3583 13.8667 15.925 14.4083L21.9917 20.475C22.1903 20.6736 22.2896 20.9264 22.2896 21.2333C22.2896 21.5403 22.1903 21.7931 21.9917 21.9917C21.7931 22.1903 21.5403 22.2896 21.2333 22.2896C20.9264 22.2896 20.6736 22.1903 20.475 21.9917L14.4083 15.925C13.8667 16.3583 13.2438 16.7014 12.5396 16.9542C11.8354 17.2069 11.0861 17.3333 10.2917 17.3333ZM10.2917 15.1667C11.6458 15.1667 12.7971 14.6929 13.7453 13.7453C14.6936 12.7978 15.1674 11.6466 15.1667 10.2917C15.1659 8.93678 14.6922 7.78592 13.7453 6.83908C12.7985 5.89225 11.6473 5.41811 10.2917 5.41667C8.93606 5.41522 7.7852 5.88936 6.83908 6.83908C5.89297 7.78881 5.41883 8.93967 5.41667 10.2917C5.4145 11.6437 5.88864 12.7949 6.83908 13.7453C7.78953 14.6958 8.94039 15.1696 10.2917 15.1667Z"
+                    fill="#EF4444"
+                  />
+                </svg>
+                <input type="text" placeholder="위치를 검색해 보세요" />
+              </div>
+            </div>
+            <!-- 카테고리 버튼 -->
+            <div class="community-btns">
+              <button class="category-btn active">전체</button>
+              <button class="category-btn">민원</button>
+              <button class="category-btn">문화</button>
+            </div>
+            <!-- 정렬 텍스트 -->
+            <div
+              style="
+                padding: 0 18px 0 18px;
+                font-size: 13px;
+                color: #a3a3a3;
+                margin-bottom: 5px;
+                text-align: right;
+              "
+            ></div>
+
+            <!-- 카드 리스트 -->
+            <div class="card-list">
+              <!-- 카드 리스트의 카드는 JS가 동적으로 추가함 -->
+              <div class="card">
+                <div class="card-img-wrap">
+                  <img
+                    src="./image/dark.jpg"
+                    alt="어두운 골목길"
+                    class="card-img"
+                  />
+                  <span class="badge">수정구</span>
+                  <span class="card-arrow">
+                    <svg width="22" height="22" fill="none">
+                      <use xlink:href="#icon-arrow" />
                     </svg>
-                    <span>20</span>
-                  </span>
-                  <!-- 댓글 -->
-                  <span class="card-comment">
-                    <svg width="19" height="18" fill="none">
-                      <use xlink:href="#icon-comment" />
-                    </svg>
-                    <span>20</span>
                   </span>
                 </div>
-                <div class="card-desc">
-                  <svg width="16" height="16" fill="none">
-                    <use xlink:href="#icon-location" />
-                  </svg>
-                  <span>수정구 산성대로 100 지하</span>
+                <div class="card-content">
+                  <div class="card-title-row">
+                    <div class="card-title">모란역 3번 출구 쓰레기</div>
+                    <!-- 좋아요 -->
+                    <span class="card-like">
+                      <svg width="19" height="18" fill="none">
+                        <use xlink:href="#icon-like" />
+                      </svg>
+                      <span>20</span>
+                    </span>
+                    <!-- 댓글 -->
+                    <span class="card-comment">
+                      <svg width="19" height="18" fill="none">
+                        <use xlink:href="#icon-comment" />
+                      </svg>
+                      <span>20</span>
+                    </span>
+                  </div>
+                  <div class="card-desc">
+                    <svg width="16" height="16" fill="none">
+                      <use xlink:href="#icon-location" />
+                    </svg>
+                    <span>수정구 산성대로 100 지하</span>
+                  </div>
                 </div>
               </div>
             </div>

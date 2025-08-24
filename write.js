@@ -20,7 +20,7 @@ submit 버튼 상태(색/활성화) 관리 OK
 모두 입력 시만 업로드
 
 전송 데이터 및 필드 체크
-formData에 필수 정보(제목, 내용, 타입, 주소, lat, lng, locationId, 이미지) 모두 정상 포함
+formData에 필수 정보(제목, 내용, 타입, 주소, lat, lng, kakaoPlaceId, 이미지) 모두 정상 포함
 
 type: selectedType
 → **MINWON/MUNHWA(둘 다 대문자/백엔드와 일치!)**만 들어가면 정상
@@ -151,6 +151,7 @@ function getAccessTokenFromCookie() {
   return null;
 }
 
+// 피드 작성(글쓰기) api
 async function createFeedWithImages(feedData, imageFiles) {
   try {
     const formData = new FormData();
@@ -223,7 +224,7 @@ writeForm.addEventListener("submit", async (e) => {
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
-    locationId: parseInt(writeForm.locationId?.value, 10),
+    kakaoPlaceId: parseInt(writeForm.kakaoPlaceId?.value, 10),
   };
   const images = writeForm.images.files;
 

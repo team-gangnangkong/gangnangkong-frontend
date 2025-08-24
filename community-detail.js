@@ -1,3 +1,8 @@
+// 뒤로가기 버튼 기능
+document.querySelector(".header svg").addEventListener("click", () => {
+  window.history.back();
+});
+
 // 댓글 조회 API 호출 및 화면 렌더링 연동
 async function fetchComments(feedId) {
   try {

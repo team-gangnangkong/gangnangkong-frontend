@@ -1,25 +1,7 @@
-// POST /api/feeds
-async function createFeed(formData) {
-  try {
-    const response = await fetch("https://sorimap.it.com/api/feeds", {
-      method: "POST",
-      headers: {
-        "ACCESS-TOKEN": getAccessTokenFromCookie(),
-      },
-      body: formData,
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Feed 작성 실패: ${response.status}`);
-    }
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Feed 작성 중 에러:", error);
-    throw error;
-  }
-}
+// 뒤로가기 버튼 기능
+document.querySelector(".header svg").addEventListener("click", () => {
+  window.history.back();
+});
 
 //토큰 쿠키
 function getAccessTokenFromCookie() {
