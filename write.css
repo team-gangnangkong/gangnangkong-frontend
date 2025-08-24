@@ -203,6 +203,18 @@ textarea {
   resize: none;
 }
 
+.search-ico {
+  flex: 0 0 auto;
+  color: #f87171;
+  margin-top: 6px;
+  gap: 5ps;
+}
+
+.search-ico circle,
+.search-ico line {
+  stroke-width: 3px;
+}
+
 /* 사진 미리보기 */
 .photo-preview {
   display: flex;
@@ -265,7 +277,7 @@ textarea {
 }
 
 .addr-panel {
-  width: min(720px, 92vw);
+  width: min(100%, 500px);
   height: min(82vh, 900px);
   background: #fff;
   border-radius: 24px;
@@ -278,8 +290,8 @@ textarea {
 
 .addr-close {
   position: absolute;
-  right: 14px;
-  top: 12px;
+  right: 10px;
+  top: 28px;
   border: 0;
   background: none;
   font-size: 22px;
@@ -289,7 +301,10 @@ textarea {
 
 .addr-searchbar {
   position: relative;
-  margin: 4px 12px 8px;
+  margin-top: 4px;
+  margin-right: 30px;
+  margin-left: 10px;
+  margin-bottom: 8px;
 }
 .addr-searchbar input {
   width: 100%;
