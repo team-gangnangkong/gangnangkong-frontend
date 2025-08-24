@@ -9,10 +9,10 @@ body {
 .mypage-title {
   font-weight: 700;
   font-size: 22px;
-  padding: 26px 0 14px 23px;
+  padding: 60px 0 0px 25px;
 }
 .profile-card {
-  background: #fafbfc;
+  background: #fff;
   border-radius: 13px;
   margin: 23px 17px;
   padding: 24px 20px 17px 20px;
