@@ -1,5 +1,7 @@
 // 뒤로가기 버튼 기능
-document.querySelector('.header svg').addEventListener('click', () => {
+
+document.querySelector(".header svg").addEventListener("click", () => {
+
   window.history.back();
 });
 
@@ -79,7 +81,9 @@ function renderFeeds(feeds) {
  */
 async function loadFeeds(kakaoPlaceId = null) {
   try {
-    let url = 'https://sorimap.it.com/api/feeds';
+
+    let url = "https://sorimap.it.com/api/feeds";
+
     if (kakaoPlaceId) {
       url += `?kakaoPlaceId=${kakaoPlaceId}`;
     }
