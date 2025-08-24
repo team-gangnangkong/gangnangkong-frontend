@@ -451,29 +451,38 @@ updateButtonColor();
 
   // ====== 리스트 → 지도에 표시 + 시트 열기 ======
   function showOnMap({ kakaoPlaceId, name, addr, lat, lng }) {
-    const pos = new kakao.maps.LatLng(lat, lng);
-    ovMap.setCenter(pos);
-    ovMap.setLevel(4);
+    // 1) 먼저 보이게 전환
+    showMapUI();
 
-    if (!ovMarker) {
-      ovMarker = new kakao.maps.Marker({
-        map: ovMap,
-        position: pos,
-        image: makeSelectPinImage(34),
-        zIndex: 1000,
-      });
-    } else {
-      ovMarker.setPosition(pos);
-      ovMarker.setImage(makeSelectPinImage(34));
-      ovMarker.setZIndex(1000);
-    }
+    // 2) 보이게 된 다음 레이아웃/센터/마커 처리 (다음 틱)
+    setTimeout(() => {
+      const pos = new kakao.maps.LatLng(lat, lng);
+      try {
+        ovMap && ovMap.relayout();
+      } catch {}
 
+      ovMap.setCenter(pos);
+      ovMap.setLevel(4);
+
+      if (!ovMarker) {
+        ovMarker = new kakao.maps.Marker({
+          map: ovMap,
+          position: pos,
+          image: makeSelectPinImage(34),
+          zIndex: 1000,
+        });
+      } else {
+        ovMarker.setPosition(pos);
+        ovMarker.setImage(makeSelectPinImage(34));
+        ovMarker.setZIndex(1000);
+      }
+    }, 0);
+
+    // 3) 선택 정보/버튼 상태 업데이트
     _selectedPlace = { kakaoPlaceId, name, addr, lat, lng };
     asName.textContent = name;
     asAddr.textContent = addr || '주소 정보 없음';
     asPickBtn.disabled = !kakaoPlaceId;
-
-    showMapUI(); // ← 여기! 검색창/목록을 숨기고 지도를 보여줌
   }
 
   listEl.addEventListener('click', (e) => {

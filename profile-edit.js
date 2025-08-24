@@ -178,7 +178,18 @@
         setProfileImage(imgUrl + bust, false);
       }
 
-      const initialName = me?.nickname || me?.name || me?.username || '';
+      const initialName =
+        (me?.nickname && me.nickname.trim()) ||
+        (me?.name && me.name.trim()) ||
+        (me?.username && me.username.trim()) ||
+        (me?.profile?.nickname && me.profile.nickname.trim()) ||
+        (me?.profile?.name && me.profile.name.trim()) ||
+        (me?.kakaoNickname && me.kakaoNickname.trim()) ||
+        (me?.kakao?.profile?.nickname && me.kakao.profile.nickname.trim()) ||
+        (me?.kakao_account?.profile?.nickname &&
+          me.kakao_account.profile.nickname.trim()) ||
+        (me?.properties?.nickname && me.properties.nickname.trim()) ||
+        '';
       if (state.els.nicknameInput && initialName) {
         state.els.nicknameInput.value = initialName;
         updateNicknameState();

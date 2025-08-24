@@ -67,6 +67,21 @@ window.addEventListener('unhandledrejection', (e) =>
 
   // ── 닉네임/프로필 ─────────────────────────────────────────────
   function hydrateProfile(data) {
+    const name =
+      (data?.nickname && data.nickname.trim()) ||
+      (data?.name && data.name.trim()) ||
+      (data?.username && data.username.trim()) ||
+      (data?.profile?.nickname && data.profile.nickname.trim()) ||
+      (data?.profile?.name && data.profile.name.trim()) ||
+      (data?.kakaoNickname && data.kakaoNickname.trim()) ||
+      (data?.kakao?.profile?.nickname && data.kakao.profile.nickname.trim()) ||
+      (data?.kakao_account?.profile?.nickname &&
+        data.kakao_account.profile.nickname.trim()) ||
+      (data?.properties?.nickname && data.properties.nickname.trim()) ||
+      '사용자';
+    const nameEl = document.querySelector('.profile-name');
+    if (nameEl) nameEl.textContent = name;
+
     const raw =
       data?.imageUrl ||
       data?.profileImageUrl ||

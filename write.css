@@ -498,9 +498,13 @@ textarea {
 }
 #addrOverlay.picked #addrMap {
   display: block;
+  width: min(500px, calc(100% - 24px));
 }
 #addrOverlay.picked #addrSheet {
   display: block;
+}
+#addrOverlay.picked {
+  align-items: stretch; /* ← 추가 */
 }
 
 /* (선택 시트가 항상 아래에 붙어 보이게 하고 싶다면) */
