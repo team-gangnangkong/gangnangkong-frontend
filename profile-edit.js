@@ -6,6 +6,8 @@
     profileImage: '/api/users/me/profile-image',
   };
   const FALLBACK = './image/profile_default.png';
+  const isDefaultMarker = (u) =>
+    typeof u === 'string' && u.trim().toUpperCase() === 'DEFAULT';
 
   const toHttps = (u) => {
     if (typeof u !== 'string') return u;
@@ -120,13 +122,12 @@
   }
 
   function setProfileImage(url, isFallback = false) {
-    const safe = absolutize(url); // ✅ 절대경로화
+    const isDefault = isDefaultMarker(url);
+    const safe = isDefault ? '' : absolutize(url);
     state.els.profileImgs?.forEach((img) => {
       if (!img) return;
       img.classList.toggle('is-fallback', isFallback || !safe);
-      // ✅ 기본이미지(폴백)일 땐 확대 금지, 실제 사진은 꽉 채우기
       img.style.objectFit = isFallback || !safe ? 'contain' : 'cover';
-
       img.onerror = () => {
         img.onerror = null;
         img.src = FALLBACK;
@@ -150,7 +151,6 @@
       });
       if (!res.ok) throw new Error('unauthorized');
       const me = await res.json();
-
       const raw =
         me?.imageUrl ||
         me?.profileImageUrl ||
@@ -161,15 +161,13 @@
         '';
 
       const imgUrl = absolutize(raw);
-      const isDefault =
-        me?.isDefaultImage ??
-        me?.is_default_image ??
-        me?.profile?.is_default_image ??
-        null;
-
       const useFallback =
         !imgUrl ||
-        isDefault === true ||
+        isDefaultMarker(raw) || // ★ 추가
+        (me?.isDefaultImage ??
+          me?.is_default_image ??
+          me?.profile?.is_default_image ??
+          null) === true ||
         isKakaoDefaultUrl(imgUrl) ||
         isServerDefaultProfile(imgUrl);
 

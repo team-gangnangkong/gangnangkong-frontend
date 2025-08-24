@@ -25,6 +25,8 @@ window.addEventListener('unhandledrejection', (e) =>
         ? API_BASE + u
         : u
       : u;
+  const isDefaultMarker = (u) =>
+    typeof u === 'string' && u.trim().toUpperCase() === 'DEFAULT';
 
   const isServerDefaultProfile = (u = '') =>
     typeof u === 'string' &&
@@ -76,7 +78,7 @@ window.addEventListener('unhandledrejection', (e) =>
     if (nameEl) nameEl.textContent = name;
 
     const raw =
-      data?.imageUrl || // ✅ NEW
+      data?.imageUrl ||
       data?.profileImageUrl ||
       data?.profile_image_url ||
       data?.profile_image ||
@@ -85,6 +87,16 @@ window.addEventListener('unhandledrejection', (e) =>
       '';
 
     const avatarUrl = toHttps(raw);
+
+    const shouldUseFallback =
+      !avatarUrl ||
+      isDefaultMarker(raw) || // ★ 추가
+      (data?.isDefaultImage ??
+        data?.is_default_image ??
+        data?.profile?.is_default_image ??
+        null) === true ||
+      isKakaoDefaultUrl(avatarUrl) ||
+      isServerDefaultProfile(avatarUrl);
 
     const isDefaultFlag =
       data?.isDefaultImage ??
@@ -102,12 +114,6 @@ window.addEventListener('unhandledrejection', (e) =>
 
     // ✅ 네가 말한 기본 이미지 파일명 사용
     const FALLBACK = './image/profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
-
-    const shouldUseFallback =
-      !avatarUrl ||
-      isDefaultFlag === true ||
-      isKakaoDefaultUrl ||
-      isServerDefaultProfile(avatarUrl);
 
     const avatarEl = document.querySelector('.profile-avatar');
     if (!avatarEl) return;
@@ -247,13 +253,24 @@ window.addEventListener('unhandledrejection', (e) =>
       sessionStorage.getItem('profileAvatarIsFallback') === '1';
     const avatarEl = document.querySelector('.profile-avatar');
     if (avatarEl && url) {
-      const safe = toHttps(url);
+      if (isDefaultMarker(url)) {
+        // ★ 추가
+        sessionStorage.setItem(
+          'profileAvatarUrl',
+          './image/profile_default.png'
+        );
+        sessionStorage.setItem('profileAvatarIsFallback', '1');
+      }
+      const safe = toHttps(sessionStorage.getItem('profileAvatarUrl'));
       const bust = (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
       avatarEl.style.backgroundImage = `url('${safe + bust}')`;
       avatarEl.style.backgroundSize = 'cover';
       avatarEl.style.backgroundPosition = 'center';
       avatarEl.style.borderRadius = '50%';
-      avatarEl.classList.toggle('is-fallback', isFallback);
+      avatarEl.classList.toggle(
+        'is-fallback',
+        sessionStorage.getItem('profileAvatarIsFallback') === '1'
+      );
     }
   }
 
