@@ -13,6 +13,13 @@
     return u.replace(/^http:\/\//, 'https://');
   };
 
+  const absolutize = (u) => {
+    if (!u || typeof u !== 'string') return u;
+    let s = toHttps(u);
+    if (s.startsWith('/')) s = API_BASE + s; // 상대경로 → 절대경로
+    return s;
+  };
+
   // ── 업로드 압축 설정 ──────────────────────────────────────────
   const IMG_MAX_DIM = 512;
   const IMG_MAX_SIZE = 800 * 1024;
@@ -106,7 +113,7 @@
   }
 
   function setProfileImage(url, isFallback = false) {
-    const safe = toHttps(url);
+    const safe = absolutize(url);
     state.els.profileImgs?.forEach((img) => {
       if (!img) return;
       img.classList.toggle('is-fallback', isFallback || !safe);
@@ -118,6 +125,10 @@
       img.src = safe || FALLBACK;
     });
   }
+
+  const isServerDefaultProfile = (u = '') =>
+    typeof u === 'string' &&
+    /\/(default[-_]?profile|profile[-_]?default)(\.\w+)?$/i.test(u);
 
   async function loadMyProfile() {
     try {
@@ -137,18 +148,23 @@
         me?.picture ||
         '';
 
-      const imgUrl = toHttps(raw); // ✅ 받아오자마자 https로
+      const imgUrl = absolutize(raw); // ✅ 절대화
       const isDefault =
         me?.isDefaultImage ??
         me?.is_default_image ??
         me?.profile?.is_default_image ??
         null;
 
-      if (!imgUrl || isDefault === true || isKakaoDefaultUrl(imgUrl)) {
+      if (
+        !imgUrl ||
+        isDefault === true ||
+        isKakaoDefaultUrl(imgUrl) ||
+        isServerDefaultProfile(imgUrl)
+      ) {
         setProfileImage(FALLBACK, true);
       } else {
         const bust = (imgUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
-        setProfileImage(imgUrl + bust, false); // ✅ 캐시 버스트도 보존
+        setProfileImage(imgUrl + bust, false);
       }
 
       const initialName = me?.nickname || me?.name || me?.username || '';
@@ -217,19 +233,46 @@
 
       const res = await uploadProfileImageWithFallback(resized);
 
-      if (res.status === 413) {
+      if (res.status === 413)
         throw new Error(
           '파일이 커서 업로드가 거절됐어. 더 작은 이미지로 시도해줘!'
         );
-      }
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || '프로필 이미지 변경 실패');
+        let msg = '프로필 이미지 변경 실패';
+        try {
+          const ct = res.headers.get('content-type') || '';
+          msg = ct.includes('application/json')
+            ? (await res.json()).message || msg
+            : (await res.text()) || msg;
+        } catch {}
+        throw new Error(msg);
       }
 
-      // 성공시 처리
-      const data = await res.json();
-      const safe = toHttps(data.imageUrl || '');
+      // ✅ 성공: 포맷 상관없이 URL 뽑기
+      const ct = res.headers.get('content-type') || '';
+      let data = null;
+      if (ct.includes('application/json')) {
+        data = await res.json();
+      } else if (res.status !== 204) {
+        const txt = await res.text();
+        try {
+          data = JSON.parse(txt);
+        } catch {
+          data = { message: txt };
+        }
+      }
+
+      const urlCandidate =
+        (data &&
+          (data.imageUrl ||
+            data.profileImageUrl ||
+            data.profile_image_url ||
+            data.url ||
+            data.location)) ||
+        res.headers.get('Location') ||
+        res.headers.get('location');
+
+      const safe = absolutize(urlCandidate || '');
       if (!safe) throw new Error('이미지 URL을 받지 못했어요.');
 
       const bustPreview =
@@ -243,7 +286,9 @@
       closeSheet();
       state.els.albumInput.value = '';
 
-      alert(data.message || '프로필 이미지가 정상적으로 변경되었습니다.');
+      alert(
+        (data && data.message) || '프로필 이미지가 정상적으로 변경되었습니다.'
+      );
       location.assign('mypage.html');
     } catch (err) {
       console.error(err);

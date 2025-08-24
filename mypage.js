@@ -19,8 +19,16 @@ window.addEventListener('unhandledrejection', (e) =>
     typeof u === 'string'
       ? u.startsWith('//')
         ? 'https:' + u
-        : u.replace(/^http:\/\//, 'https://')
+        : u.startsWith('http://')
+        ? u.replace(/^http:\/\//, 'https://')
+        : u.startsWith('/')
+        ? API_BASE + u
+        : u
       : u;
+
+  const isServerDefaultProfile = (u = '') =>
+    typeof u === 'string' &&
+    /\/(default[-_]?profile|profile[-_]?default)(\.\w+)?$/i.test(u);
 
   let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;
@@ -89,7 +97,10 @@ window.addEventListener('unhandledrejection', (e) =>
     const FALLBACK = './image/profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
 
     const shouldUseFallback =
-      !avatarUrl || isDefaultFlag === true || isKakaoDefaultUrl;
+      !avatarUrl ||
+      isDefaultFlag === true ||
+      isKakaoDefaultUrl ||
+      isServerDefaultProfile(avatarUrl);
 
     const avatarEl = document.querySelector('.profile-avatar');
     if (!avatarEl) return;
@@ -288,14 +299,14 @@ window.addEventListener('unhandledrejection', (e) =>
     guard();
     const just = sessionStorage.getItem('profileImageJustUpdated');
     if (just) {
-      const bust = just + (just.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const safeJust = toHttps(just); // ✅ 상대경로면 API_BASE 붙음
+      const bust =
+        safeJust + (safeJust.includes('?') ? '&' : '?') + 't=' + Date.now();
 
-      // <img class="profile-img"> 사용하는 곳 있으면 교체
       document
         .querySelectorAll('.profile-img')
         .forEach((img) => (img.src = bust));
 
-      // .profile-avatar(배경이미지)도 교체
       const avatar = document.querySelector('.profile-avatar');
       if (avatar) {
         avatar.style.backgroundImage = `url('${bust}')`;
@@ -305,13 +316,11 @@ window.addEventListener('unhandledrejection', (e) =>
         avatar.classList.remove('is-fallback');
       }
 
-      // 이후 방문에도 동일하게 보이도록 세션 키 동기화
-      sessionStorage.setItem('profileAvatarUrl', just);
+      sessionStorage.setItem('profileAvatarUrl', safeJust); // ✅ 절대경로 저장
       sessionStorage.setItem('profileAvatarIsFallback', '0');
-
-      // 단발성 키는 제거
       sessionStorage.removeItem('profileImageJustUpdated');
     }
+
     applyOptimisticFromSession();
 
     // 로그아웃 버튼 위임 리스너 (기존)
