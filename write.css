@@ -1,3 +1,9 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
 }
@@ -10,8 +16,22 @@ body {
 }
 
 .container {
-  background: #f9fafb;
-  padding: 4vh 16px 6vh;
+  background: transparent;
+  padding: 4vh 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#feedForm {
+  width: 100%;
+  margin: 8px 0; /* 좌우 auto 제거 */
+  box-sizing: border-box;
+}
+
+.container > .header,
+.container > #feedForm {
+  width: min(440px, 100%);
 }
 .form,
 input[type='text'],
@@ -21,16 +41,19 @@ textarea,
 }
 
 .header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 40px 1fr 40px; /* 좌 40, 가운데, 우 40 */
   align-items: center;
   margin-bottom: 24px;
 }
 
 /* 뒤로가기 버튼 */
 .back-arrow {
-  font-size: 25px;
-  margin-right: 20px;
+  grid-column: 1;
+  width: 25px;
+  height: 25px;
   cursor: pointer;
+  justify-self: start;
 }
 #feedForm {
   width: 100%;
@@ -39,10 +62,14 @@ textarea,
   box-sizing: border-box;
 }
 .header-title {
-  flex: 1;
+  grid-column: 2;
   text-align: center;
   font-weight: 600;
   font-size: 19px;
+}
+.header::after {
+  content: '';
+  grid-column: 3;
 }
 label {
   font-size: 15px;
@@ -52,20 +79,26 @@ label {
 }
 input[type='text'],
 textarea {
+  display: block;
   width: 100%;
   border: none;
-  border-radius: 8px;
-  padding: 13px 12px;
+  border-radius: 11px;
+  padding: 14px 14px;
   font-size: 15px;
   margin-bottom: 13px;
   background: #f4f4f5;
   outline: none;
-  transition: border 0.2s;
 }
 input[type='text']:focus,
 textarea:focus {
   /* border: 1.5px solid #fecaca; */
   border: none;
+}
+
+input[type='text'],
+textarea,
+.photo-upload {
+  box-sizing: border-box;
 }
 .required {
   color: #f43f5e;
@@ -78,29 +111,33 @@ textarea:focus {
 }
 .category-btn {
   flex: 1;
-  padding: 10px 0;
-  border-radius: 8px;
-  border: none;
-  background: #f4f4f5;
+  height: 44px;
+  /* padding: 0 12px; */
+  border-radius: 12px;
+  background: #ffffff; /* 비활성 배경 */
+  color: #9ca3af; /* 비활성 글자색 */
   font-size: 15px;
+  font-weight: 500;
   text-align: center;
+  border: none;
   cursor: pointer;
-  transition: background 0.2s, border 0.2s;
 }
 .category-btn.selected {
-  background: #fecaca;
-  border: none;
-  color: #d81341;
+  border-color: transparent;
+}
+/* 민원 선택(핑크) */
+.category-btn[data-type='MINWON'].selected {
+  background: #fef2f2; /* 아주 연한 핑크 */
+  color: #f43f5e; /* 핑크 텍스트 */
   font-weight: 600;
 }
 
-/*  긍정 색깔 #15803d 부정 색깔  #d81341;*/
-/* .category-btn.selected.selected-MUNHWA {
-        background: #dcfce7 !important;
-        border: none;
-        color: #15803d !important;
-        color: #d81341 !important;
-      } */
+/* 문화 선택(연두) */
+.category-btn[data-type='MUNHWA'].selected {
+  background: #dcfce7; /* 아주 연한 연두 */
+  color: #15803d; /* 그린 텍스트 */
+  font-weight: 600;
+}
 
 /* 문화 카테고리 버튼 */
 .category-btn.selected.munhwa-positive {
@@ -199,6 +236,20 @@ textarea {
   background: #f43f5e;
   color: #fff;
 }
+
+.app-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 /* 바깥 */
 .viewport {
   min-height: 100dvh;
@@ -211,7 +262,7 @@ textarea {
 /* 가운데 폰 화면 */
 .app {
   width: min(100%, 480px);
-  background: var(--bg-soft) !important;
+  background: #f9fafb !important;
   border-radius: 18px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   overflow: hidden;

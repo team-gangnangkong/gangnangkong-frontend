@@ -43,15 +43,16 @@ window.addEventListener('unhandledrejection', (e) =>
   // ── 마이페이지 정보 불러오기 ─────────────────────────────
   async function fetchMyPage() {
     try {
-      const res = await fetch(api(PATHS.mypage), {
+      const res = await fetch(api(PATHS.mypage) + `?t=${Date.now()}`, {
         method: 'GET',
         credentials: 'include',
+        cache: 'no-store',
       });
       if (!res.ok || !isJson(res)) throw new Error('마이페이지 정보 조회 실패');
       const data = await res.json();
       hydrateProfile(data);
       hydrateLikeHistory(data.likeHistory);
-      // myFeeds는 아래 fetchMyFeeds에서 채움(중복 렌더 방지)
+      applyOptimisticFromSession();
     } catch (err) {
       console.error(err);
       // 로그인 안 된 상태면 인덱스로 돌려보내기(선택)
@@ -128,7 +129,8 @@ window.addEventListener('unhandledrejection', (e) =>
       avatarEl.classList.remove('is-fallback');
       const img = new Image();
       img.onload = () => {
-        setBG(avatarUrl); // https로 정리된 URL
+        const bust = (avatarUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+        setBG(avatarUrl + bust);
         // ✅ 정상 이미지도 저장
         sessionStorage.setItem('profileAvatarUrl', avatarUrl);
         sessionStorage.setItem('profileAvatarIsFallback', '0');
@@ -138,7 +140,8 @@ window.addEventListener('unhandledrejection', (e) =>
         sessionStorage.setItem('profileAvatarUrl', FALLBACK);
         sessionStorage.setItem('profileAvatarIsFallback', '1');
       };
-      img.src = avatarUrl;
+      img.src =
+        avatarUrl + ((avatarUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
     }
   }
 
