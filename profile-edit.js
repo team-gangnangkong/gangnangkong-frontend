@@ -228,29 +228,17 @@
       }
 
       // 성공시 처리
-      let data = {};
-      const ct = res.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        data = await res.json().catch(() => ({}));
-      }
-      const returnedUrl =
-        data.imageUrl ||
-        data.profileImageUrl ||
-        data.url ||
-        data.location || // 백엔드가 경로만 줄 수도 있음
-        '';
-      const safe = toHttps(returnedUrl);
+      const data = await res.json();
+      const safe = toHttps(data.imageUrl || '');
+      if (!safe) throw new Error('이미지 URL을 받지 못했어요.');
 
-      if (safe) {
-        const bustPreview =
-          safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
-        setProfileImage(bustPreview, false);
-        sessionStorage.setItem('profileAvatarUrl', safe);
-        sessionStorage.setItem('profileAvatarIsFallback', '0');
-      }
+      const bustPreview =
+        safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
+      setProfileImage(bustPreview, false);
 
-      // 어떤 경우든 업로드 직후엔 서버 URL이 같아도 새 파일을 보게 강제
-      sessionStorage.setItem('profileImageJustUpdated', Date.now().toString());
+      sessionStorage.setItem('profileImageJustUpdated', safe);
+      sessionStorage.setItem('profileAvatarUrl', safe);
+      sessionStorage.setItem('profileAvatarIsFallback', '0');
 
       closeSheet();
       state.els.albumInput.value = '';
@@ -330,6 +318,7 @@
       const input = state.els.albumInput;
       if (!input) return;
 
+      // 2) 같은 제스처 안에서 파일 선택창 열기 (지원 시 showPicker 우선)
       if (typeof input.showPicker === 'function') {
         try {
           input.showPicker();
