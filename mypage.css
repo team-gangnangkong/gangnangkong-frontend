@@ -266,7 +266,6 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background: var(--bg-soft);
-  padding-bottom: calc(var(--nav-h) + max(32px, env(safe-area-inset-bottom)));
 }
 
 :root {

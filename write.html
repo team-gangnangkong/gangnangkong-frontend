@@ -9,124 +9,128 @@
   <body>
     <div class="viewport">
       <div class="app">
-        <div class="container">
-          <div class="header">
-            <!-- 뒤로가기 버튼 -->
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="30"
-              height="30"
-              viewBox="0 0 30 30"
-              fill="none"
-              class="back-arrow"
-            >
+        <main class="app-scroll">
+          <div class="container">
+            <div class="header">
+              <!-- 뒤로가기 버튼 -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="30"
+                height="30"
+                viewBox="0 0 30 30"
+                fill="none"
+                class="back-arrow"
               >
-              <path
-                d="M18.75 22.5L11.25 15L18.75 7.5"
-                stroke="black"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <div class="header-title">글쓰기</div>
-          </div>
-          <form id="feedForm" style="margin: 8px">
-            <label for="titleInput">제목<span class="required">*</span></label>
-            <input
-              id="titleInput"
-              name="title"
-              type="text"
-              placeholder="제목을 입력하세요."
-              required
-            />
-
-            <label>카테고리<span class="required">*</span></label>
-            <div class="category-group">
-              <button
-                type="button"
-                class="category-btn"
-                data-type="MINWON"
-                id="minwonBtn"
-              >
-                민원
-              </button>
-              <button
-                type="button"
-                class="category-btn"
-                data-type="MUNHWA"
-                id="munhwaBtn"
-              >
-                문화
-              </button>
-              <input
-                id="categoryInput"
-                name="category"
-                type="hidden"
-                value=""
-              />
+                >
+                <path
+                  d="M18.75 22.5L11.25 15L18.75 7.5"
+                  stroke="black"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <div class="header-title">글쓰기</div>
             </div>
-
-            <label for="addressInput"
-              >위치<span class="required">*</span></label
-            >
-            <input
-              id="addressInput"
-              name="address"
-              type="text"
-              placeholder="건물, 지번 또는 도로명 검색"
-              required
-            />
-            <!-- 위도 -->
-            <input id="latInput" name="lat" type="hidden" />
-            <!-- 경도 -->
-            <input id="lngInput" name="lng" type="hidden" />
-            <label for="detailAddressInput"></label>
-            <input
-              id="detailAddressInput"
-              name="detailAddress"
-              type="text"
-              placeholder="상세주소"
-            />
-
-            <input
-              id="locationIdInput"
-              name="locationId"
-              type="hidden"
-              value="1"
-            />
-
-            <label>사진<span class="required">*</span></label>
-            <div class="photo-upload">
-              <span class="upload-icon">&#8682;</span>
-              <span class="upload-text"
-                >사진을 업로드해주세요.<br />(jpg, jpeg, png)</span
+            <form id="feedForm" style="margin: 8px">
+              <label for="titleInput"
+                >제목<span class="required">*</span></label
               >
               <input
-                id="imageInput"
-                name="images"
-                type="file"
-                accept=".jpg,.jpeg,.png"
-                multiple
+                id="titleInput"
+                name="title"
+                type="text"
+                placeholder="제목을 입력하세요."
                 required
               />
-            </div>
 
-            <!-- 사진 미리보기 -->
-            <div class="photo-preview"></div>
+              <label>카테고리<span class="required">*</span></label>
+              <div class="category-group">
+                <button
+                  type="button"
+                  class="category-btn"
+                  data-type="MINWON"
+                  id="minwonBtn"
+                >
+                  민원
+                </button>
+                <button
+                  type="button"
+                  class="category-btn"
+                  data-type="MUNHWA"
+                  id="munhwaBtn"
+                >
+                  문화
+                </button>
+                <input
+                  id="categoryInput"
+                  name="category"
+                  type="hidden"
+                  value=""
+                />
+              </div>
 
-            <label for="contentInput">내용</label>
-            <textarea
-              id="contentInput"
-              name="content"
-              placeholder="내용을 입력하세요."
-            ></textarea>
+              <label for="addressInput"
+                >위치<span class="required">*</span></label
+              >
+              <input
+                id="addressInput"
+                name="address"
+                type="text"
+                placeholder="건물, 지번 또는 도로명 검색"
+                required
+              />
+              <!-- 위도 -->
+              <input id="latInput" name="lat" type="hidden" />
+              <!-- 경도 -->
+              <input id="lngInput" name="lng" type="hidden" />
+              <label for="detailAddressInput"></label>
+              <input
+                id="detailAddressInput"
+                name="detailAddress"
+                type="text"
+                placeholder="상세주소"
+              />
 
-            <button id="submitBtn" type="submit" class="submit-btn" disabled>
-              작성하기
-            </button>
-          </form>
-        </div>
+              <input
+                id="locationIdInput"
+                name="locationId"
+                type="hidden"
+                value="1"
+              />
+
+              <label>사진<span class="required">*</span></label>
+              <div class="photo-upload">
+                <span class="upload-icon">&#8682;</span>
+                <span class="upload-text"
+                  >사진을 업로드해주세요.<br />(jpg, jpeg, png)</span
+                >
+                <input
+                  id="imageInput"
+                  name="images"
+                  type="file"
+                  accept=".jpg,.jpeg,.png"
+                  multiple
+                  required
+                />
+              </div>
+
+              <!-- 사진 미리보기 -->
+              <div class="photo-preview"></div>
+
+              <label for="contentInput">내용</label>
+              <textarea
+                id="contentInput"
+                name="content"
+                placeholder="내용을 입력하세요."
+              ></textarea>
+
+              <button id="submitBtn" type="submit" class="submit-btn" disabled>
+                작성하기
+              </button>
+            </form>
+          </div>
+        </main>
       </div>
     </div>
     <script src="write.js"></script>

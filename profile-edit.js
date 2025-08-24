@@ -113,16 +113,20 @@
   }
 
   function setProfileImage(url, isFallback = false) {
-    const safe = absolutize(url);
+    const safe = absolutize(url); // ✅ 절대경로화
     state.els.profileImgs?.forEach((img) => {
       if (!img) return;
       img.classList.toggle('is-fallback', isFallback || !safe);
+      // ✅ 기본이미지(폴백)일 땐 확대 금지, 실제 사진은 꽉 채우기
+      img.style.objectFit = isFallback || !safe ? 'contain' : 'cover';
+
       img.onerror = () => {
         img.onerror = null;
         img.src = FALLBACK;
         img.classList.add('is-fallback');
+        img.style.objectFit = 'contain';
       };
-      const isServerDefaultProfile = (u = '') => (img.src = safe || FALLBACK);
+      img.src = safe || FALLBACK;
     });
   }
 
@@ -148,19 +152,21 @@
         me?.picture ||
         '';
 
-      const imgUrl = absolutize(raw); // ✅ 절대화
+      const imgUrl = absolutize(raw); // ✅ 절대경로화
       const isDefault =
         me?.isDefaultImage ??
         me?.is_default_image ??
         me?.profile?.is_default_image ??
         null;
 
-      if (
+      // ✅ 서버/카카오 기본이미지까지 폴백 처리
+      const useFallback =
         !imgUrl ||
         isDefault === true ||
         isKakaoDefaultUrl(imgUrl) ||
-        isServerDefaultProfile(imgUrl)
-      ) {
+        isServerDefaultProfile(imgUrl);
+
+      if (useFallback) {
         setProfileImage(FALLBACK, true);
       } else {
         const bust = (imgUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
