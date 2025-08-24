@@ -19,19 +19,20 @@ body {
 /* 맵: 하단바 높이(95px) + 안전영역까지 빼고 꽉 채움 */
 .map {
   width: 100%;
-  height: calc(100dvh - 95px);
+  height: calc(100dvh - (var(--nav-h) + env(safe-area-inset-bottom, 0px)));
 }
 
 :root {
   --accent: #ff5b61;
   --muted: #9ca3af;
+  --nav-h: 95px;
 }
 
 /* 지도 위 UI 컨테이너 */
 .map-ui {
   position: absolute;
   inset: 0;
-  bottom: 95px; /* 하단바 위로 */
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   pointer-events: none; /* 기본은 클릭 막고 */
   z-index: 1500;
 }
@@ -916,6 +917,24 @@ body {
   transform: translate(-50%, -58%) scale(1);
 }
 
+.bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* ⬅︎ 항목 내부도 중앙 */
+  gap: 6px; /* 아이콘-문구 간격 */
+  height: var(--nav-h); /* 보이는 바 높이만큼 차지 */
+  text-decoration: none;
+  color: #aaa;
+  font-size: 12px;
+}
+
+/* 아이콘 아래 여백 제거 */
+.bottom-nav .nav-item svg {
+  margin: 0;
+  display: block;
+}
+
 /* 하단바 */
 .bottom-nav {
   position: absolute;
@@ -923,13 +942,13 @@ body {
   left: 0;
   right: 0;
   width: 100%;
-  height: 95px;
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   background-color: white;
   border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
-  align-items: flex-start;
-  padding-top: 15px;
+  align-items: center;
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
   z-index: 100;
 }
 

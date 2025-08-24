@@ -76,7 +76,7 @@ body {
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: var(--nav-h);
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -490,9 +490,27 @@ body {
   border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
-  align-items: flex-start;
-  padding-top: 15px;
+  align-items: center;
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
   z-index: 500;
+}
+
+.bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* ⬅︎ 항목 내부도 중앙 */
+  gap: 6px; /* 아이콘-문구 간격 */
+  height: var(--nav-h); /* 보이는 바 높이만큼 차지 */
+  text-decoration: none;
+  color: #aaa;
+  font-size: 12px;
+}
+
+/* 아이콘 아래 여백 제거 */
+.bottom-nav .nav-item svg {
+  margin: 0;
+  display: block;
 }
 
 .nav-item {

@@ -200,12 +200,31 @@ body {
   right: 0;
   width: 100%;
   height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
   background-color: white;
   border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
-  align-items: flex-start;
+  align-items: center;
   z-index: 100;
+}
+
+.bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* ← 항목 자체도 중앙 */
+  gap: 6px; /* 아이콘-문구 간격 */
+  height: var(--nav-h); /* 보이는 영역 높이 */
+  line-height: 1;
+  text-decoration: none;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.bottom-nav .nav-item svg {
+  /* 이전 margin-bottom 제거 */
+  display: block;
 }
 
 /* .container{
@@ -221,7 +240,7 @@ body {
 
 .nav-item svg {
   display: block;
-  margin: 0 auto 4px;
+  margin-bottom: 3px;
 }
 
 .nav-item.active span {
