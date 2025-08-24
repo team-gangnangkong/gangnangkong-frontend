@@ -228,17 +228,29 @@
       }
 
       // 성공시 처리
-      const data = await res.json();
-      const safe = toHttps(data.imageUrl || '');
-      if (!safe) throw new Error('이미지 URL을 받지 못했어요.');
+      let data = {};
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        data = await res.json().catch(() => ({}));
+      }
+      const returnedUrl =
+        data.imageUrl ||
+        data.profileImageUrl ||
+        data.url ||
+        data.location || // 백엔드가 경로만 줄 수도 있음
+        '';
+      const safe = toHttps(returnedUrl);
 
-      const bustPreview =
-        safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
-      setProfileImage(bustPreview, false);
+      if (safe) {
+        const bustPreview =
+          safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
+        setProfileImage(bustPreview, false);
+        sessionStorage.setItem('profileAvatarUrl', safe);
+        sessionStorage.setItem('profileAvatarIsFallback', '0');
+      }
 
-      sessionStorage.setItem('profileImageJustUpdated', safe);
-      sessionStorage.setItem('profileAvatarUrl', safe);
-      sessionStorage.setItem('profileAvatarIsFallback', '0');
+      // 어떤 경우든 업로드 직후엔 서버 URL이 같아도 새 파일을 보게 강제
+      sessionStorage.setItem('profileImageJustUpdated', Date.now().toString());
 
       closeSheet();
       state.els.albumInput.value = '';
@@ -311,7 +323,21 @@
     albumBtn?.addEventListener('mouseup', release);
     albumBtn?.addEventListener('touchstart', press);
     albumBtn?.addEventListener('touchend', release);
-    albumBtn?.addEventListener('click', () => albumInput.click());
+    albumBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeSheet(); // 1) 먼저 시트 닫기
+
+      const input = state.els.albumInput;
+      if (!input) return;
+
+      if (typeof input.showPicker === 'function') {
+        try {
+          input.showPicker();
+          return;
+        } catch (_) {}
+      }
+      input.click();
+    });
     albumInput?.addEventListener('change', onFileChosen);
   }
 

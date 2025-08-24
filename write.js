@@ -37,8 +37,7 @@ categoryBtns.forEach(...) 클릭 이벤트 2번(위/아래) 중복으로 걸려�
 
 // 뒤로가기 버튼 기능
 
-document.querySelector(".header svg").addEventListener("click", () => {
-
+document.querySelector('.header svg').addEventListener('click', () => {
   window.history.back();
 });
 
@@ -109,9 +108,8 @@ const titleInput = writeForm.querySelector('input[name="title"]');
 const locationInput = writeForm.querySelector('input[name="address"]');
 const photoInput = writeForm.querySelector('input[type="file"]');
 
-const photoUploadBox = document.querySelector(".photo-upload"); //사진 업로드 미리보기
-const submitBtn = writeForm.querySelector(".submit-btn");
-
+const photoUploadBox = document.querySelector('.photo-upload'); //사진 업로드 미리보기
+const submitBtn = writeForm.querySelector('.submit-btn');
 
 function isFormValid() {
   const isTitle = titleInput.value.trim() !== '';
@@ -188,15 +186,15 @@ async function createFeedWithImages(feedData, imageFiles) {
 
 // 사진 미리보기 이미지 컨테이너 생성
 
-let previewContainer = document.querySelector(".photo-preview");
+let previewContainer = document.querySelector('.photo-preview');
 
-photoInput.addEventListener("change", function () {
+photoInput.addEventListener('change', function () {
   // 최대 8개 제한
   const files = Array.from(photoInput.files);
   if (files.length > 8) {
-    alert("사진은 최대 8장까지 업로드할 수 있습니다.");
-    photoInput.value = ""; // 파일 선택 초기화
-    previewContainer.innerHTML = "";
+    alert('사진은 최대 8장까지 업로드할 수 있습니다.');
+    photoInput.value = ''; // 파일 선택 초기화
+    previewContainer.innerHTML = '';
 
     updateButtonColor();
     return;
@@ -204,14 +202,14 @@ photoInput.addEventListener("change", function () {
 
   // 기존 미리보기 삭제
 
-  previewContainer.innerHTML = "";
+  previewContainer.innerHTML = '';
 
   files.forEach((file) => {
-    if (!file.type.startsWith("image/")) return;
+    if (!file.type.startsWith('image/')) return;
 
     const reader = new FileReader();
     reader.onload = function (e) {
-      const img = document.createElement("img");
+      const img = document.createElement('img');
 
       img.src = e.target.result;
       previewContainer.appendChild(img);
@@ -221,8 +219,7 @@ photoInput.addEventListener("change", function () {
 });
 
 //제출버튼
-writeForm.addEventListener("submit", async (e) => {
-
+writeForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!isFormValid()) return;
 

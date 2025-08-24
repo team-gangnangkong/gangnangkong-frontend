@@ -6,7 +6,7 @@ window.addEventListener('unhandledrejection', (e) =>
   console.error('[PROMISE REJECTION]', e.reason)
 );
 
-(() => {
+() => {
   const API_BASE = 'https://sorimap.it.com'; // 백엔드 도메인
   const PATHS = {
     me: '/api/user/me',
@@ -71,11 +71,20 @@ window.addEventListener('unhandledrejection', (e) =>
 
     const avatarUrl = toHttps(raw);
 
+    // 업로드 직후라면 같은 URL이라도 새 파일을 강제로 보게 하자
+    const bustSeed = sessionStorage.getItem('profileImageJustUpdated');
+    const withBust =
+      avatarUrl && bustSeed
+        ? avatarUrl + (avatarUrl.includes('?') ? '&' : '?') + 't=' + bustSeed
+        : avatarUrl;
+
     const isDefaultFlag =
       data?.isDefaultImage ??
       data?.is_default_image ??
       data?.profile?.is_default_image ??
       null;
+
+    const isKakaoDefaultByFlag = data?.kakaoDefault === true;
 
     const kakaoDefaultPatterns = [
       /kakaocdn\.net\/.*default_profile/i,
@@ -89,7 +98,10 @@ window.addEventListener('unhandledrejection', (e) =>
     const FALLBACK = './image/profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
 
     const shouldUseFallback =
-      !avatarUrl || isDefaultFlag === true || isKakaoDefaultUrl;
+      !avatarUrl ||
+      isDefaultFlag === true ||
+      isKakaoDefaultByFlag ||
+      isKakaoDefaultUrl;
 
     const avatarEl = document.querySelector('.profile-avatar');
     if (!avatarEl) return;
@@ -112,17 +124,17 @@ window.addEventListener('unhandledrejection', (e) =>
       avatarEl.classList.remove('is-fallback');
       const img = new Image();
       img.onload = () => {
-        setBG(avatarUrl); // https로 정리된 URL
-        // ✅ 정상 이미지도 저장
+        setBG(withBust || FALLBACK);
         sessionStorage.setItem('profileAvatarUrl', avatarUrl);
         sessionStorage.setItem('profileAvatarIsFallback', '0');
+        sessionStorage.removeItem('profileImageJustUpdated');
       };
       img.onerror = () => {
         setBG(FALLBACK);
         sessionStorage.setItem('profileAvatarUrl', FALLBACK);
         sessionStorage.setItem('profileAvatarIsFallback', '1');
       };
-      img.src = avatarUrl;
+      img.src = withBust || avatarUrl;
     }
   }
 
@@ -283,38 +295,21 @@ window.addEventListener('unhandledrejection', (e) =>
     }
   }
 
-  // ──  초기 로드 ─────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', () => {
-    guard();
-    const just = sessionStorage.getItem('profileImageJustUpdated');
-    if (just) {
-      const bust = just + (just.includes('?') ? '&' : '?') + 't=' + Date.now();
+  // ── 초기 로드 ─────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 1) 로그인 가드
+    await guard();
 
-      // <img class="profile-img"> 사용하는 곳 있으면 교체
-      document
-        .querySelectorAll('.profile-img')
-        .forEach((img) => (img.src = bust));
+    // 2) 서버 값 먼저 그리기
+    await fetchMyPage();
 
-      // .profile-avatar(배경이미지)도 교체
-      const avatar = document.querySelector('.profile-avatar');
-      if (avatar) {
-        avatar.style.backgroundImage = `url('${bust}')`;
-        avatar.style.backgroundSize = 'cover';
-        avatar.style.backgroundPosition = 'center';
-        avatar.style.borderRadius = '50%';
-        avatar.classList.remove('is-fallback');
-      }
-
-      // 이후 방문에도 동일하게 보이도록 세션 키 동기화
-      sessionStorage.setItem('profileAvatarUrl', just);
-      sessionStorage.setItem('profileAvatarIsFallback', '0');
-
-      // 단발성 키는 제거
-      sessionStorage.removeItem('profileImageJustUpdated');
-    }
+    // 3) 직전 수정(닉네임/아바타) 세션값으로 마지막 덮어쓰기
     applyOptimisticFromSession();
 
-    // 로그아웃 버튼 위임 리스너 (기존)
+    // 4) 피드는 비동기 로드(대기 불필요)
+    fetchMyFeeds();
+
+    // ── 로그아웃 버튼 위임 리스너 (기존 유지)
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('#logout-button');
       if (!btn) return;
@@ -322,7 +317,7 @@ window.addEventListener('unhandledrejection', (e) =>
       doLogout();
     });
 
-    // ✅ 프로필 행 클릭: 보이는 이미지를 저장하고 이동
+    // ✅ 프로필 행 클릭: 보이는 이미지를 저장하고 이동 (기존 유지)
     const row = document.querySelector('.profile-row');
     if (row) {
       row.addEventListener('click', (e) => {
@@ -349,8 +344,5 @@ window.addEventListener('unhandledrejection', (e) =>
         location.href = 'profile-edit.html';
       });
     }
-
-    fetchMyPage();
-    fetchMyFeeds();
   });
-})();
+};

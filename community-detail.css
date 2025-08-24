@@ -1,0 +1,448 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 17px 0 13px 0;
+  border-bottom: 1px solid #ececec;
+  position: relative;
+  background: #fff;
+}
+.header .back-arrow {
+  position: absolute;
+  left: 18px;
+  font-size: 23px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #222;
+}
+.community-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.content-area {
+  padding: 0 0 20px 0;
+}
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 15px 18px 6px 18px;
+}
+.badge-divider {
+  width: 1.5px;
+  height: 23px;
+  background: #e3e3e7;
+  margin-right: 4px;
+  border-radius: 3px;
+}
+.nickname {
+  color: #8d8f90;
+  font-size: 15px;
+  font-weight: 500;
+  margin-right: 7px;
+  display: flex;
+  align-items: center;
+}
+.profile-dot {
+  display: inline-block;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: #ececec url('https://randomuser.me/api/portraits/women/65.jpg')
+    center/cover no-repeat;
+  margin-right: 5px;
+}
+.date {
+  color: #8d8f90;
+  font-size: 13px;
+  font-weight: 500;
+}
+.main-content {
+  padding: 0 18px 15px 18px;
+}
+.post-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #222;
+  margin-top: 4px;
+}
+.like-button-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 7px;
+}
+.like-btn {
+  background: #f87171;
+  color: #fef2f2;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 7px 29px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.like-btn:hover {
+  background: #e35f5f;
+}
+.post-img-wrap {
+  margin: 20px 0;
+  border-radius: 11px;
+  overflow: hidden;
+  background: #f3f4f6;
+  width: 100%;
+}
+.post-img {
+  width: 100%;
+  aspect-ratio: 360/168;
+  object-fit: cover;
+  display: block;
+}
+
+.location-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+  margin-top: 0;
+  width: 100%;
+}
+
+.location-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: #7d8694;
+  background: #f7f7f8;
+  border-radius: 12px;
+  padding: 7px 15px;
+  font-weight: 500;
+  /* box-shadow: none; */
+}
+
+.status-badge {
+  background: #fee2e2;
+  color: #ef4444;
+  font-size: 12px;
+  border-radius: 10px;
+  padding: 4px 12px;
+  font-weight: 700;
+  margin-left: 9px;
+}
+
+.post-desc {
+  font-size: 15px;
+  font-weight: 400;
+  color: #555;
+  border-radius: 10px;
+  padding: 12px 11px;
+  margin: 0 0 8px 0;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+.post-footer-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  justify-content: flex-end;
+  font-size: 15px;
+  color: #f87171;
+  padding: 3px 7px 1px 0;
+  font-weight: 500;
+}
+
+/* 좋아요, 댓글 컨테이너 */
+.bottom-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px; /* 좋아요/댓글 간격 */
+  margin-top: 4px;
+  margin-bottom: 2px;
+  padding-right: 11px;
+}
+
+/* 댓글이 없을 때 */
+.no-comment {
+  min-height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #b3b5bd;
+  font-size: 16px;
+  letter-spacing: -0.2px;
+  text-align: center;
+  background: #fafbfc;
+}
+
+.comment-title {
+  padding: 0 0 0 23px;
+  margin-top: 9px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #555;
+  font-weight: 600;
+  background: #fff;
+}
+.comment-input-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 14px 14px 14px;
+  background: #fff;
+  border-radius: 0 0 16px 16px;
+  box-sizing: border-box;
+  border-top: 1.5px solid #f4f4f5;
+  position: relative;
+  margin-top: 30px;
+}
+.comment-profile-dot {
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: #ececec url('./image/index-char.png') center/cover no-repeat;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+.comment-input {
+  flex: 1;
+  font-size: 15px;
+  border: none;
+  background: #f4f4f7;
+  border-radius: 10px;
+  padding: 11px 15px;
+  outline: none;
+}
+.comment-send-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #cbcbcb;
+  font-size: 24px;
+  margin-left: 5px;
+}
+
+.comment-send-btn:hover {
+  color: #f87171;
+}
+
+/* js로 추가되는 댓글 */
+.comment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+}
+
+/* 댓글 본문 영역 */
+.comment-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 상단(작성자+시간) */
+.comment-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 3px;
+}
+
+.comment-author {
+  font-weight: 700;
+  font-size: 15px;
+  color: #232323;
+}
+
+.comment-time {
+  margin-left: auto;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* 댓글 텍스트(본문) */
+.comment-text {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.55;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+/* 반응형 */
+@media (max-width: 430px) {
+  .app {
+    max-width: 100vw;
+  }
+  .post-img,
+  .post-img-wrap {
+    border-radius: 0;
+  }
+}
+
+/* 근처 다른 이슈 Carousel */
+.related-section {
+  background: #fff;
+  padding: 11px 0 13px 0;
+  border-radius: 13px;
+  margin-top: 20px;
+  box-shadow: 0 0.5px 0 rgba(95, 95, 99, 0.03);
+}
+.related-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px 5px 18px;
+  font-size: 15px;
+  color: #232529;
+  font-weight: 700;
+}
+/* 카드리스트 */
+.card-list {
+  background: #fff;
+  display: flex;
+  gap: 16px;
+  padding: 10px 10px 10px 20px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  /* 부드러운 맥/모바일 스크롤 */
+  -webkit-overflow-scrolling: touch;
+}
+.card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  width: 240px;
+  min-width: 230px;
+  max-width: 260px;
+  flex-shrink: 0;
+  padding-bottom: 10px; /* 하단 여백 */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.card-img-wrap {
+  width: 100%;
+  aspect-ratio: 1.45 / 1;
+  overflow: hidden;
+  border-radius: 13px 13px 0 0;
+  position: relative;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badge {
+  position: absolute;
+  top: 9px;
+  left: 11px;
+  background: #222;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  z-index: 2;
+  letter-spacing: -0.01em;
+}
+
+.card-arrow {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 100%;
+  padding: 2px;
+  z-index: 2;
+}
+
+.card-content {
+  padding: 12px 13px 0 13px;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-family: Pretendard, sans-serif;
+  font-size: 15.5px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.36;
+  margin: 5px 0 3px 0;
+  color: #232323;
+  letter-spacing: -0.01em;
+}
+
+.card-like,
+.card-comment {
+  display: flex;
+  border-radius: 12px;
+  color: #f87171;
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px 3px 5px;
+  z-index: 2;
+}
+.card-desc {
+  color: #6b7280; /* Gray-400 */
+  font-family: Pretendard, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 1.5px;
+}
+
+.card-desc svg {
+  flex-shrink: 0;
+}
+/* 바깥 */
+.viewport {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  background: #fef2f2;
+}
+
+/* 가운데 폰 화면 */
+.app {
+  width: min(100%, 480px);
+  background: var(--bg-soft) !important;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 100dvh;
+}
+@media (max-width: 600px) {
+  .app {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
