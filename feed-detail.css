@@ -96,15 +96,85 @@ body {
 .comments {
   margin-top: 16px;
 }
+
+/* 사진 아래 위치 칩만 보이게 */
+.place-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 10px 0 4px;
+}
+
+/* 본문 텍스트 */
+.detail-body {
+  margin: 8px 0 6px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #374151;
+  letter-spacing: -0.2px;
+}
+
+/* 좋아요/댓글 오른쪽 정렬 + 간격 줄이기 */
+.count-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px; /* ← 아이콘들 사이 간격 */
+  margin: 4px 2px 0 0;
+}
+
+.icon-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* ← 아이콘과 숫자 간격 */
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  color: #f87171;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: default;
+}
+.icon-count svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* 구분선 */
+.section-sep {
+  height: 10px;
+  background: #f7f8fa;
+  border: 0;
+  margin: 14px -18px 10px; /* 좌우 꽉 차게 */
+}
+
+/* 댓글 블록 */
+.comment-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
 .comment {
   display: flex;
   gap: 10px;
-  padding: 10px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #f3f4f6;
 }
-.comment .who {
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fdeaea;
+  display: grid;
+  place-items: center;
+}
+.comment-head .who {
   font-weight: 600;
   margin-right: 6px;
+}
+.comment-head .when {
+  color: #9ca3af;
+  font-size: 12px;
 }
 
 .scroll-area {

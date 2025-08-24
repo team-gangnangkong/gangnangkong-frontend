@@ -578,10 +578,26 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="detail-stats">
   <span class="stat stat-like" title="좋아요">
     <!-- 엄지 아이콘 (outline) -->
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 11v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Z"/>
-      <path d="M9 11l4.2-7.2a2 2 0 0 1 3.7.9v5.3h3a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 1.5H9V11Z"/>
-    </svg>
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <!-- 손바닥 부분(안쪽 사각형) -->
+    <path
+      d="M9 11v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+    <!-- 엄지/바깥 라인 -->
+    <path
+      d="M9 11l4.2-7.2a2 2 0 0 1 3.7.9v5.3h3a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 1.5H9V11Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+  </svg>
     <span class="like-count">0</span>
   </span>
 

@@ -7,12 +7,80 @@
   };
   const FALLBACK = './image/profile_default.png';
 
-  // ✅ http → https 강제 (프로토콜 상대 URL도 처리)
   const toHttps = (u) => {
     if (typeof u !== 'string') return u;
     if (u.startsWith('//')) return 'https:' + u;
     return u.replace(/^http:\/\//, 'https://');
   };
+
+  // ── 업로드 압축 설정 ──────────────────────────────────────────
+  const IMG_MAX_DIM = 512;
+  const IMG_MAX_SIZE = 800 * 1024;
+
+  async function getBitmap(file) {
+    if (window.createImageBitmap) return await createImageBitmap(file);
+    // fallback (Safari 등)
+    const img = new Image();
+    img.decoding = 'async';
+    img.referrerPolicy = 'no-referrer';
+    await new Promise((ok, bad) => {
+      img.onload = ok;
+      img.onerror = bad;
+      img.src = URL.createObjectURL(file);
+    });
+    return img;
+  }
+
+  async function compressImage(
+    file,
+    { maxDim = IMG_MAX_DIM, maxSize = IMG_MAX_SIZE } = {}
+  ) {
+    // PNG → JPEG로 변환하면 용량이 크게 줄어듦
+    const bmp = await getBitmap(file);
+    const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+    const w = Math.round(bmp.width * scale);
+    const h = Math.round(bmp.height * scale);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bmp, 0, 0, w, h);
+
+    let q = 0.9,
+      blob;
+    do {
+      blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', q));
+      q -= 0.1;
+    } while (blob && blob.size > maxSize && q >= 0.5);
+
+    const out = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+    return out;
+  }
+
+  async function uploadProfileImageWithFallback(theFile) {
+    // 1차: profileImage
+    let fd = new FormData();
+    fd.append('profileImage', theFile);
+
+    let res = await fetch(API_BASE + EP.profileImage, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: fd,
+    });
+
+    // 필드명 문제로 400/415 나올 수 있어 재시도
+    if (!res.ok && (res.status === 400 || res.status === 415)) {
+      fd = new FormData();
+      fd.append('file', theFile);
+      res = await fetch(API_BASE + EP.profileImage, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: fd,
+      });
+    }
+    return res;
+  }
 
   const state = { els: {} };
   const q = (s) => document.querySelector(s);
@@ -138,30 +206,38 @@
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const fd = new FormData();
-    fd.append('profileImage', file);
-
     try {
-      const res = await fetch(API_BASE + EP.profileImage, {
-        method: 'PATCH',
-        credentials: 'include',
-        body: fd,
-      });
+      if (file.size > 5 * 1024 * 1024) {
+        console.log('원본이 큰 파일이야. 압축해서 올릴게!');
+      }
+      const resized = await compressImage(file);
+      const previewUrl = URL.createObjectURL(resized);
+      if (state.els.profileImg) state.els.profileImg.src = previewUrl;
+
+      const res = await uploadProfileImageWithFallback(resized);
+
+      if (res.status === 413) {
+        throw new Error(
+          '파일이 커서 업로드가 거절됐어. 더 작은 이미지로 시도해줘!'
+        );
+      }
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || '프로필 이미지 변경 실패');
       }
+
+      // 3) 성공 처리
       const data = await res.json(); // { message, imageUrl }
       const safe = toHttps(data.imageUrl);
       const bust = (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
-      setProfileImage(safe + bust, false); // ✅ 업로드 응답도 https 강제
+      setProfileImage(safe + bust, false);
+
       closeSheet();
       state.els.albumInput.value = '';
       alert(data.message || '프로필 이미지가 정상적으로 변경되었습니다.');
     } catch (err) {
       console.error(err);
       alert(err.message || '프로필 이미지 변경 중 오류가 발생했습니다.');
-      console.log('오류'); // ✅ lod → log
     }
   }
 

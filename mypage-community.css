@@ -142,7 +142,6 @@ body {
 .card-title-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
 }
 .card-title {
   font-weight: 600;
@@ -160,6 +159,21 @@ body {
   font-weight: 500;
   margin-left: 10px;
 }
+
+.card-title-row .card-like {
+  margin-left: auto; /* 제목과의 간격만 자동으로 크게 */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* 아이콘-숫자 간격 */
+}
+
+.card-title-row .card-comment {
+  margin-left: 10px; /* 좋아요와 댓글 사이 간격(원하면 6~12px로 조절) */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .card-like,
 .card-comment svg {
   margin-right: 1px;
