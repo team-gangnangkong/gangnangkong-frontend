@@ -93,13 +93,13 @@ function renderFeeds(feeds) {
 
 /**
  * 전체 피드 조회 API 호출 후 렌더링
- * @param {number|null} locationId - locationId 필터링 값 (없으면 null)
+ * @param {number|null} kakaoPlaceId - kakaoPlaceId 필터링 값 (없으면 null)
  */
-async function loadFeeds(locationId = null) {
+async function loadFeeds(kakaoPlaceId = null) {
   try {
     let url = "https://sorimap.it.com/api/feeds";
-    if (locationId) {
-      url += `?locationId=${locationId}`;
+    if (kakaoPlaceId) {
+      url += `?kakaoPlaceId=${kakaoPlaceId}`;
     }
     const response = await fetch(url);
     if (!response.ok) {
@@ -115,10 +115,10 @@ async function loadFeeds(locationId = null) {
 }
 
 // 특정 위치에 해당하는 피드만 필터링
-async function loadFeedsByLocation(locationId) {
+async function loadFeedsByLocation(kakaoPlaceId) {
   try {
     const response = await fetch(
-      `https://sorimap.it.com/api/feeds?locationId=${locationId}`
+      `https://sorimap.it.com/api/feeds?kakaoPlaceId=${kakaoPlaceId}`
     );
     if (!response.ok) {
       throw new Error("위치별 피드 조회 실패: " + response.status);
@@ -133,11 +133,11 @@ async function loadFeedsByLocation(locationId) {
 }
 
 // 상태별 조회
-async function loadFeedsByStatus(status, locationId = null) {
+async function loadFeedsByStatus(status, kakaoPlaceId = null) {
   try {
     let url = `https://sorimap.it.com/api/feeds/status/${status}`;
-    if (locationId) {
-      url += `?locationId=${locationId}`;
+    if (kakaoPlaceId) {
+      url += `?kakaoPlaceId=${kakaoPlaceId}`;
     }
     const response = await fetch(url);
     if (!response.ok) {

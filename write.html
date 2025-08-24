@@ -8,6 +8,7 @@
     <style>
       .container {
         background: #f9fafb;
+        padding: 4vh 16px 6vh;
       }
       .form,
       input[type="text"],
@@ -28,7 +29,12 @@
         margin-right: 20px;
         cursor: pointer;
       }
-
+      #feedForm {
+        width: 100%;
+        max-width: 440px;
+        margin: 8px auto;
+        box-sizing: border-box;
+      }
       .header-title {
         flex: 1;
         text-align: center;
@@ -89,8 +95,8 @@
       /* .category-btn.selected.selected-MUNHWA {
         background: #dcfce7 !important;
         border: none;
-        color: #15803d !important; 
-        color: #d81341 !important; 
+        color: #15803d !important;
+        color: #d81341 !important;
       } */
 
       /* 문화 카테고리 버튼 */
@@ -155,6 +161,24 @@
         min-height: 76px;
         resize: none;
       }
+
+      /* 사진 미리보기 */
+      .photo-preview {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 440px;
+        gap: 8px;
+        margin: 8px 0;
+      }
+
+      .photo-preview img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #eee;
+      }
+
       .submit-btn {
         width: 100%;
         background: #fecaca;
@@ -179,13 +203,16 @@
       <div class="app">
         <div class="container">
           <div class="header">
+            <!-- 뒤로가기 버튼 -->
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="30"
               height="30"
               viewBox="0 0 30 30"
               fill="none"
+              class="back-arrow"
             >
+              >
               <path
                 d="M18.75 22.5L11.25 15L18.75 7.5"
                 stroke="black"
@@ -196,7 +223,7 @@
             </svg>
             <div class="header-title">글쓰기</div>
           </div>
-          <form id="feedForm">
+          <form id="feedForm" style="margin: 8px">
             <label for="titleInput">제목<span class="required">*</span></label>
             <input
               id="titleInput"
@@ -240,7 +267,7 @@
             <input id="latInput" name="lat" type="hidden" />
             <!-- 경도 -->
             <input id="lngInput" name="lng" type="hidden" />
-            <label for="detailAddressInput">상세주소</label>
+            <label for="detailAddressInput"></label>
             <input
               id="detailAddressInput"
               name="detailAddress"
@@ -271,6 +298,9 @@
               />
             </div>
 
+            <!-- 사진 미리보기 -->
+            <div class="photo-preview"></div>
+
             <label for="contentInput">내용</label>
             <textarea
               id="contentInput"
@@ -285,5 +315,6 @@
         </div>
       </div>
     </div>
+    <script src="write.js"></script>
   </body>
 </html>
