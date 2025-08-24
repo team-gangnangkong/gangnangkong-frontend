@@ -14,7 +14,8 @@ const minwonBtn = document.getElementById('minwonBtn');
 const munhwaBtn = document.getElementById('munhwaBtn');
 const categoryBtns = [minwonBtn, munhwaBtn];
 
-let selectedType = 'MINWON'; // 기본값
+let selectedType = 'MINWON';
+let selectedImages = [];
 
 // 카테고리 버튼 클릭(토글 및 감정 색상 해제)
 categoryBtns.forEach((btn) => {
@@ -80,20 +81,20 @@ function isFormValid() {
   const isAddressFilled = locationInput.value.trim() !== '';
   const hasLatLng = !!latInput.value && !!lngInput.value;
   const hasKid = !!kidInput.value;
+  const isPhoto = selectedImages.length > 0;
 
-  const isPhoto = photoInput.files && photoInput.files.length > 0;
   return (
     isTitle && isCategory && isAddressFilled && hasLatLng && hasKid && isPhoto
   );
 }
 function updateButtonColor() {
   if (isFormValid()) {
-    submitBtn.style.background = '#F87171';
-    submitBtn.style.color = '#fff';
+    submitBtn.classList.add('is-enabled');
+    submitBtn.classList.remove('is-disabled');
     submitBtn.disabled = false;
   } else {
-    submitBtn.style.background = '#FEF2F2';
-    submitBtn.style.color = '#f43f5e';
+    submitBtn.classList.add('is-disabled');
+    submitBtn.classList.remove('is-enabled');
     submitBtn.disabled = true;
   }
 }
@@ -120,68 +121,114 @@ function getAccessTokenFromCookie() {
 
 // 피드 작성(글쓰기) api
 async function createFeedWithImages(feedData, imageFiles) {
-  try {
-    const formData = new FormData();
-    formData.append('feed', JSON.stringify(feedData));
-    if (imageFiles && imageFiles.length > 0) {
-      for (const file of imageFiles) {
-        formData.append('images', file);
-      }
-    }
-
-    const response = await fetch('https://sorimap.it.com/api/feeds', {
-      method: 'POST',
-      headers: {
-        'ACCESS-TOKEN': getAccessTokenFromCookie(),
-      },
-      body: formData,
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error(`피드 작성 실패: ${response.status}`);
-    }
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error('피드 작성 중 오류:', error);
-    throw error;
+  const fd = new FormData();
+  // feed를 JSON Blob으로(컨텐츠타입 application/json)
+  fd.append(
+    'feed',
+    new Blob([JSON.stringify(feedData)], { type: 'application/json' })
+  );
+  if (imageFiles && imageFiles.length > 0) {
+    for (const f of imageFiles) fd.append('images', f, f.name);
   }
+
+  const res = await fetch('https://sorimap.it.com/api/feeds', {
+    method: 'POST',
+    credentials: 'include',
+    body: fd,
+  });
+
+  if (!res.ok) throw new Error(`피드 작성 실패: ${res.status}`);
+  return res.json();
 }
 
-// 사진 미리보기 이미지 컨테이너 생성
+// ==== 사진 선택/누적/미리보기 ====
+const MAX_IMAGES = 8;
 
-let previewContainer = document.querySelector('.photo-preview');
+let gridEl = null;
+function ensureGrid() {
+  if (!gridEl) {
+    gridEl = document.createElement('div');
+    gridEl.className = 'photo-grid';
+    photoUploadBox.appendChild(gridEl);
+  }
+  return gridEl;
+}
 
-photoInput.addEventListener('change', function () {
-  // 최대 8개 제한
-  const files = Array.from(photoInput.files);
-  if (files.length > 8) {
-    alert('사진은 최대 8장까지 업로드할 수 있습니다.');
-    photoInput.value = ''; // 파일 선택 초기화
-    previewContainer.innerHTML = '';
-
-    updateButtonColor();
-    return;
+function renderPreviews() {
+  if (selectedImages.length === 0) {
+    photoUploadBox.classList.remove('has-images');
+    if (gridEl) {
+      gridEl.remove();
+      gridEl = null;
+    }
+    return; // 아이콘/텍스트 다시 보임
   }
 
-  // 기존 미리보기 삭제
+  photoUploadBox.classList.add('has-images');
+  const grid = ensureGrid();
+  grid.innerHTML = '';
 
-  previewContainer.innerHTML = '';
+  selectedImages.forEach((file, idx) => {
+    const item = document.createElement('div');
+    item.className = 'preview-item';
 
-  files.forEach((file) => {
-    if (!file.type.startsWith('image/')) return;
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.onload = () => URL.revokeObjectURL(img.src);
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const img = document.createElement('img');
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'preview-del';
+    del.textContent = '✕';
+    del.addEventListener('click', () => {
+      selectedImages.splice(idx, 1);
+      renderPreviews();
+      updateButtonColor();
+    });
 
-      img.src = e.target.result;
-      previewContainer.appendChild(img);
-    };
-    reader.readAsDataURL(file);
+    item.appendChild(img);
+    item.appendChild(del);
+    grid.appendChild(item);
   });
+
+  // + 추가 타일
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'add-tile';
+  add.textContent = '+';
+  add.addEventListener('click', () => photoInput.click());
+  grid.appendChild(add);
+}
+
+// 파일 선택 → 누적
+photoInput.addEventListener('change', () => {
+  const picked = Array.from(photoInput.files || []).filter((f) =>
+    f.type.startsWith('image/')
+  );
+  if (!picked.length) return;
+
+  // 중복 제거(name+lastModified)
+  const key = (f) => `${f.name}|${f.lastModified}`;
+  const seen = new Set(selectedImages.map(key));
+  for (const f of picked)
+    if (!seen.has(key(f))) {
+      selectedImages.push(f);
+      seen.add(key(f));
+    }
+
+  if (selectedImages.length > MAX_IMAGES) {
+    alert(`사진은 최대 ${MAX_IMAGES}장까지 업로드할 수 있습니다.`);
+    selectedImages = selectedImages.slice(0, MAX_IMAGES);
+  }
+
+  renderPreviews();
+  updateButtonColor();
+
+  // 같은 파일 또 고를 수 있게 비워두기
+  photoInput.value = '';
 });
+
+renderPreviews();
 
 //제출버튼
 writeForm.addEventListener('submit', async (e) => {
@@ -191,24 +238,25 @@ writeForm.addEventListener('submit', async (e) => {
   const feedData = {
     title: writeForm.title.value.trim(),
     content: writeForm.content.value.trim(),
-    type: selectedType,
+    type: selectedType, // MINWON/MUNHWA
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
+    // locationId가 필요하면 같이 전송
+    ...(writeForm.locationId?.value && {
+      locationId: Number(writeForm.locationId.value),
+    }),
   };
 
-  const kidRaw = writeForm.kakaoPlaceId?.value;
-  const kid = kidRaw ? parseInt(kidRaw, 10) : null;
-  if (Number.isFinite(kid)) feedData.kakaoPlaceId = kid;
-  const images = writeForm.images.files;
+  const kid = writeForm.kakaoPlaceId?.value?.trim();
+  if (kid) feedData.kakaoPlaceId = kid;
 
   try {
-    const createdFeed = await createFeedWithImages(feedData, images);
+    const created = await createFeedWithImages(feedData, selectedImages);
     alert('피드가 성공적으로 작성되었습니다!');
-    console.log('작성 완료된 피드:', createdFeed);
-    // 리다이렉트/폼 초기화 등 필요에 따라 추가
-  } catch (error) {
-    alert('피드 작성 중 오류가 발생했습니다: ' + error.message);
+    console.log('작성 완료된 피드:', created);
+  } catch (err) {
+    alert('피드 작성 중 오류: ' + err.message);
   }
 });
 
@@ -224,8 +272,34 @@ updateButtonColor();
   const listEl = document.getElementById('addrList');
   const hintEl = document.getElementById('addrHint');
 
-  // Kakao Services만 사용 (지도 생성 X)
+  // 새로 추가된 요소
+  const mapEl = document.getElementById('addrMap');
+  const sheetEl = document.getElementById('addrSheet');
+  const asName = document.getElementById('as-name');
+  const asAddr = document.getElementById('as-addr');
+  const asPickBtn = document.getElementById('as-pickBtn');
+
   let places, geocoder;
+  let ovMap = null; // 오버레이용 지도
+  let ovMarker = null; // 선택 핀
+  let _selectedPlace = null; // {kakaoPlaceId, name, addr, lat, lng}
+
+  function makeSelectPinImage(size = 34) {
+    const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g0" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#F87171"/><stop offset="1" stop-color="#EF4444"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2c-4.42 0-8 3.58-8 8 0 5.5 8 12 8 12s8-6.5 8-12c0-4.42-3.58-8-8-8z" fill="url(#g0)"/>
+      <circle cx="12" cy="10" r="3.2" fill="white"/>
+    </svg>`;
+    const url = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    const s = new kakao.maps.Size(size, size);
+    const offset = new kakao.maps.Point(size / 2, size - 2);
+    return new kakao.maps.MarkerImage(url, s, { offset });
+  }
 
   function ensureKakaoReady() {
     return new Promise((resolve) => {
@@ -233,7 +307,6 @@ updateButtonColor();
         kakao.maps.load(() => resolve());
       }
       if (window.kakao && kakao.maps && kakao.maps.load) return go();
-      // 이미 HTML에 SDK(autoload=false) 넣었으니 보통 여기 안 탐.
       const s = document.createElement('script');
       s.src =
         'https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services&autoload=false';
@@ -244,12 +317,27 @@ updateButtonColor();
 
   async function openOverlay() {
     overlay.hidden = false;
+
     if (!places || !geocoder) {
       await ensureKakaoReady();
       places = new kakao.maps.services.Places();
       geocoder = new kakao.maps.services.Geocoder();
     }
-    setTimeout(() => qInput.focus(), 30);
+
+    // 지도 1회 생성
+    if (!ovMap) {
+      ovMap = new kakao.maps.Map(mapEl, {
+        center: new kakao.maps.LatLng(37.5665, 126.978), // 서울 시청 근처
+        level: 5,
+      });
+    }
+    // 표시 전후 relayout
+    setTimeout(() => {
+      try {
+        ovMap.relayout();
+      } catch {}
+      qInput.focus();
+    }, 30);
   }
 
   function closeOverlay() {
@@ -257,6 +345,8 @@ updateButtonColor();
     qInput.value = '';
     listEl.innerHTML = '';
     hintEl.style.display = 'block';
+    sheetEl.hidden = true;
+    _selectedPlace = null;
   }
 
   // 주소칸 클릭 → 검색 패널 열기
@@ -269,10 +359,9 @@ updateButtonColor();
     if (!overlay.hidden && e.key === 'Escape') closeOverlay();
   });
 
-  // ====== 검색 ======
+  // ====== 검색(기존과 동일) ======
   let debounceId = null,
     seq = 0;
-
   function render(items) {
     if (!items.length) {
       listEl.innerHTML = '';
@@ -283,13 +372,13 @@ updateButtonColor();
     listEl.innerHTML = items
       .map(
         (it) => `
-      <li data-kid="${it.kakaoPlaceId || ''}"
-          data-lat="${it.lat}" data-lng="${it.lng}"
+      <li data-kid="${it.kakaoPlaceId || ''}" data-lat="${it.lat}" data-lng="${
+          it.lng
+        }"
           data-name="${it.name}" data-addr="${it.addr || ''}">
         <div class="name">${it.name}</div>
         ${it.addr ? `<div class="addr">${it.addr}</div>` : ''}
-      </li>
-    `
+      </li>`
       )
       .join('');
   }
@@ -308,12 +397,10 @@ updateButtonColor();
   });
 
   function runSearch(q, mySeq) {
-    // 1) 장소 검색
     places.keywordSearch(
       q,
       (data, status) => {
         if (mySeq !== seq) return;
-
         if (status === kakao.maps.services.Status.OK && data?.length) {
           const items = data.map((d) => ({
             name: d.place_name,
@@ -324,7 +411,6 @@ updateButtonColor();
           }));
           render(items);
         } else {
-          // 2) 주소 검색 fallback
           geocoder.addressSearch(q, (res, s2) => {
             if (mySeq !== seq) return;
             if (s2 === kakao.maps.services.Status.OK && res?.length) {
@@ -345,61 +431,80 @@ updateButtonColor();
     );
   }
 
-  // ====== 선택 → 폼 채우고 닫기 ======
-  async function postSelectPlace({ kakaoPlaceId, name, addr, lat, lng }) {
-    try {
-      if (!kakaoPlaceId) return; // placeId 없으면 스킵(주소검색 fallback일 수 있음)
-      await fetch('https://sorimap.it.com/search/select', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          kakaoPlaceId,
-          name,
-          address: addr || '',
-          latitude: lat,
-          longitude: lng,
-        }),
+  // ====== 리스트 → 지도에 표시 + 시트 열기 ======
+  function showOnMap({ kakaoPlaceId, name, addr, lat, lng }) {
+    const pos = new kakao.maps.LatLng(lat, lng);
+    ovMap.setCenter(pos);
+    ovMap.setLevel(4);
+
+    if (!ovMarker) {
+      ovMarker = new kakao.maps.Marker({
+        map: ovMap,
+        position: pos,
+        image: makeSelectPinImage(34),
+        zIndex: 1000,
       });
-    } catch (e) {
-      console.warn('[search/select] 실패', e);
+    } else {
+      ovMarker.setPosition(pos);
+      ovMarker.setImage(makeSelectPinImage(34));
     }
+
+    _selectedPlace = { kakaoPlaceId, name, addr, lat, lng };
+    asName.textContent = name;
+    asAddr.textContent = addr || '주소 정보 없음';
+    asPickBtn.disabled = !kakaoPlaceId; // 카카오 placeId 없는 항목은 비활성화
+    sheetEl.hidden = false;
   }
 
-  listEl.addEventListener('click', async (e) => {
+  listEl.addEventListener('click', (e) => {
     const li = e.target.closest('li');
     if (!li) return;
+    showOnMap({
+      kakaoPlaceId: li.dataset.kid || '',
+      name:
+        li.dataset.name || li.querySelector('.name')?.textContent?.trim() || '',
+      addr:
+        li.dataset.addr || li.querySelector('.addr')?.textContent?.trim() || '',
+      lat: parseFloat(li.dataset.lat),
+      lng: parseFloat(li.dataset.lng),
+    });
+  });
 
-    const kid = li.dataset.kid || '';
-    const lat = parseFloat(li.dataset.lat);
-    const lng = parseFloat(li.dataset.lng);
-    const name = li.dataset.name || '';
-    const addr = li.dataset.addr || name;
+  // ====== 선택하기 → 폼에 주입 +(선택 저장) + 닫기 ======
+  asPickBtn.addEventListener('click', async () => {
+    if (!_selectedPlace) return;
+    const { kakaoPlaceId, name, addr, lat, lng } = _selectedPlace;
 
-    // 서버 저장(선택) — placeId 있을 때만
-    if (kid) {
-      await postSelectPlace({ kakaoPlaceId: kid, name, addr, lat, lng });
+    // (선택 기록이 필요하면) 서버에 저장
+    if (kakaoPlaceId) {
+      try {
+        await fetch('https://sorimap.it.com/search/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            kakaoPlaceId,
+            name,
+            address: addr || '',
+            latitude: lat,
+            longitude: lng,
+          }),
+        });
+      } catch (e) {
+        console.warn('[search/select] 실패', e);
+      }
     }
 
     // 폼 채우기
-    addrInput.value = addr;
+    addrInput.value = addr || name;
     latInput.value = String(lat || 0);
     lngInput.value = String(lng || 0);
-    kidInput.value = kid;
+    kidInput.value = kakaoPlaceId || '';
 
     try {
       updateButtonColor?.();
     } catch {}
 
     closeOverlay();
-  });
-
-  // 엔터로 첫 번째 항목 선택
-  qInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const first = listEl.querySelector('li');
-      if (first) first.click();
-      e.preventDefault();
-    }
   });
 })();

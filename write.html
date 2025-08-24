@@ -118,10 +118,6 @@
                 />
               </div>
 
-              <!-- 사진 미리보기 -->
-              <div class="photo-preview"></div>
-
-              <label for="contentInput">내용</label>
               <textarea
                 id="contentInput"
                 name="content"
@@ -136,6 +132,7 @@
         </main>
       </div>
     </div>
+
     <!-- 주소 검색 오버레이 -->
     <div id="addrOverlay" hidden>
       <div class="addr-panel">
@@ -190,6 +187,17 @@
             구체적인 단어로 위치를 찾아보세요.
           </p>
         </div>
+      </div>
+
+      <div id="addrMap" class="addr-map"></div>
+
+      <!-- 하단 선택 시트 -->
+      <div id="addrSheet" class="addr-sheet" hidden>
+        <div class="addr-sel-title" id="as-name"></div>
+        <div class="addr-sel-addr" id="as-addr"></div>
+        <button type="button" id="as-pickBtn" class="addr-pick">
+          선택하기
+        </button>
       </div>
     </div>
 
