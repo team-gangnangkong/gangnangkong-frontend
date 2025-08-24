@@ -365,8 +365,11 @@ textarea {
   inset: 0;
   background: rgba(248, 113, 113, 0.08); /* 은은한 핑크 배경 */
   z-index: 9999;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: auto;
+  padding-bottom: 12px;
 }
 #addrOverlay[hidden] {
   display: none;

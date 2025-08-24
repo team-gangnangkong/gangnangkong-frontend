@@ -66,25 +66,32 @@
   }
 
   async function uploadProfileImageWithFallback(theFile) {
-    // 1차: profileImage
-    let fd = new FormData();
-    fd.append('profileImage', theFile);
+    const tryUpload = async (fieldName) => {
+      const fd = new FormData();
+      fd.append(fieldName, theFile, theFile.name || 'profile.jpg');
 
-    let res = await fetch(API_BASE + EP.profileImage, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: fd,
-    });
+      // 디버깅: 실제 들어가는 내용
+      for (const [k, v] of fd.entries()) {
+        console.log(
+          '[formdata]',
+          k,
+          v instanceof File ? { name: v.name, type: v.type, size: v.size } : v
+        );
+      }
 
-    // 필드명 문제로 400/415 나올 수 있어 재시도
-    if (!res.ok && (res.status === 400 || res.status === 415)) {
-      fd = new FormData();
-      fd.append('file', theFile);
-      res = await fetch(API_BASE + EP.profileImage, {
+      return fetch(API_BASE + EP.profileImage, {
         method: 'PATCH',
         credentials: 'include',
         body: fd,
       });
+    };
+
+    let res = await tryUpload('image');
+    if (!res.ok && [400, 415, 422].includes(res.status)) {
+      res = await tryUpload('profileImage');
+    }
+    if (!res.ok && [400, 415, 422].includes(res.status)) {
+      res = await tryUpload('file');
     }
     return res;
   }

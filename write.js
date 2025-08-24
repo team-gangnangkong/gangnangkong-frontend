@@ -327,17 +327,18 @@ updateButtonColor();
     // 지도 1회 생성
     if (!ovMap) {
       ovMap = new kakao.maps.Map(mapEl, {
-        center: new kakao.maps.LatLng(37.5665, 126.978), // 서울 시청 근처
+        center: new kakao.maps.LatLng(37.5665, 126.978),
         level: 5,
       });
     }
-    // 표시 전후 relayout
-    setTimeout(() => {
+
+    // 보이기 직후 relayout
+    requestAnimationFrame(() => {
       try {
-        ovMap.relayout();
+        ovMap && ovMap.relayout();
       } catch {}
       qInput.focus();
-    }, 30);
+    });
   }
 
   function closeOverlay() {
@@ -433,6 +434,8 @@ updateButtonColor();
 
   // ====== 리스트 → 지도에 표시 + 시트 열기 ======
   function showOnMap({ kakaoPlaceId, name, addr, lat, lng }) {
+    if (!ovMap) return; // 안전빵
+
     const pos = new kakao.maps.LatLng(lat, lng);
     ovMap.setCenter(pos);
     ovMap.setLevel(4);
@@ -454,11 +457,26 @@ updateButtonColor();
     asAddr.textContent = addr || '주소 정보 없음';
     asPickBtn.disabled = !kakaoPlaceId; // 카카오 placeId 없는 항목은 비활성화
     sheetEl.hidden = false;
+
+    // 지도가 화면에 바로 보이도록
+    mapEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   listEl.addEventListener('click', (e) => {
     const li = e.target.closest('li');
     if (!li) return;
+
+    // 혹시라도 ovMap이 아직 없으면 즉시 생성
+    if (!ovMap) {
+      ovMap = new kakao.maps.Map(mapEl, {
+        center: new kakao.maps.LatLng(37.5665, 126.978),
+        level: 5,
+      });
+      try {
+        ovMap.relayout();
+      } catch {}
+    }
+
     showOnMap({
       kakaoPlaceId: li.dataset.kid || '',
       name:
@@ -475,7 +493,7 @@ updateButtonColor();
     if (!_selectedPlace) return;
     const { kakaoPlaceId, name, addr, lat, lng } = _selectedPlace;
 
-    // (선택 기록이 필요하면) 서버에 저장
+    // (선택 기록 필요 시) 서버 저장 — 실패해도 폼 주입은 진행
     if (kakaoPlaceId) {
       try {
         await fetch('https://sorimap.it.com/search/select', {
@@ -505,6 +523,11 @@ updateButtonColor();
       updateButtonColor?.();
     } catch {}
 
-    closeOverlay();
+    // 닫기
+    sheetEl.hidden = true;
+    overlay.hidden = true;
+    qInput.value = '';
+    listEl.innerHTML = '';
+    hintEl.style.display = 'block';
   });
 })();
