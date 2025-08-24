@@ -333,13 +333,13 @@ textarea {
 /* 비활성(기본) */
 .submit-btn.is-disabled,
 .submit-btn:disabled {
-  background: #ffecef; /* 연한 핑크 */
-  color: #f43f5e;
+  background: #fef2f2; /* 연한 핑크 */
+  color: #f87171;
 }
 
 /* 활성 */
 .submit-btn.is-enabled {
-  background: #f43f5e; /* 진한 핑크 */
+  background: #f87171; /* 진한 핑크 */
   color: #fff;
 }
 .submit-btn.is-enabled:hover {
