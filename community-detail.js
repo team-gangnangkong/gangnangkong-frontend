@@ -1,9 +1,57 @@
+/* 근처 다른 이슈 <div class="related-section"> 누르면
+  비슷한 지역 필터링된 피드를 보여주는 링크로 이동해야 함
+  - **Query Params (선택)**
+  - `kakaoPlaceId` → 특정 위치에 해당하는 피드만 필터링
+  해당 기능 이용해서 하는건지. 
+  지역구 badge도 이 기능 이용해서 하면 되는지?
+*/
+
 // 뒤로가기 버튼 기능
-
-document.querySelector(".header svg").addEventListener("click", () => {
-
+document.querySelector('.header svg').addEventListener('click', () => {
   window.history.back();
 });
+
+// community 피드에서 보낸 피드 id 가져옴
+// 상세 페이지(community-detail.html)에서 URL 쿼리에서 id 파라미터 추출
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+const feedId = getQueryParam('id');
+
+// 단건 조회 API
+async function loadFeedDetail(feedId) {
+  try {
+    const response = await fetch(`https://sorimap.it.com/api/feeds/${feedId}`);
+    if (!response.ok) throw new Error('피드 상세 조회 실패');
+    const feed = await response.json();
+    renderFeedDetail(feed); // 화면에 데이터 렌더링 함수 호출
+  } catch (error) {
+    console.error(error);
+    // 적절한 에러 처리 UI
+  }
+}
+
+if (feedId) {
+  loadFeedDetail(feedId);
+}
+
+// 피드 상세 데이터 화면 렌더링
+function renderFeedDetail(feed) {
+  document.querySelector('.post-title').textContent = feed.title;
+  document.querySelector('.post-desc').textContent = feed.content;
+  document.querySelector('.location-bar span').textContent = feed.address;
+  // 이미지, 좋아요 수, 상태, 작성자 등도 추가 렌더링
+  if (feed.imageUrls && feed.imageUrls.length > 0) {
+    const imgElem = document.querySelector('.post-img');
+    imgElem.src = feed.imageUrls[0];
+    imgElem.alt = feed.title;
+  }
+  // 좋아요 수
+  document.querySelector('.like-count').textContent = feed.likes;
+  // 기타 필요 정보 렌더링
+}
 
 // 댓글 조회 API 호출 및 화면 렌더링 연동
 async function fetchComments(feedId) {
@@ -28,7 +76,7 @@ async function fetchComments(feedId) {
   }
 }
 
-// 공감 API 호출 함수
+// 공감 누르기 API 호출 함수
 async function postLike(feedId) {
   try {
     const response = await fetch(
@@ -169,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 버튼 SVG 색 및 커서 상태 갱신
+  // 이거 지금 안 됨
   function updateSendBtnState() {
     if (commentInput.value.trim().length > 0) {
       sendSvgPath.setAttribute('fill', '#F87171');
@@ -193,3 +242,84 @@ document.addEventListener('DOMContentLoaded', () => {
   renderComments();
   updateSendBtnState();
 });
+
+// 근처 다른 이슈 피드 조회 용도
+// community.js 내용 그대로 옮김
+const feedListContainer = document.querySelector('.card-list');
+
+/**
+ * 피드 데이터를 받아서 카드 리스트에 렌더링
+ * @param {Array} feeds - 피드 배열
+ */
+function renderFeeds(feeds) {
+  feedListContainer.innerHTML = ''; // 초기화
+
+  feeds.forEach((feed) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const imageUrl =
+      feed.imageUrls && feed.imageUrls.length > 0
+        ? feed.imageUrls[0]
+        : './image/default.jpg';
+
+    // 지역구 불러오는 걸 어떻게 작업하는지 모르겠어서 일단 건너뜀
+    // <span class="badge">${feed.badge}</span>
+    card.innerHTML = `
+  <div class="card-img-wrap">
+    <img src="${feed.imageUrl}" class="card-img" alt="피드 이미지" />
+    <span class="card-arrow">
+      <svg width="22" height="22" fill="none">
+        <use xlink:href="#icon-arrow"></use>
+      </svg>
+    </span>
+  </div>
+  <div class="card-content">
+    <div class="card-title-row">
+      <div class="card-title">${feed.title}</div>
+      <span class="card-like">
+        <svg width="19" height="18" fill="none">
+          <use xlink:href="#icon-like"></use>
+        </svg>
+        <span>${feed.likes}</span>
+      </span>
+    </div>
+    <div class="card-desc">
+      <svg width="16" height="16" fill="none">
+        <use xlink:href="#icon-location"></use>
+      </svg>
+      <span>${feed.address}</span>
+    </div>
+    <div class="card-preview">
+      ${feed.content}
+    </div>
+  </div>
+`;
+
+    feedListContainer.appendChild(card);
+  });
+}
+
+/**
+ * 전체 피드 조회 API 호출 후 렌더링
+ * @param {number|null} kakaoPlaceId - kakaoPlaceId 필터링 값 (없으면 null)
+ */
+async function loadFeeds(kakaoPlaceId = null) {
+  try {
+    let url = 'https://sorimap.it.com/api/feeds';
+
+    if (kakaoPlaceId) {
+      url += `?kakaoPlaceId=${kakaoPlaceId}`;
+    }
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('전체 피드 조회 실패: ' + response.status);
+    }
+    const feeds = await response.json();
+    renderFeeds(feeds);
+  } catch (error) {
+    console.error('피드 불러오기 에러:', error);
+    feedListContainer.innerHTML =
+      '<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>';
+  }
+}

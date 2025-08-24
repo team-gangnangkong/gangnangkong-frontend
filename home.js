@@ -3,6 +3,86 @@ document.getElementById('writeBtn').addEventListener('click', function () {
   window.location.href = 'write.html';
 });
 
+// community.js 내용 그대로 옮김
+const feedListContainer = document.querySelector('.card-list');
+
+/**
+ * 피드 데이터를 받아서 카드 리스트에 렌더링
+ * @param {Array} feeds - 피드 배열
+ */
+function renderFeeds(feeds) {
+  feedListContainer.innerHTML = ''; // 초기화
+
+  feeds.forEach((feed) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const imageUrl =
+      feed.imageUrls && feed.imageUrls.length > 0
+        ? feed.imageUrls[0]
+        : './image/default.jpg';
+
+    // 지역구 불러오는 걸 어떻게 작업하는지 모르겠어서 일단 건너뜀
+    // <span class="badge">${feed.badge}</span>
+    card.innerHTML = `
+  <div class="card-img-wrap">
+    <img src="${feed.imageUrl}" class="card-img" alt="피드 이미지" />
+    <span class="card-arrow">
+      <svg width="22" height="22" fill="none">
+        <use xlink:href="#icon-arrow"></use>
+      </svg>
+    </span>
+  </div>
+  <div class="card-content">
+    <div class="card-title-row">
+      <div class="card-title">${feed.title}</div>
+      <span class="card-like">
+        <svg width="19" height="18" fill="none">
+          <use xlink:href="#icon-like"></use>
+        </svg>
+        <span>${feed.likes}</span>
+      </span>
+    </div>
+    <div class="card-desc">
+      <svg width="16" height="16" fill="none">
+        <use xlink:href="#icon-location"></use>
+      </svg>
+      <span>${feed.address}</span>
+    </div>
+    <div class="card-preview">
+      ${feed.content}
+    </div>
+  </div>
+`;
+
+    feedListContainer.appendChild(card);
+  });
+}
+
+/**
+ * 전체 피드 조회 API 호출 후 렌더링
+ * @param {number|null} kakaoPlaceId - kakaoPlaceId 필터링 값 (없으면 null)
+ */
+async function loadFeeds(kakaoPlaceId = null) {
+  try {
+    let url = 'https://sorimap.it.com/api/feeds';
+
+    if (kakaoPlaceId) {
+      url += `?kakaoPlaceId=${kakaoPlaceId}`;
+    }
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('전체 피드 조회 실패: ' + response.status);
+    }
+    const feeds = await response.json();
+    renderFeeds(feeds);
+  } catch (error) {
+    console.error('피드 불러오기 에러:', error);
+    feedListContainer.innerHTML =
+      '<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>';
+  }
+}
+
 // 전체 / 민원 / 문화 버튼 필터링 기능
 
 const categoryButtons = document.querySelectorAll(

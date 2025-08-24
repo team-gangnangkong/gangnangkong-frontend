@@ -311,7 +311,7 @@ body {
 
 /* 글쓰기 버튼 */
 .fab-write {
-  position: fixed;
+  position: absolute;
   right: 18px;
   bottom: calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px));
   z-index: 200;
