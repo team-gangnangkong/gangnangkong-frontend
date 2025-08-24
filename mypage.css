@@ -205,7 +205,6 @@ body {
   display: flex;
   justify-content: space-around;
   align-items: flex-start;
-  padding-top: 15px;
   z-index: 100;
 }
 

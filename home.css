@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 html,
 body {
   height: 100%;
@@ -486,7 +490,6 @@ body {
   border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
   align-items: flex-start;
   padding-top: 15px;
   z-index: 500;
