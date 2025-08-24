@@ -5,6 +5,10 @@ document.querySelector('.header svg').addEventListener('click', () => {
 // 피드 작성 form
 const writeForm = document.getElementById('feedForm');
 
+const latInput = document.getElementById('latInput');
+const lngInput = document.getElementById('lngInput');
+const kidInput = document.getElementById('kakaoPlaceIdInput');
+
 // === 카테고리 버튼 관련 ===
 const minwonBtn = document.getElementById('minwonBtn');
 const munhwaBtn = document.getElementById('munhwaBtn');
@@ -214,9 +218,6 @@ updateButtonColor();
 (() => {
   // ====== 공용 DOM ======
   const addrInput = document.getElementById('addressInput');
-  const latInput = document.getElementById('latInput');
-  const lngInput = document.getElementById('lngInput');
-  const kidInput = document.getElementById('kakaoPlaceIdInput');
   const overlay = document.getElementById('addrOverlay');
   const backBtn = document.getElementById('addrBack');
   const queryInput = document.getElementById('addrQuery');
