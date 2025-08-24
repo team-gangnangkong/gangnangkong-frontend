@@ -1,122 +1,66 @@
 // 글쓰기 버튼 클릭 시 write.html로 이동
-document.getElementById('writeBtn').addEventListener('click', function () {
-  window.location.href = 'write.html';
+document.getElementById("writeBtn").addEventListener("click", function () {
+  window.location.href = "write.html";
 });
 
-// .
-// 여기 아래부터는 해결중인 민원 카드 슬라이드 기능 작업인데 필요없음
-// .
+// 전체 / 민원 / 문화 버튼 필터링 기능
 
-// // 카드 최대 표시 개수
-// const maxCardsToShow = 5;
+const categoryButtons = document.querySelectorAll(
+  ".community-btns .category-btn"
+);
 
-// // 보여줄 카드 목록
-// const cardsToRender = allCards.slice(0, maxCardsToShow);
+let currentCategory = "ALL"; // 초기값: 전체
 
-// // 카드 리스트 container 선택
-// const cardList = document.querySelector(".on-going-card-list");
+// 카테고리 버튼 클릭 이벤트 핸들러
+categoryButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    // 기존 선택된 버튼 active 해제
+    categoryButtons.forEach((b) => b.classList.remove("active"));
 
-// // 카드 생성 및 dom에 추가
-// function createCards(cards) {
-//   cardList.innerHTML = ""; // 초기화
+    // 클릭한 버튼 active 추가
+    btn.classList.add("active");
 
-//   cards.forEach((card) => {
-//     const cardDiv = document.createElement("div");
-//     cardDiv.classList.add("on-going-card");
+    // 버튼 텍스트로 카테고리 결정
+    let selected = btn.textContent.trim().toUpperCase();
 
-//     cardDiv.innerHTML = `
-//       <div class="on-going-card-img-wrap">
-//         <img src="${card.img}" alt="${card.title}" class="on-going-card-img" />
-//         <span class="on-going-badge">${card.badge}</span>
-//       </div>
-//       <div class="on-going-card-content">
-//         <div class="on-going-card-title">${card.title}</div>
-//         <div class="on-going-card-meta">${card.meta}</div>
-//       </div>
-//     `;
+    if (selected === "전체".toUpperCase()) {
+      currentCategory = "ALL";
+    } else if (selected === "민원".toUpperCase()) {
+      currentCategory = "MINWON";
+    } else if (selected === "문화".toUpperCase()) {
+      currentCategory = "MUNHWA";
+    } else {
+      currentCategory = "ALL"; // 기본값 fallback
+    }
 
-//     cardList.appendChild(cardDiv);
-//   });
-// }
+    filterFeedsByCategory(currentCategory);
+  });
+});
 
-// document.addEventListener("DOMContentLoaded", () => {
-//   const slider = document.querySelector(".on-going-card-slider");
-//   const cardList = slider.querySelector(".on-going-card-list");
-//   const pagination = slider.querySelector(".on-going-pagination");
+// 카테고리 버튼 클릭 시 필터링 실행 함수 (community.js 코드 그대로 옮김)
+async function filterFeedsByCategory(category) {
+  try {
+    let url = "https://sorimap.it.com/api/feeds";
 
-//   let currentIndex = 0;
+    if (category === "MINWON" || category === "MUNHWA") {
+      // 지역구(badge)는 address로 불러오는건가?
+      url += `?type=${category}`;
+    }
+    // 전체(ALL)는 필터 없이 모든 피드 조회
 
-//   // 카드 생성 및 append 함수
-//   function createCards(cards) {
-//     cardList.innerHTML = "";
-//     cards.forEach((card) => {
-//       const cardDiv = document.createElement("div");
-//       cardDiv.classList.add("on-going-card");
-//       cardDiv.innerHTML = `
-//         <div class="on-going-card-img-wrap">
-//           <img src="${card.img}" alt="${card.title}" class="on-going-card-img" />
-//           <span class="on-going-badge">${card.badge}</span>
-//         </div>
-//         <div class="on-going-card-content">
-//           <div class="on-going-card-title">${card.title}</div>
-//           <div class="on-going-card-meta">${card.meta}</div>
-//         </div>
-//       `;
-//       cardList.appendChild(cardDiv);
-//     });
-//   }
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error("필터링 피드 조회 실패: " + response.status);
+    }
+    const feeds = await response.json();
 
-//   // 초기 카드 렌더링 (외부 데이터 배열 cardsToRender 필요)
-//   createCards(cardsToRender);
-
-//   // createCards 호출 후 cards 재선언
-//   const cards = Array.from(cardList.querySelectorAll(".on-going-card"));
-
-//   // 도트 생성 함수
-//   function createDots() {
-//     pagination.innerHTML = "";
-//     for (let i = 0; i < cards.length; i++) {
-//       const dot = document.createElement("span");
-//       dot.classList.add("on-going-dot");
-//       if (i === 0) dot.classList.add("active");
-//       dot.dataset.index = i;
-//       pagination.appendChild(dot);
-//     }
-//   }
-
-//   // 도트 active 토글
-//   function updateActiveDot(index) {
-//     const dots = pagination.querySelectorAll(".on-going-dot");
-//     dots.forEach((dot, i) => {
-//       dot.classList.toggle("active", i === index);
-//     });
-//   }
-
-//   // 슬라이드 이동 함수
-//   function slideTo(index) {
-//     if (index < 0) index = cards.length - 1;
-//     if (index >= cards.length) index = 0;
-
-//     currentIndex = index;
-//     const cardWidth = cards[0].offsetWidth;
-//     // 슬라이드 이동 (transform)
-//     cardList.style.transition = "transform 0.3s ease";
-//     cardList.style.transform = `translateX(${-cardWidth * index}px)`;
-//     updateActiveDot(index);
-//   }
-
-//   // 도트 클릭 이벤트
-//   pagination.addEventListener("click", (e) => {
-//     if (e.target.classList.contains("on-going-dot")) {
-//       const index = Number(e.target.dataset.index);
-//       slideTo(index);
-//     }
-//   });
-
-//   // 초기 값 세팅
-//   createDots();
-//   slideTo(0);
-// });
+    renderFeeds(feeds);
+  } catch (error) {
+    console.error("피드 필터링 오류:", error);
+    feedListContainer.innerHTML =
+      "<p>피드 필터링을 불러오는 중 오류가 발생했습니다.</p>";
+  }
+}
 
 // 초기 실행, 전체 피드 불러오기
 loadFeeds();
