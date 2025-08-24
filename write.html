@@ -21,7 +21,6 @@
                 fill="none"
                 class="back-arrow"
               >
-                >
                 <path
                   d="M18.75 22.5L11.25 15L18.75 7.5"
                   stroke="black"
@@ -139,28 +138,31 @@
     </div>
     <!-- 주소 검색 오버레이 -->
     <div id="addrOverlay" hidden>
-      <div class="addr-head">
-        <button type="button" id="addrBack" aria-label="뒤로">←</button>
-        <div class="addr-search">
+      <div class="addr-panel">
+        <button
+          type="button"
+          id="addrBack"
+          class="addr-close"
+          aria-label="닫기"
+        >
+          ✕
+        </button>
+
+        <div class="addr-searchbar">
+          <span class="ico" aria-hidden="true">🔍</span>
           <input
             id="addrQuery"
-            placeholder="장소·도로명 검색"
+            placeholder="위치를 검색해 보세요"
             autocomplete="off"
           />
-          <button type="button" id="addrClear" aria-label="지우기">✕</button>
         </div>
-      </div>
 
-      <div id="addrMap"></div>
-
-      <ul id="addrList" class="addr-list"></ul>
-
-      <div id="addrSheet" hidden>
-        <div class="addr-picked">
-          <div id="addrSelName" class="name"></div>
-          <div id="addrSelAddr" class="addr"></div>
+        <div class="addr-listwrap">
+          <ul id="addrList" class="addr-list"></ul>
+          <p id="addrHint" class="addr-hint">
+            구체적인 단어로 위치를 찾아보세요.
+          </p>
         </div>
-        <button type="button" id="addrPickBtn" disabled>선택하기</button>
       </div>
     </div>
 

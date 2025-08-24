@@ -251,79 +251,83 @@ textarea {
   display: none;
 }
 
-/* 주소 검색 오버레이 */
+/* ==== 검색 패널 스타일 ==== */
 #addrOverlay {
   position: fixed;
   inset: 0;
-  background: #fff;
+  background: rgba(248, 113, 113, 0.08); /* 은은한 핑크 배경 */
   z-index: 9999;
   display: grid;
-  grid-template-rows: 56px 1fr 0px;
+  place-items: center;
 }
-
-#addrOverlay .addr-head {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-}
-#addrBack {
-  border: 0;
-  background: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-.addr-search {
-  position: relative;
-  flex: 1;
-}
-#addrQuery {
-  width: 100%;
-  height: 36px;
-  padding: 0 36px 0 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  outline: none;
-}
-#addrClear {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 0;
-  background: none;
-  font-size: 18px;
-  cursor: pointer;
+#addrOverlay[hidden] {
   display: none;
 }
 
-#addrMap {
+.addr-panel {
+  width: min(720px, 92vw);
+  height: min(82vh, 900px);
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  padding: 18px 14px 14px;
   position: relative;
-}
-#addrMap,
-#addrOverlay {
-  height: 100%;
-}
-#addrMap {
-  min-height: 280px;
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 
-.addr-list {
+.addr-close {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 56px;
-  bottom: 88px;
+  right: 14px;
+  top: 12px;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+.addr-searchbar {
+  position: relative;
+  margin: 4px 12px 8px;
+}
+.addr-searchbar input {
+  width: 100%;
+  height: 48px;
+  padding: 0 44px;
+  border: 0;
+  outline: none;
+  background: #f6f7f8;
+  border-radius: 12px;
+  font-size: 16px;
+  color: #111827;
+}
+.addr-searchbar .ico {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #ef4444;
+}
+
+.addr-listwrap {
   overflow: auto;
+  padding: 4px 8px 10px;
+}
+.addr-list {
   list-style: none;
   margin: 0;
-  padding: 0 12px;
+  padding: 0;
 }
 .addr-list li {
-  padding: 12px 6px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 10px;
+  border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
+  border-radius: 8px;
+}
+.addr-list li:hover {
+  background: #fafafa;
 }
 .addr-list .name {
   font-weight: 600;
@@ -334,34 +338,10 @@ textarea {
   margin-top: 4px;
 }
 
-#addrSheet {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #fff;
-  border-top: 1px solid #eee;
-  padding: 12px;
-  display: grid;
-  gap: 8px;
-}
-#addrPickBtn {
-  height: 44px;
-  border: 0;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #f87171;
-  color: #fff;
-  font-weight: 700;
-}
-#addrPickBtn:disabled {
-  background: #fef2f2;
-  color: #f43f5e;
-  cursor: not-allowed;
-}
-
-#addrOverlay[hidden] {
-  display: none;
+.addr-hint {
+  color: #6b7280;
+  text-align: center;
+  margin-top: 48px;
 }
 
 /* 바깥 */
