@@ -1,8 +1,12 @@
 // 뒤로가기 버튼 기능
 
-document.querySelector(".header svg").addEventListener("click", () => {
-
+document.querySelector('.header svg').addEventListener('click', () => {
   window.history.back();
+});
+
+// 글쓰기 버튼 클릭 시 write.html로 이동
+document.getElementById('writeBtn').addEventListener('click', function () {
+  window.location.href = 'write.html';
 });
 
 //토큰 쿠키
@@ -15,11 +19,6 @@ function getAccessTokenFromCookie() {
   }
   return null;
 }
-
-// 글쓰기 버튼 클릭 시 write.html로 이동
-document.getElementById('writeBtn').addEventListener('click', function () {
-  window.location.href = 'write.html';
-});
 
 const feedListContainer = document.querySelector('.card-list');
 
@@ -39,10 +38,11 @@ function renderFeeds(feeds) {
         ? feed.imageUrls[0]
         : './image/default.jpg';
 
+    // 지역구 불러오는 걸 어떻게 작업하는지 모르겠어서 일단 건너뜀
+    // <span class="badge">${feed.badge}</span>
     card.innerHTML = `
   <div class="card-img-wrap">
     <img src="${feed.imageUrl}" class="card-img" alt="피드 이미지" />
-    <span class="badge">${feed.badge}</span>
     <span class="card-arrow">
       <svg width="22" height="22" fill="none">
         <use xlink:href="#icon-arrow"></use>
@@ -66,7 +66,7 @@ function renderFeeds(feeds) {
       <span>${feed.address}</span>
     </div>
     <div class="card-preview">
-      ${feed.description}
+      ${feed.content}
     </div>
   </div>
 `;
@@ -81,22 +81,21 @@ function renderFeeds(feeds) {
  */
 async function loadFeeds(kakaoPlaceId = null) {
   try {
-
-    let url = "https://sorimap.it.com/api/feeds";
+    let url = 'https://sorimap.it.com/api/feeds';
 
     if (kakaoPlaceId) {
       url += `?kakaoPlaceId=${kakaoPlaceId}`;
     }
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error('피드 조회 실패: ' + response.status);
+      throw new Error('전체 피드 조회 실패: ' + response.status);
     }
     const feeds = await response.json();
     renderFeeds(feeds);
   } catch (error) {
     console.error('피드 불러오기 에러:', error);
     feedListContainer.innerHTML =
-      '<p>피드를 불러오는 중 오류가 발생했습니다.</p>';
+      '<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>';
   }
 }
 
@@ -114,7 +113,7 @@ async function loadFeedsByLocation(kakaoPlaceId) {
   } catch (error) {
     console.error('위치별 피드 불러오기 에러:', error);
     feedListContainer.innerHTML =
-      '<p>피드를 불러오는 중 오류가 발생했습니다.</p>';
+      '<p>위치별 피드를 불러오는 중 오류가 발생했습니다.</p>';
   }
 }
 
@@ -134,7 +133,7 @@ async function loadFeedsByStatus(status, kakaoPlaceId = null) {
   } catch (error) {
     console.error('상태별 피드 불러오기 에러:', error);
     feedListContainer.innerHTML =
-      '<p>피드를 불러오는 중 오류가 발생했습니다.</p>';
+      '<p>피드 상태를 불러오는 중 오류가 발생했습니다.</p>';
   }
 }
 
@@ -159,7 +158,7 @@ async function filterFeedsByCategory(category) {
 
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error('피드 조회 실패: ' + response.status);
+      throw new Error('필터링 피드 조회 실패: ' + response.status);
     }
     const feeds = await response.json();
 
@@ -167,11 +166,11 @@ async function filterFeedsByCategory(category) {
   } catch (error) {
     console.error('피드 필터링 오류:', error);
     feedListContainer.innerHTML =
-      '<p>피드를 불러오는 중 오류가 발생했습니다.</p>';
+      '<p>피드 필터링을 불러오는 중 오류가 발생했습니다.</p>';
   }
 }
 
-// 버튼 클릭 이벤트 핸들러
+// 카테고리 버튼 클릭 이벤트 핸들러
 categoryButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
     // 기존 선택된 버튼 active 해제
@@ -197,10 +196,5 @@ categoryButtons.forEach((btn) => {
   });
 });
 
-// 초기 로드 시 전체 피드 보여주기
-filterFeedsByCategory('ALL');
-
-// 기존 renderFeeds(feeds) 함수는 feeds 데이터를 카드 리스트에 렌더링하는 역할을 한다고 가정
-
 // 초기 실행, 전체 피드 불러오기
-loadFeeds();
+loadFeeds('ALL');

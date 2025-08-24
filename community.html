@@ -8,6 +8,7 @@
     <title>커뮤니티</title>
   </head>
   <body>
+    <!-- 아이콘 svg 모음 -->
     <svg style="display: none">
       <!-- 화살표 svg -->
       <symbol
@@ -57,7 +58,7 @@
 
       <!-- 댓글 아이콘 -->
       <symbol
-        id="icon-chat"
+        id="icon-comment"
         viewBox="0 0 26 26"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -121,9 +122,9 @@
             </div>
             <!-- 카테고리 버튼 -->
             <div class="community-btns">
-              <button class="category-btn active">전체</button>
-              <button class="category-btn">민원</button>
-              <button class="category-btn">문화</button>
+              <button class="category-btn active" data-type="ALL">전체</button>
+              <button class="category-btn" data-type="MINWON">민원</button>
+              <button class="category-btn" data-type="MUNHWA">문화</button>
             </div>
             <!-- 정렬 텍스트 -->
             <div
@@ -146,7 +147,8 @@
                     alt="어두운 골목길"
                     class="card-img"
                   />
-                  <span class="badge">수정구</span>
+                  <!-- 지역구 불러오는 작업을 어떻게 하는지 모르겠어서 일단 건너뜀 -->
+                  <!-- <span class="badge">수정구</span> -->
                   <span class="card-arrow">
                     <svg width="22" height="22" fill="none">
                       <use xlink:href="#icon-arrow" />
