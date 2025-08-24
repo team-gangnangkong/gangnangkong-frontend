@@ -365,17 +365,18 @@ textarea {
   inset: 0;
   background: rgba(248, 113, 113, 0.08); /* 은은한 핑크 배경 */
   z-index: 9999;
-  display: flex;
+  display: block;
   flex-direction: column;
   align-items: center;
   overflow: auto;
   padding-bottom: 12px;
 }
+
 #addrOverlay[hidden] {
   display: none;
 }
 
-.addr-panel {
+/* .addr-panel {
   width: min(100%, 500px);
   height: min(82vh, 900px);
   background: #f9fafb;
@@ -386,7 +387,21 @@ textarea {
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   margin-top: 90px;
+} */
+.addr-panel {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  z-index: 2;
+  width: min(500px, calc(100% - 24px));
+  max-height: 70vh;
+  overflow: auto;
+  background: #f9fafb;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  padding: 18px 14px 14px;
 }
+
 .addr-map {
   height: 42vh; /* 필요에 맞게 높이 */
   margin: 6px 10px 8px;
@@ -484,25 +499,45 @@ textarea {
   text-align: center;
   margin-top: 48px;
 }
-/* 기본은 지도/시트 감춤 */
+
+/* 지도: 항상 보이게 + 오버레이 전체 채우기 */
 #addrMap {
-  display: none;
+  display: block;
+  position: absolute;
+  inset: 0; /* top:0; right:0; bottom:0; left:0 */
+  margin: 0;
+  height: 100%;
+  border-radius: 0; /* 테두리 필요하면 유지해도 됨 */
+  overflow: hidden;
+  z-index: 0;
 }
+
+/* 하단 시트는 기본 감춤 */
 #addrSheet {
   display: none;
 }
 
-/* 항목을 고른 뒤(선택 단계)엔 패널을 숨기고 지도/시트를 보여줌 */
+/* 선택 단계: 검색 패널 숨기고 시트만 보여주기 */
 #addrOverlay.picked .addr-panel {
   display: none;
-}
-#addrOverlay.picked #addrMap {
-  display: block;
-  width: min(500px, calc(100% - 24px));
 }
 #addrOverlay.picked #addrSheet {
   display: block;
 }
+
+/* 하단 시트는 화면 하단 고정 */
+#addrSheet {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  width: min(500px, calc(100% - 24px));
+  background: #fff;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  z-index: 2;
+}
+
 #addrOverlay.picked {
   align-items: stretch; /* ← 추가 */
 }
