@@ -1,42 +1,3 @@
-/*
-카테고리와 감정색 연동
-민원(MINWON)/문화(MUNHWA) 카테고리 버튼 OK
-
-문화 선택 후 setMunhwaSentimentColor('POSITIVE'/'NEGATIVE') 호출해서 색상 동작,
-(실제 AI 결과로 해당 함수 호출만 하면 됨)
-
-위치 직접 선택 연동
-addressInput 클릭 시 openMap() 작동 
-
-setLocation 함수에서 주소, 위도, 경도 세팅
-
-map.html(지도)에서 onPlaceSelected로 부모창에 값 전달
-
-폼 유효성 검사 및 제출
-제목, 카테고리, 위치, 사진 전부 검사 OK
-
-submit 버튼 상태(색/활성화) 관리 OK
-
-모두 입력 시만 업로드
-
-전송 데이터 및 필드 체크
-formData에 필수 정보(제목, 내용, 타입, 주소, lat, lng, kakaoPlaceId, 이미지) 모두 정상 포함
-
-type: selectedType
-→ **MINWON/MUNHWA(둘 다 대문자/백엔드와 일치!)**만 들어가면 정상
-
-lat/lng는 hidden input으로 값 채워주기 필수 (여기서 잘 처리)
-
-카테고리 버튼 중복 코드
-질문 예시코드 내에서
-
-categoryBtns.forEach(...) 클릭 이벤트 2번(위/아래) 중복으로 걸려있는데,
-
-1군데(e.g. munhwaBtn, minwonBtn 따로 할 거면 아래쪽 코드만 쓰고 위쪽은 지워도 됩니다.)
-*/
-
-// 뒤로가기 버튼 기능
-
 document.querySelector('.header svg').addEventListener('click', () => {
   window.history.back();
 });
@@ -69,10 +30,6 @@ categoryBtns.forEach((btn) => {
 });
 
 // === 위치 지도 연동 ===
-function openMap() {
-  window.open('map.html', 'mapWindow');
-}
-document.getElementById('addressInput').addEventListener('click', openMap);
 
 function setLocation(address, lat, lng) {
   document.querySelector('#addressInput').value = address;
@@ -116,11 +73,15 @@ function isFormValid() {
   const isCategory = categoryBtns.some((btn) =>
     btn.classList.contains('selected')
   );
-  const isLocation = locationInput.value.trim() !== '';
-  const isPhoto = photoInput.files && photoInput.files.length > 0;
-  return isTitle && isCategory && isLocation && isPhoto;
-}
+  const isAddressFilled = locationInput.value.trim() !== '';
+  const hasLatLng = !!latInput.value && !!lngInput.value;
+  const hasKid = !!kidInput.value;
 
+  const isPhoto = photoInput.files && photoInput.files.length > 0;
+  return (
+    isTitle && isCategory && isAddressFilled && hasLatLng && hasKid && isPhoto
+  );
+}
 function updateButtonColor() {
   if (isFormValid()) {
     submitBtn.style.background = '#F87171';
@@ -230,8 +191,11 @@ writeForm.addEventListener('submit', async (e) => {
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
-    kakaoPlaceId: parseInt(writeForm.kakaoPlaceId?.value, 10),
   };
+
+  const kidRaw = writeForm.kakaoPlaceId?.value;
+  const kid = kidRaw ? parseInt(kidRaw, 10) : null;
+  if (Number.isFinite(kid)) feedData.kakaoPlaceId = kid;
   const images = writeForm.images.files;
 
   try {
@@ -246,3 +210,239 @@ writeForm.addEventListener('submit', async (e) => {
 
 // === 초기 상태 세팅 ===
 updateButtonColor();
+
+(() => {
+  // ====== 공용 DOM ======
+  const addrInput = document.getElementById('addressInput');
+  const latInput = document.getElementById('latInput');
+  const lngInput = document.getElementById('lngInput');
+  const kidInput = document.getElementById('kakaoPlaceIdInput');
+  const overlay = document.getElementById('addrOverlay');
+  const backBtn = document.getElementById('addrBack');
+  const queryInput = document.getElementById('addrQuery');
+  const clearBtn = document.getElementById('addrClear');
+  const listEl = document.getElementById('addrList');
+  const sheetEl = document.getElementById('addrSheet');
+  const selNameEl = document.getElementById('addrSelName');
+  const selAddrEl = document.getElementById('addrSelAddr');
+  const pickBtn = document.getElementById('addrPickBtn');
+
+  // ====== Kakao Map ======
+  let map, places, geocoder, selMarker;
+
+  function ensureKakaoReady() {
+    return new Promise((resolve) => {
+      function go() {
+        kakao.maps.load(() => resolve());
+      }
+      if (window.kakao && kakao.maps && kakao.maps.load) return go();
+      const s = document.createElement('script');
+      s.src =
+        'https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services';
+      s.onload = go;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function openOverlay() {
+    overlay.hidden = false;
+    if (!map) {
+      await ensureKakaoReady();
+      const wrap = document.getElementById('addrMap');
+      const DEFAULT_CENTER = new kakao.maps.LatLng(37.42, 127.1266);
+      map = new kakao.maps.Map(wrap, { center: DEFAULT_CENTER, level: 5 });
+      places = new kakao.maps.services.Places();
+      geocoder = new kakao.maps.services.Geocoder();
+    }
+    setTimeout(() => {
+      queryInput.focus();
+      try {
+        map.relayout();
+      } catch (_) {}
+    }, 10);
+  }
+
+  function closeOverlay() {
+    overlay.hidden = true;
+    queryInput.value = '';
+    clearBtn.style.display = 'none';
+    listEl.innerHTML = '';
+    sheetEl.hidden = true;
+    if (selMarker) {
+      try {
+        selMarker.setMap(null);
+      } catch (_) {}
+      selMarker = null;
+    }
+  }
+
+  // 주소칸 클릭 → 오버레이 열기
+  addrInput.addEventListener('click', (e) => {
+    e.preventDefault();
+    openOverlay();
+  });
+
+  backBtn.addEventListener('click', closeOverlay);
+
+  // ====== 검색 ======
+  let debounceId = null,
+    querySeq = 0;
+
+  queryInput.addEventListener('input', () => {
+    const q = queryInput.value.trim();
+    clearBtn.style.display = q ? 'block' : 'none';
+
+    clearTimeout(debounceId);
+    if (!q) {
+      listEl.innerHTML = '';
+      return;
+    }
+
+    const mySeq = ++querySeq;
+    debounceId = setTimeout(() => runSearch(q, mySeq), 250);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    queryInput.value = '';
+    clearBtn.style.display = 'none';
+    listEl.innerHTML = '';
+    queryInput.focus();
+  });
+
+  function render(items) {
+    listEl.innerHTML = items
+      .map(
+        (it) => `
+      <li data-kid="${it.kakaoPlaceId || ''}"
+          data-lat="${it.lat}" data-lng="${it.lng}">
+        <div class="name">${it.name}</div>
+        ${it.addr ? `<div class="addr">${it.addr}</div>` : ''}
+      </li>
+    `
+      )
+      .join('');
+  }
+
+  function runSearch(q, mySeq) {
+    if (!map || !places || !geocoder) return;
+    const c = map.getCenter();
+    const x = c.getLng(),
+      y = c.getLat();
+    const RADIUS = 20000;
+
+    places.keywordSearch(
+      q,
+      (data, status) => {
+        if (mySeq !== querySeq) return;
+        if (status === kakao.maps.services.Status.OK && data.length) {
+          const items = data.map((d) => ({
+            name: d.place_name,
+            addr: d.road_address_name || d.address_name || '',
+            lat: +d.y,
+            lng: +d.x,
+            kakaoPlaceId: d.id,
+          }));
+          // 반경 필터
+          render(items);
+        } else {
+          geocoder.addressSearch(q, (res, s2) => {
+            if (mySeq !== querySeq) return;
+            if (s2 === kakao.maps.services.Status.OK && res.length) {
+              const items = res.map((r) => ({
+                name: r.address_name,
+                addr: r.road_address?.address_name || r.address_name,
+                lat: +r.y,
+                lng: +r.x,
+              }));
+              render(items);
+            } else {
+              listEl.innerHTML = `<li style="padding:12px;color:#6b7280;">검색 결과가 없어요</li>`;
+            }
+          });
+        }
+      },
+      { x, y, radius: RADIUS, size: 15, sort: 'distance' }
+    );
+  }
+
+  // ====== 리스트 선택 → 지도 표시 + 시트 열기 ======
+  listEl.addEventListener('click', (e) => {
+    const li = e.target.closest('li');
+    if (!li) return;
+    const lat = +li.dataset.lat,
+      lng = +li.dataset.lng;
+    const kid = li.dataset.kid || '';
+    const name = li.querySelector('.name')?.textContent?.trim() || '';
+    const addr = li.querySelector('.addr')?.textContent?.trim() || '';
+
+    const pos = new kakao.maps.LatLng(lat, lng);
+    map.setCenter(pos);
+    map.setLevel(4);
+
+    if (!selMarker) selMarker = new kakao.maps.Marker({ map, position: pos });
+    else selMarker.setPosition(pos);
+
+    selNameEl.textContent = name;
+    selAddrEl.textContent = addr || '주소 정보 없음';
+    sheetEl.hidden = false;
+
+    pickBtn.disabled = !kid; // Kakao placeId가 있을 때만 활성
+    pickBtn.dataset.kid = kid;
+    pickBtn.dataset.lat = String(lat);
+    pickBtn.dataset.lng = String(lng);
+    pickBtn.dataset.addr = addr;
+  });
+
+  // ====== 선택하기 → 서버 저장 + 폼 채우고 닫기 ======
+  async function postSelectPlace({ kakaoPlaceId, name, addr, lat, lng }) {
+    try {
+      const res = await fetch('https://sorimap.it.com/search/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          kakaoPlaceId,
+          name,
+          address: addr || '',
+          latitude: lat,
+          longitude: lng,
+        }),
+      });
+      // 서버에서 404면 라우팅 문제 안내
+      if (res.status === 404) {
+        alert(
+          '선택 저장 API(/search/select)가 없어요. 백엔드 라우팅을 확인해줘!'
+        );
+      }
+      // 실패해도 폼 채우기는 진행
+    } catch (e) {
+      console.warn('[search/select] 실패', e);
+    }
+  }
+
+  pickBtn.addEventListener('click', async () => {
+    const kid = pickBtn.dataset.kid || '';
+    const lat = parseFloat(pickBtn.dataset.lat);
+    const lng = parseFloat(pickBtn.dataset.lng);
+    const addr = pickBtn.dataset.addr || selAddrEl.textContent || '';
+    const name = selNameEl.textContent || '';
+
+    // 1) 백엔드에 선택 저장(선택)
+    if (kid) {
+      await postSelectPlace({ kakaoPlaceId: kid, name, addr, lat, lng });
+    }
+
+    // 2) 글쓰기 폼에 값 채우기
+    addrInput.value = addr || name; // 주소가 없으면 이름이라도
+    latInput.value = String(lat || 0);
+    lngInput.value = String(lng || 0);
+    kidInput.value = kid || '';
+
+    try {
+      updateButtonColor?.();
+    } catch (_) {}
+
+    // 3) 닫기
+    closeOverlay();
+  });
+})();
