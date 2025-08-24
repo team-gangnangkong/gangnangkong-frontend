@@ -390,11 +390,11 @@ textarea {
 } */
 .addr-panel {
   position: absolute;
-  top: 16px;
-  left: 50%;
+  top: 12px;
+  left: 12px;
+  right: 12px;
   z-index: 2;
-  width: min(500px, calc(100% - 24px));
-  max-height: 70vh;
+  max-height: 70%;
   overflow: auto;
   background: #f9fafb;
   border-radius: 24px;
@@ -500,23 +500,43 @@ textarea {
   margin-top: 48px;
 }
 
+.addr-modal {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  max-width: calc(100% - 24px); /* 작은 화면 대응 */
+  max-height: calc(100% - 24px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  background: #f9fafb;
+}
+
 /* 지도: 항상 보이게 + 오버레이 전체 채우기 */
 #addrMap {
-  display: block;
   position: absolute;
   inset: 0; /* top:0; right:0; bottom:0; left:0 */
   margin: 0;
   height: 100%;
+  width: 100%;
   border-radius: 0; /* 테두리 필요하면 유지해도 됨 */
-  overflow: hidden;
+
   z-index: 0;
 }
 
 /* 하단 시트는 기본 감춤 */
 #addrSheet {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  background: #fff;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
   display: none;
 }
-
 /* 선택 단계: 검색 패널 숨기고 시트만 보여주기 */
 #addrOverlay.picked .addr-panel {
   display: none;
