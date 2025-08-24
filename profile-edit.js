@@ -269,12 +269,19 @@
       if (submitBtn.disabled) return;
       const v = nicknameInput.value.trim();
       if (!validateNickname(v)) return;
+
       const prev = submitBtn.textContent;
       submitBtn.disabled = true;
       submitBtn.textContent = '저장 중...';
+
       try {
         await changeNickname(v);
+
+        sessionStorage.setItem('nicknameJustUpdated', v);
+
         alert('닉네임이 정상적으로 변경되었습니다!');
+
+        location.assign('mypage.html');
       } catch (e) {
         state.els.errorMsg.textContent =
           e.message || '닉네임 변경 중 오류가 발생했습니다.';

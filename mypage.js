@@ -212,6 +212,31 @@ window.addEventListener('unhandledrejection', (e) =>
     return m ? m[1] : null;
   }
 
+  function applyOptimisticFromSession() {
+    // 닉네임
+    const just = sessionStorage.getItem('nicknameJustUpdated');
+    const nameEl = document.querySelector('.profile-name');
+    if (just && nameEl) {
+      nameEl.textContent = just;
+      sessionStorage.removeItem('nicknameJustUpdated');
+    }
+
+    // 아바타
+    const url = sessionStorage.getItem('profileAvatarUrl');
+    const isFallback =
+      sessionStorage.getItem('profileAvatarIsFallback') === '1';
+    const avatarEl = document.querySelector('.profile-avatar');
+    if (avatarEl && url) {
+      const safe = toHttps(url);
+      const bust = (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
+      avatarEl.style.backgroundImage = `url('${safe + bust}')`;
+      avatarEl.style.backgroundSize = 'cover';
+      avatarEl.style.backgroundPosition = 'center';
+      avatarEl.style.borderRadius = '50%';
+      avatarEl.classList.toggle('is-fallback', isFallback);
+    }
+  }
+
   // ── 로그아웃 ───────────────────────────────────────────────────────────
   async function doLogout() {
     if (_isLoggingOut) return;
@@ -261,6 +286,7 @@ window.addEventListener('unhandledrejection', (e) =>
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     guard();
+    applyOptimisticFromSession();
 
     // 로그아웃 버튼 위임 리스너 (기존)
     document.addEventListener('click', (e) => {
