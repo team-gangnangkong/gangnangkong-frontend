@@ -67,16 +67,6 @@ window.addEventListener('unhandledrejection', (e) =>
 
   // ── 닉네임/프로필 ─────────────────────────────────────────────
   function hydrateProfile(data) {
-    const name =
-      data?.nickname ||
-      data?.name ||
-      data?.username ||
-      data?.profile?.nickname ||
-      '사용자';
-
-    const nameEl = document.querySelector('.profile-name');
-    if (nameEl) nameEl.textContent = name;
-
     const raw =
       data?.imageUrl ||
       data?.profileImageUrl ||
@@ -88,29 +78,20 @@ window.addEventListener('unhandledrejection', (e) =>
 
     const avatarUrl = toHttps(raw);
 
-    const shouldUseFallback =
-      !avatarUrl ||
-      isDefaultMarker(raw) || // ★ 추가
-      (data?.isDefaultImage ??
-        data?.is_default_image ??
-        data?.profile?.is_default_image ??
-        null) === true ||
-      isKakaoDefaultUrl(avatarUrl) ||
-      isServerDefaultProfile(avatarUrl);
-
+    // ← 여기서 플래그를 먼저 계산하고
     const isDefaultFlag =
       data?.isDefaultImage ??
       data?.is_default_image ??
       data?.profile?.is_default_image ??
       null;
 
-    const kakaoDefaultPatterns = [
-      /kakaocdn\.net\/.*default_profile/i,
-      /kakaocdn\.net\/account_images\/default_/i,
-    ];
-    const isKakaoDefaultUrl =
-      typeof avatarUrl === 'string' &&
-      kakaoDefaultPatterns.some((re) => re.test(avatarUrl));
+    // 그리고 폴백 조건을 계산할 때 'isKakaoDefault' 를 사용
+    const shouldUseFallback =
+      !avatarUrl ||
+      isDefaultMarker(raw) ||
+      isDefaultFlag === true ||
+      isKakaoDefault(avatarUrl) || // ✅ 이름 통일 (상단 정의 사용)
+      isServerDefaultProfile(avatarUrl);
 
     // ✅ 네가 말한 기본 이미지 파일명 사용
     const FALLBACK = './image/profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
