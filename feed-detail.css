@@ -118,9 +118,10 @@ body {
 .count-row {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
-  gap: 14px; /* ← 아이콘들 사이 간격 */
-  margin: 4px 2px 0 0;
+  gap: 16px; /* 간격 조절 */
+  margin: 8px 0 0;
+  color: #f87171; /* 아이콘/숫자 색 */
+  font-weight: 600;
 }
 
 .icon-count {

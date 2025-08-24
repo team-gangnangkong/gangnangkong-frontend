@@ -1,33 +1,4 @@
-const API_BASE = '';
-const USE_MOCK = new URLSearchParams(location.search).has('mock');
-
-const MOCK_DETAIL = {
-  1: {
-    feedId: 1,
-    title: '모란역 3번 출구 쓰레기',
-    location: '성남시 수정구 산성대로 지하 100',
-    imageUrl: './image/trash.jpg',
-    content: '쓰레기가 쌓여서 냄새가 심해요.\n자주 비워주세요!',
-    status: 'OPEN',
-    createdAt: '2025.08.17 18:14',
-    likeCount: 20,
-    commentCount: 1,
-    authorNickname: '최가을',
-    comments: [
-      {
-        username: '관리자',
-        content: '조치 중입니다.',
-        createdAt: '2025-08-17T18:58:10',
-      },
-    ],
-  },
-  2: {
-    /* 필요시 더 추가 */
-  },
-  3: {
-    /* 필요시 더 추가 */
-  },
-};
+const API_BASE = 'https://sorimap.it.com';
 
 document.addEventListener('DOMContentLoaded', () => {
   const feedId = new URLSearchParams(location.search).get('feedId');
@@ -38,47 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function fetchFeedDetail(feedId) {
-  // ✅ 강제 목업이거나, 네트워크 실패/404 시 목업 사용
-  if (USE_MOCK && MOCK_DETAIL[feedId])
-    return renderFeedDetail(MOCK_DETAIL[feedId]);
   try {
     const res = await fetch(`${API_BASE}/api/feeds/my/${feedId}`, {
+      method: 'GET',
       credentials: 'include',
     });
     if (!res.ok) throw new Error('상세 조회 실패');
     const feed = await res.json();
-    return renderFeedDetail(feed);
+    renderFeedDetail(feed);
   } catch (e) {
-    console.warn('상세 조회 실패 → 목업으로 대체', e);
-    return renderFeedDetail(MOCK_DETAIL[feedId] || MOCK_DETAIL[1]); // 없으면 1번이나 기본값
+    console.error(e);
+    document.querySelector('#feed-detail').textContent =
+      '상세를 불러오지 못했습니다.';
   }
 }
-
-// const API_BASE = ''; // 필요하면 'http://localhost:8080'
-
-// document.addEventListener('DOMContentLoaded', () => {
-//   const feedId = new URLSearchParams(location.search).get('feedId');
-//   if (!feedId)
-//     return (document.querySelector('#feed-detail').textContent =
-//       '잘못된 접근입니다.');
-//   fetchFeedDetail(feedId);
-// });
-
-// async function fetchFeedDetail(feedId) {
-//   try {
-//     const res = await fetch(`${API_BASE}/api/feeds/my/${feedId}`, {
-//       method: 'GET',
-//       credentials: 'include',
-//     });
-//     if (!res.ok) throw new Error('상세 조회 실패');
-//     const feed = await res.json();
-//     renderFeedDetail(feed);
-//   } catch (e) {
-//     console.error(e);
-//     document.querySelector('#feed-detail').textContent =
-//       '상세를 불러오지 못했습니다.';
-//   }
-// }
 
 function renderFeedDetail(feed) {
   const created = feed.createdAt || '';
