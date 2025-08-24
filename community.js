@@ -33,6 +33,19 @@ function renderFeeds(feeds) {
     const card = document.createElement("div");
     card.className = "card";
 
+    // 카드 클릭 시 피드 ID를 URL 쿼리 파라미터로 넘겨서 상세 페이지로 이동
+    // 단건 피드 이동
+    card.setAttribute("data-feed-id", feed.id);
+
+    card.style.cursor = "pointer"; // 클릭 가능하다는 UX 표시
+    card.addEventListener("click", () => {
+      const feedId = card.getAttribute("data-feed-id");
+      if (feedId) {
+        window.location.href = `feed-detail.html?id=${feedId}`;
+      }
+    });
+
+    // 카드 내 HTML 내용 세팅 (이미지 등)
     const imageUrl =
       feed.imageUrls && feed.imageUrls.length > 0
         ? feed.imageUrls[0]

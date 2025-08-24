@@ -28,6 +28,7 @@
   align-items: center;
   gap: 9px;
   padding: 15px 18px 6px 18px;
+  background: #fff;
 }
 .badge-divider {
   width: 1.5px;
@@ -49,7 +50,7 @@
   width: 23px;
   height: 23px;
   border-radius: 50%;
-  background: #ececec url('https://randomuser.me/api/portraits/women/65.jpg')
+  background: #ececec url("https://randomuser.me/api/portraits/women/65.jpg")
     center/cover no-repeat;
   margin-right: 5px;
 }
@@ -60,6 +61,7 @@
 }
 .main-content {
   padding: 0 18px 15px 18px;
+  background: #fff;
 }
 .post-title {
   font-size: 18px;
@@ -172,21 +174,20 @@
 
 /* 댓글이 없을 때 */
 .no-comment {
-  min-height: 120px;
+  min-height: 150px;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #b3b5bd;
+  background: #fff;
+  color: #6b7280;
   font-size: 16px;
   letter-spacing: -0.2px;
   text-align: center;
-  background: #fafbfc;
 }
 
 .comment-title {
-  padding: 0 0 0 23px;
+  padding: 23px 0 0 23px;
   margin-top: 9px;
-  margin-bottom: 10px;
   font-size: 15px;
   color: #555;
   font-weight: 600;
@@ -202,13 +203,12 @@
   box-sizing: border-box;
   border-top: 1.5px solid #f4f4f5;
   position: relative;
-  margin-top: 30px;
 }
 .comment-profile-dot {
   width: 33px;
   height: 33px;
   border-radius: 50%;
-  background: #ececec url('./image/index-char.png') center/cover no-repeat;
+  background: #ececec url("./image/index-char.png") center/cover no-repeat;
   margin-right: 5px;
   flex-shrink: 0;
 }
@@ -293,7 +293,6 @@
 .related-section {
   background: #fff;
   padding: 11px 0 13px 0;
-  border-radius: 13px;
   margin-top: 20px;
   box-shadow: 0 0.5px 0 rgba(95, 95, 99, 0.03);
 }
@@ -439,10 +438,36 @@
   position: relative;
   min-height: 100dvh;
 }
+@supports (height: 100svh) {
+  .app {
+    min-height: 100svh;
+  }
+} /* 주소창 제외 */
+@supports (height: 100dvh) {
+  .app {
+    min-height: 100dvh;
+  }
+} /* 최신 브라우저 */
+
+/* 모바일에서는 꽉 차게 */
 @media (max-width: 600px) {
   .app {
     width: 100%;
     border-radius: 0;
     box-shadow: none;
   }
+}
+
+.container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--nav-h);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: #f3f4f6;
+}
+.container::-webkit-scrollbar {
+  display: none;
 }
