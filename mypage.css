@@ -199,7 +199,7 @@ body {
   left: 0;
   right: 0;
   width: 100%;
-  height: 95px;
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   background-color: white;
   border-top: 1px solid #eee;
   display: flex;
@@ -208,6 +208,10 @@ body {
   padding-top: 15px;
   z-index: 100;
 }
+
+/* .container{
+  padding-bottom: var(--nav-h);
+} */
 
 .nav-item {
   text-align: center;
@@ -266,6 +270,7 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background: var(--bg-soft);
+  padding-bottom: var(--nav-h);
 }
 
 :root {
