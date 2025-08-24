@@ -1,0 +1,154 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+}
+
+.topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 가운데 타이틀 */
+  padding: 50px 18px 8px;
+  background: #fff;
+}
+.back-btn {
+  position: absolute;
+  left: 12px;
+  top: 75px;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.community-title {
+  font-size: 19px;
+  font-weight: 600;
+  text-align: center;
+  display: block;
+  margin-bottom: 0;
+}
+
+.detail-wrap {
+  padding: 16px 18px 100px;
+}
+.meta {
+  color: #9ca3af;
+  font-size: 13px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.detail-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 10px 0 10px;
+}
+.detail-img {
+  width: 100%;
+  border-radius: 12px;
+  display: block;
+}
+.chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 9999px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 13px;
+}
+.status {
+  padding: 6px 10px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.status.open {
+  background: #fee2e2;
+  color: #ef4444;
+}
+.status.working {
+  background: #fef3c7;
+  color: #d97706;
+}
+.status.done {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.counts {
+  display: flex;
+  gap: 18px;
+  color: #ef4444;
+  font-weight: 600;
+}
+.comments {
+  margin-top: 16px;
+}
+.comment {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.comment .who {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.scroll-area {
+  flex: 1 1 auto; /* 남는 높이 전부 차지 */
+  min-height: 0; /* ★ 자식 overflow 위해 중요 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: 90px; /* FAB와 겹치지 않도록 여백 (원하는 값으로 조정) */
+  background: var(--bg-soft);
+  /* 스크롤바 숨김 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge(레거시) */
+}
+.scroll-area::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+/* 바깥 여백 색 */
+.viewport {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  background: #fef2f2;
+}
+
+/* 가운데 폰 화면 */
+.app {
+  width: min(100%, 480px);
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+/* 모바일에서는 꽉 차게 */
+@media (max-width: 600px) {
+  .app {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}

@@ -2,7 +2,8 @@ html,
 body {
   height: 100%;
   margin: 0;
-  overflow: hidden; /* ✅ 바깥 스크롤 잠금 */
+  overflow: hidden;
+  background: var(--bg-soft);
 }
 
 .mypage-title {
@@ -235,12 +236,13 @@ body {
   justify-content: center;
   align-items: stretch;
   background: #fef2f2;
+  background: #fef2f2;
 }
 
 /* 가운데 폰 화면 */
 .app {
   width: min(100%, 480px);
-  background: #fff;
+  background: var(--bg-soft) !important;
   border-radius: 18px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   overflow: hidden;
@@ -252,18 +254,19 @@ body {
 
 .app-scroll {
   flex: 1;
-  min-height: 0; /* flex overflow 방지 */
+  min-height: 0;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
-
-  /* 하단바 + 플로팅 버튼에 가리지 않도록 여백 확보 */
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg-soft);
   padding-bottom: calc(var(--nav-h) + max(32px, env(safe-area-inset-bottom)));
 }
 
-/* 로그아웃 버튼 */
 :root {
   --nav-h: 95px;
-} /* 네 하단바 높이와 동일하게 */
+  --bg-soft: #f9fafb;
+  --card-bg: #ffffff;
+  --line: #e5e7eb;
+}
 
 .logout-button {
   position: fixed;
