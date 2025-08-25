@@ -99,25 +99,42 @@
         <div class="card-title-row">
           <div class="card-title">${escapeHtml(title)}</div>
           <span class="card-like">
-           <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
-          <path fill="#9CA3AF"
-            d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5z"/>
-        </svg>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <!-- 손바닥 부분(안쪽 사각형) -->
+    <path
+      d="M9 11v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+    <!-- 엄지/바깥 라인 -->
+    <path
+      d="M9 11l4.2-7.2a2 2 0 0 1 3.7.9v5.3h3a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 1.5H9V11Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+  </svg>
             <span>${likeCount}</span>
           </span>
           <span class="card-comment">
-            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
-              <path d="M9.49968 1.58301C13.8721 1.58301 17.4163 5.1273 17.4163 9.49967..." fill="#F87171"/>
-            </svg>
-            <span>${commentCount}</span>
-          </span>
-        </div>
-        <div class="card-desc">
-         <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+            <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
           <path d="M12 3c5 0 9 3.7 9 8.2S17 19.5 12 19.5c-1.4 0-2.8-.3-4.1-.8L4 20l.8-3.1C4 15.4 3 13.9 3 11.2 3 6.7 7 3 12 3Z"
                 fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           <line x1="7.5" y1="10" x2="16.5" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           <line x1="7.5" y1="13" x2="14.5" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+            <span>${commentCount}</span>
+          </span>
+        </div>
+        <div class="card-desc">
+         <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
+          <path fill="#9CA3AF"
+            d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5z"/>
         </svg>
           <span>${escapeHtml(location || '위치 정보 없음')}</span>
         </div>
