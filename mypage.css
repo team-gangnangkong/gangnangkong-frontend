@@ -292,6 +292,8 @@ body {
   touch-action: pan-y;
   background: var(--bg-soft);
   padding-bottom: var(--nav-h);
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
 }
 
 :root {
@@ -302,14 +304,13 @@ body {
 }
 
 .logout-button {
-  position: fixed;
+  position: sticky;
   left: 0;
   right: 0;
   bottom: calc(var(--nav-h) + max(16px, env(safe-area-inset-bottom)));
   display: flex;
   justify-content: center;
   z-index: 150; /* 하단바(100)보다 크게 */
-  pointer-events: none; /* 컨테이너는 클릭 막고 */
 }
 
 .btn-logout {
