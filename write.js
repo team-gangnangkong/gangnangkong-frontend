@@ -234,8 +234,7 @@ writeForm.addEventListener('submit', async (e) => {
 
   try {
     // 🔁 멀티파트 한 방에 전송 (이미지 없으면 images 파트 없이 전송됨)
-    // const created = await createFeedMultipart(feedData, selectedImages);
-    const created = await createFeedMultipart(feedData, []);
+    const created = await createFeedMultipart(feedData, selectedImages);
     alert('피드가 성공적으로 작성되었습니다!');
     console.log('작성 완료된 피드:', created);
   } catch (err) {
