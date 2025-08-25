@@ -1,97 +1,3 @@
-/**
- * 커뮤니티 상세 페이지 주요 기능 정리
- *
- * - 상세 피드 데이터 API 호출 및 렌더링
- * - 댓글 목록 조회, 댓글 작성 기능 (API 연동 포함)
- * - 피드 공감(좋아요) 버튼 기능 및 API 연동
- * - 근처 다른 이슈(피드) 목록 조회 및 렌더링
- * - UI 이벤트 처리: 뒤로가기, 댓글 입력, 공감 버튼 클릭 등
- * - 더미 데이터 활용: API 오류 시 임시 데이터로 화면 출력 보장
- * - 카카오 장소 ID(kakaoPlaceId)를 이용한 위치 기반 필터링 구현
- * - 토큰 쿠키에서 JWT 토큰 추출 함수 포함
- *
- * 사용 시:
- * 페이지 로드 시 query param에서 feedId 얻어와 상세 데이터 호출,
- * 댓글과 근처 이슈도 동시에 로딩
- * 사용자 인터랙션에 맞춰 댓글 및 공감 상태 제어
- *
- * 참고: fetch API 사용, 비동기 함수 정의 및 await 사용
- */
-
-/**
- * 커뮤니티 상세 페이지 주요 기능 정리
- *
- * - 상세 피드 데이터 API 호출 및 렌더링
- * - 댓글 목록 조회, 댓글 작성 기능 (API 연동 포함)
- * - 피드 공감(좋아요) 버튼 기능 및 API 연동
- * - 근처 다른 이슈(피드) 목록 조회 및 렌더링
- * - UI 이벤트 처리: 뒤로가기, 댓글 입력, 공감 버튼 클릭 등
- * - 더미 데이터 활용: API 오류 시 임시 데이터로 화면 출력 보장
- * - 카카오 장소 ID(kakaoPlaceId)를 이용한 위치 기반 필터링 구현
- * - 토큰 쿠키에서 JWT 토큰 추출 함수 포함
- *
- * 사용 시:
- * 페이지 로드 시 query param에서 feedId 얻어와 상세 데이터 호출,
- * 댓글과 근처 이슈도 동시에 로딩
- * 사용자 인터랙션에 맞춰 댓글 및 공감 상태 제어
- *
- * 참고: fetch API 사용, 비동기 함수 정의 및 await 사용
- */
-
-/**
- * 커뮤니티 상세 페이지 주요 기능 정리
- *
- * - 상세 피드 데이터 API 호출 및 렌더링
- * - 댓글 목록 조회, 댓글 작성 기능 (API 연동 포함)
- * - 피드 공감(좋아요) 버튼 기능 및 API 연동
- * - 근처 다른 이슈(피드) 목록 조회 및 렌더링
- * - UI 이벤트 처리: 뒤로가기, 댓글 입력, 공감 버튼 클릭 등
- * - 더미 데이터 활용: API 오류 시 임시 데이터로 화면 출력 보장
- * - 카카오 장소 ID(kakaoPlaceId)를 이용한 위치 기반 필터링 구현
- * - 토큰 쿠키에서 JWT 토큰 추출 함수 포함
- *
- * 사용 시:
- * 페이지 로드 시 query param에서 feedId 얻어와 상세 데이터 호출,
- * 댓글과 근처 이슈도 동시에 로딩
- * 사용자 인터랙션에 맞춰 댓글 및 공감 상태 제어
- *
- * 참고: fetch API 사용, 비동기 함수 정의 및 await 사용
- */
-
-/* 근처 다른 이슈 <div class="related-section"> 누르면
-  비슷한 지역 필터링된 피드를 보여주는 링크로 이동해야 함
-  - **Query Params (선택)**
-  - `kakaoPlaceId` → 특정 위치에 해당하는 피드만 필터링
-  해당 기능 이용해서 하는건지. 
-  지역구 badge도 이 기능 이용해서 하면 되는지?
-*/
-
-//  postComment(feedId, body) 마이데이터에서 users/me/nickname 불러와야 함.
-// 현재 닉네임 author 익명으로 고정
-/* 상태별 조회 시
-```
-GET https://sorimap.it.com/api/feeds/status/{status}
-```
-- **Path Variable → 대문자여야함.**
-    - `status`: `OPEN` (미해결) 기본값| `IN_PROGRESS` (해결중)| `RESOLVED` (해결완료)
-*/
-
-/*
-단건 조회 
-GET https://sorimap.it.com/api/feeds/api/feeds/{id}
-*/
-
-/* 공감 기능 Reaction API
-POST https://sorimap.it.com/api/reactions/like?feedId={피드ID}
-
-- **요청 파라미터 (QueryParam)**
-    - `feedId`: 공감할 피드의 ID (예: 1, 2, 3 …)
-- **요청 쿠키 (Cookie)**
-    - `ACCESS-TOKEN`: 로그인 후 발급받은 JWT 토큰
-  reaction 버튼 누를 시, 공감 완료
-  한 번 더 중복으로 누를 시, 이미 공감하였습니다
-*/
-
 document.addEventListener("DOMContentLoaded", () => {
   // --- 뒤로가기 버튼 ---
   document.querySelector(".header").addEventListener("click", () => {
@@ -242,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .querySelectorAll(".card-comment span")
       .forEach((e) => (e.textContent = count));
-    const commentTitleSpan = document.querySelector(".comment-title span");
+    const commentTitleSpan = document.querySelector(".card-comment span");
     if (commentTitleSpan) commentTitleSpan.textContent = count;
   }
 
@@ -290,16 +196,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
 
       comments = data.map((c) => ({
-        author: c.userNickname || "익명", // 서버 userNickname을 author에 사용, 없으면 익명 처리
+        author: c.userNickname || "익명",
         body: c.body,
         createdAt: c.createdAt,
       }));
-      const commentCount = comments.length;
-      console.log("댓글 수:", commentCount);
+
+      // 로컬 댓글 병합 (중복 체크 생략)
+      const localComments = loadCommentsFromLocalStorage(feedId);
+      comments = comments.concat(localComments);
+
       renderComments(comments);
     } catch (e) {
       console.error(e);
-      renderComments(comments);
+      comments = loadCommentsFromLocalStorage(feedId);
       renderComments(comments);
     }
   }
@@ -436,38 +345,62 @@ document.addEventListener("DOMContentLoaded", () => {
     if (val.length === 0) return;
 
     sendBtn.disabled = true;
-
-    // 입력값 먼저 비우고 버튼 비활성화 & 상태 업데이트
     commentInput.value = "";
     updateSendBtnState();
 
-    // 로컬에 댓글 즉시 추가 및 렌더링
     const newComment = {
       author: "익명",
       body: val,
       createdAt: new Date().toISOString(),
     };
+
     comments.push(newComment);
     renderComments(comments);
+    saveCommentsToLocalStorage(feedId, comments);
 
-    // 서버에 댓글 전송
     const result = await postComment(feedId, val);
 
     if (result) {
-      // 서버 댓글로 덮어쓰기 대신, 필요 시 로컬 댓글에 서버 식별자 등 업데이트만 처리
-      // 예를 들어, 서버 id를 새 댓글에 추가하려면 다음처럼 수정 가능
       Object.assign(comments[comments.length - 1], {
         id: result.id,
         author: result.userNickname || "익명",
         createdAt: result.createdAt,
       });
       renderComments(comments);
+      saveCommentsToLocalStorage(feedId, comments);
     } else {
-      // 실패 시 사용자에게 알림 처리 가능
       alert("서버에 댓글 등록 실패, 로컬에만 저장되었습니다.");
     }
 
     sendBtn.disabled = false;
+  }
+
+  const LOCAL_STORAGE_COMMENT_KEY = "community_comments";
+
+  function loadCommentsFromLocalStorage(feedId) {
+    const saved = localStorage.getItem(LOCAL_STORAGE_COMMENT_KEY);
+    if (!saved) return [];
+    try {
+      const allComments = JSON.parse(saved);
+      return allComments[feedId] || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCommentsToLocalStorage(feedId, comments) {
+    const saved = localStorage.getItem(LOCAL_STORAGE_COMMENT_KEY);
+    let allComments = {};
+    if (saved) {
+      try {
+        allComments = JSON.parse(saved);
+      } catch {}
+    }
+    allComments[feedId] = comments;
+    localStorage.setItem(
+      LOCAL_STORAGE_COMMENT_KEY,
+      JSON.stringify(allComments)
+    );
   }
 
   sendBtn.addEventListener("click", addComment);

@@ -214,6 +214,11 @@
   color: #222;
   margin-bottom: 3px;
 }
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .card-like,
 .card-comment {
   display: inline-flex;
