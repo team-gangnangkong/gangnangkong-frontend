@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   // 더미 댓글
-  let comments = [
+  const comments = [
     {
       author: "익명1",
       body: "저도 같은 문제 겪었어요!",
@@ -162,6 +162,9 @@ document.addEventListener("DOMContentLoaded", () => {
       createdAt: "2025-08-25T09:15:00Z",
     },
   ];
+
+  // 문서 로드 직후 더미 댓글 렌더링
+  renderComments(comments);
 
   // --- 상세 피드 렌더링 ---
   function renderFeedDetail(feed) {
@@ -193,10 +196,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="comment-profile-dot"></span>
         <div class="comment-content">
           <div class="comment-top">
-            <span class="comment-author">${c.author}</span>
-            <span class="comment-time">${new Date(
-              c.createdAt
-            ).toLocaleString()}</span>
             <span class="comment-author">${c.author}</span>
             <span class="comment-time">${new Date(
               c.createdAt
@@ -234,7 +233,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 댓글 등록 API 호출
-  // 댓글 등록 API 호출
   async function postComment(feedId, body) {
     try {
       const response = await fetch("https://sorimap.it.com/api/comments", {
@@ -261,14 +259,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!response.ok) throw new Error("댓글 조회 실패");
       const data = await response.json();
       comments = data.map((c) => ({
-        author: "익명",
+        author: c.userNickname || "익명", // 서버 userNickname을 author에 사용, 없으면 익명 처리
         body: c.body,
         createdAt: c.createdAt,
       }));
       renderComments(comments);
     } catch (e) {
       console.error(e);
-      renderComments([]);
+      renderComments(comments);
     }
   }
 
@@ -385,7 +383,16 @@ document.addEventListener("DOMContentLoaded", () => {
         likeCountSpan.textContent = count + 1;
       }
     } catch (e) {
-      alert(e.message);
+      // API 호출 실패 시 여기서 대체 처리
+      alert(
+        "서버와 연결할 수 없어 더미 데이터를 기준으로 좋아요가 증가합니다."
+      );
+
+      // 더미 데이터 업데이트 예시 (현재 화면 좋아요수 1 증가)
+      let count = parseInt(likeCountSpan.textContent, 10) || 0;
+      likeCountSpan.textContent = count + 1;
+
+      // 필요시 여기에 더미 데이터 배열 등 실제 좋아요 수 동기화 코드 추가 가능
     } finally {
       likeBtn.disabled = false;
     }
@@ -407,14 +414,33 @@ document.addEventListener("DOMContentLoaded", () => {
   async function addComment() {
     const val = commentInput.value.trim();
     if (val.length === 0) return;
+
     sendBtn.disabled = true;
+
+    // 입력값 먼저 비우고 버튼 비활성화 & 상태 업데이트
+    commentInput.value = "";
+    updateSendBtnState();
+
+    // 로컬에 댓글 즉시 추가 및 렌더링
+    const newComment = {
+      author: "익명",
+      body: val,
+      createdAt: new Date().toISOString(),
+    };
+    comments.push(newComment);
+    renderComments(comments);
+
+    // 서버에 댓글 전송
     const result = await postComment(feedId, val);
+
     if (result) {
       comments.push(result);
       renderComments(comments);
-      commentInput.value = "";
-      updateSendBtnState();
+    } else {
+      // 실패 시 사용자에게 알림 처리 가능
+      alert("서버에 댓글 등록 실패, 로컬에만 저장되었습니다.");
     }
+
     sendBtn.disabled = false;
   }
 
