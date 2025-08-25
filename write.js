@@ -124,10 +124,7 @@ function getAccessTokenFromCookie() {
 async function createFeedMultipart(feedData, files = []) {
   const fd = new FormData();
 
-  fd.append(
-    'feed',
-    new Blob([JSON.stringify(feedData)], { type: 'application/json' })
-  );
+  fd.append('feed', JSON.stringify(feedData));
 
   // 이미지 여러 장
   files.forEach((f) => fd.append('images', f, f.name));
@@ -229,7 +226,7 @@ writeForm.addEventListener('submit', async (e) => {
   const kidRaw = writeForm.kakaoPlaceId?.value?.trim();
   const kidNum = Number(kidRaw);
   if (Number.isFinite(kidNum)) {
-    feedData.kakaoPlaceId = kidNum; // ✅ 숫자로 전송
+    feedData.kakaoPlaceId = kidNum;
   } else {
     alert('카카오 장소 ID가 숫자가 아닙니다.');
     return;
