@@ -82,12 +82,11 @@ function isFormValid() {
   const isAddressFilled = locationInput.value.trim() !== '';
   const hasLatLng = !!latInput.value && !!lngInput.value;
   const hasKid = !!kidInput.value;
-  const isPhoto = selectedImages.length > 0;
 
-  return (
-    isTitle && isCategory && isAddressFilled && hasLatLng && hasKid && isPhoto
-  );
+  // ⛳️ 사진 필수(isPhoto) 조건 제거
+  return isTitle && isCategory && isAddressFilled && hasLatLng && hasKid;
 }
+
 function updateButtonColor() {
   if (isFormValid()) {
     submitBtn.classList.add('is-enabled');
@@ -120,23 +119,34 @@ function getAccessTokenFromCookie() {
   return null;
 }
 
-// 피드 작성(글쓰기) api
-async function createFeedWithImages(feedData, imageFiles) {
-  const fd = new FormData();
-  // feed를 JSON Blob으로(컨텐츠타입 application/json)
-  fd.append('feed', JSON.stringify(feedData)); // ← form-data text part
-  if (imageFiles && imageFiles.length > 0) {
-    for (const f of imageFiles) fd.append('images', f, f.name);
-  }
-
+async function createFeed(feedData) {
   const res = await fetch('https://sorimap.it.com/api/feeds', {
     method: 'POST',
     credentials: 'include',
-    body: fd,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(feedData),
   });
-
-  if (!res.ok) throw new Error(`피드 작성 실패: ${res.status}`);
+  if (!res.ok) {
+    const msg = await res.text().catch(() => '');
+    throw new Error(`피드 작성 실패: ${res.status} ${msg}`);
+  }
   return res.json();
+}
+
+async function uploadImages(files) {
+  const fd = new FormData();
+  files.forEach((f) => fd.append('files', f, f.name)); // 백엔드 요구 key가 files 라고 가정
+
+  const res = await fetch('https://sorimap.it.com/api/uploads', {
+    method: 'POST',
+    credentials: 'include',
+    body: fd, // Content-Type 직접 지정 ❌ (브라우저가 boundary 포함해서 자동 설정)
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => '');
+    throw new Error(`이미지 업로드 실패: ${res.status} ${msg}`);
+  }
+  return res.json(); // { imageUrls: [...] } 형태라고 가정
 }
 
 // ==== 사진 선택/누적/미리보기 ====
@@ -214,23 +224,40 @@ writeForm.addEventListener('submit', async (e) => {
   const feedData = {
     title: writeForm.title.value.trim(),
     content: writeForm.content.value.trim(),
-    type: selectedType, // MINWON/MUNHWA
+    type: selectedType, // "MINWON" | "MUNHWA"
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
-    // locationId가 필요하면 같이 전송
-    ...(writeForm.locationId?.value && {
-      locationId: Number(writeForm.locationId.value),
-    }),
   };
 
   const kid = writeForm.kakaoPlaceId?.value?.trim();
-  if (kid) feedData.kakaoPlaceId = kid;
+  if (kid) feedData.kakaoPlaceId = kid; // 문자열 유지
+
+  // (선택) locationId 계속 쓸 거면 유지
+  if (writeForm.locationId?.value) {
+    feedData.locationId = Number(writeForm.locationId.value);
+  }
 
   try {
-    const created = await createFeedWithImages(feedData, selectedImages);
+    // 1) 이미지가 있다면 먼저 업로드 → URL 목록 받기
+    let imageUrls = [];
+    if (selectedImages.length > 0) {
+      const up = await uploadImages(selectedImages);
+      // 백엔드 응답 키가 다를 수 있으니 안전하게 처리
+      imageUrls = up?.imageUrls || up?.urls || up?.data?.imageUrls || [];
+    }
+
+    // 2) 받은 URL을 JSON 바디에 포함
+    if (imageUrls.length > 0) {
+      feedData.imageUrls = imageUrls;
+    }
+
+    // 3) JSON으로 피드 생성
+    const created = await createFeed(feedData);
+
     alert('피드가 성공적으로 작성되었습니다!');
     console.log('작성 완료된 피드:', created);
+    // TODO: 필요하면 페이지 이동/폼 초기화
   } catch (err) {
     alert('피드 작성 중 오류: ' + err.message);
   }
