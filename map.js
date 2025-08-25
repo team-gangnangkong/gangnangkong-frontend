@@ -570,7 +570,9 @@ async function init() {
         }
         if (group.length) {
           openClusterPanel(group, p.type);
-          requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+          requestAnimationFrame(() => {
+            selectCardByLatLng(latKey, lngKey);
+          });
           return;
         }
       }
@@ -581,10 +583,15 @@ async function init() {
       );
       if (theOne) {
         openClusterPanel([theOne], p.type);
+        requestAnimationFrame(() => {
+          selectCardByLatLng(latKey, lngKey);
+        });
       } else {
         const itemsOfType = POINTS.filter((it) => it.type === p.type);
         openClusterPanel(itemsOfType, p.type);
-        requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+        requestAnimationFrame(() => {
+          selectCardByLatLng(latKey, lngKey);
+        });
       }
     });
 
@@ -1210,18 +1217,24 @@ async function init() {
     }
   }
 
-  function findCardByLatLng(lat, lng) {
+  function selectCardByLatLng(lat, lng) {
     const list = document.getElementById('cp-list');
-    if (!list) return null;
-    const toKey = (a, b) => `${(+a).toFixed(6)}|${(+b).toFixed(6)}`;
-    const key = toKey(lat, lng);
-    return (
-      Array.from(list.querySelectorAll('.cp-card')).find(
-        (c) => toKey(c.dataset.lat, c.dataset.lng) === key
-      ) || null
-    );
-  }
+    if (!list) return false;
 
+    const card = findCardByLatLng(lat, lng);
+    if (!card) return false;
+
+    // 기존 선택 해제 → 이 카드 선택
+    list
+      .querySelectorAll('.cp-card.is-selected')
+      ?.forEach((c) => c.classList.remove('is-selected'));
+    card.classList.add('is-selected');
+
+    // 보이도록 살짝 위로 스크롤
+    const top = Math.max(0, card.offsetTop - 8);
+    list.scrollTo({ top, behavior: 'smooth' });
+    return true;
+  }
   function bumpCardToTop(lat, lng) {
     const list = document.getElementById('cp-list');
     if (!list) return;
