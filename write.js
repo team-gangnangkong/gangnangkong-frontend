@@ -224,6 +224,7 @@ writeForm.addEventListener('submit', async (e) => {
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
   };
+  delete feedData.locationId;
 
   const kidRaw = writeForm.kakaoPlaceId?.value?.trim();
   const kidNum = Number(kidRaw);
@@ -232,11 +233,6 @@ writeForm.addEventListener('submit', async (e) => {
   } else {
     alert('카카오 장소 ID가 숫자가 아닙니다.');
     return;
-  }
-
-  // (선택) locationId 계속 쓸 거면 유지
-  if (writeForm.locationId?.value) {
-    feedData.locationId = Number(writeForm.locationId.value);
   }
 
   try {
