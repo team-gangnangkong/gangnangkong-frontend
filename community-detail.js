@@ -294,20 +294,12 @@ document.addEventListener("DOMContentLoaded", () => {
         body: c.body,
         createdAt: c.createdAt,
       }));
-<<<<<<< Updated upstream
       const commentCount = comments.length;
       console.log("댓글 수:", commentCount);
       renderComments(comments);
     } catch (e) {
       console.error(e);
       renderComments(comments);
-=======
-
-      renderComments(comments);
-    } catch (e) {
-      console.error(e);
-      // 실패 시 더미 댓글로 렌더링
->>>>>>> Stashed changes
       renderComments(comments);
     }
   }
@@ -444,19 +436,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (val.length === 0) return;
 
     sendBtn.disabled = true;
-<<<<<<< Updated upstream
-    commentInput.value = "";
-    updateSendBtnState();
-
-    // 로컬에 임시 댓글 추가 후 렌더링
-=======
 
     // 입력값 먼저 비우고 버튼 비활성화 & 상태 업데이트
     commentInput.value = "";
     updateSendBtnState();
 
     // 로컬에 댓글 즉시 추가 및 렌더링
->>>>>>> Stashed changes
     const newComment = {
       author: "익명",
       body: val,
@@ -478,10 +463,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       renderComments(comments);
     } else {
-<<<<<<< Updated upstream
-=======
       // 실패 시 사용자에게 알림 처리 가능
->>>>>>> Stashed changes
       alert("서버에 댓글 등록 실패, 로컬에만 저장되었습니다.");
     }
 
