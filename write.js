@@ -81,7 +81,7 @@ function isFormValid() {
   );
   const isAddressFilled = locationInput.value.trim() !== '';
   const hasLatLng = !!latInput.value && !!lngInput.value;
-  const hasKid = !!kidInput.value;
+  const hasKid = /^\d+$/.test(kidInput.value.trim());
 
   // ⛳️ 사진 필수(isPhoto) 조건 제거
   return isTitle && isCategory && isAddressFilled && hasLatLng && hasKid;
@@ -226,9 +226,14 @@ writeForm.addEventListener('submit', async (e) => {
     lng: parseFloat(writeForm.lng?.value) || 0,
   };
 
-  // ✅ 카카오 장소 고유ID는 문자열 유지
-  const kid = writeForm.kakaoPlaceId?.value?.trim();
-  if (kid) feedData.kakaoPlaceId = kid;
+  const kidRaw = writeForm.kakaoPlaceId?.value?.trim();
+  const kidNum = Number(kidRaw);
+  if (Number.isFinite(kidNum)) {
+    feedData.kakaoPlaceId = kidNum; // ✅ 숫자로 전송
+  } else {
+    alert('카카오 장소 ID가 숫자가 아닙니다.');
+    return;
+  }
 
   // (선택) locationId 계속 쓸 거면 유지
   if (writeForm.locationId?.value) {
