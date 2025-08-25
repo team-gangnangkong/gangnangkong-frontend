@@ -832,7 +832,9 @@ async function init() {
 
   // 드래그
   (function makePanelDraggable() {
+    if (!panelEl) return;
     const grip = panelEl.querySelector('.cp-grip');
+    if (!grip) return;
     const PANEL_MIN = 120; // 미니 스냅 높이
     const HIDE_THRESHOLD = 118;
     let startY = 0,
@@ -1048,6 +1050,13 @@ async function init() {
   }
 
   function openClusterPanel(items, type /* 'pos' | 'neg' */) {
+    if (!panelEl || !panelListEl || !panelBadgeEl || !panelCountEl) {
+      console.warn(
+        '[panel] 요소가 없어 패널은 생략하지만 지도는 계속 렌더합니다.'
+      );
+      return;
+    }
+
     attachCatFromCache(items);
     _lastPanelItems = items;
     _lastPanelType = type;
@@ -1184,7 +1193,7 @@ async function init() {
 
     enrichCategories(sorted);
     panelEl.hidden = false;
-    appEl.classList.add('panel-open');
+    appEl?.classList.add('panel-open');
     updatePanelMax();
     setPanelHeight('half');
     setHoverAllowed(true);
@@ -1263,7 +1272,7 @@ async function init() {
     panelEl.hidden = true;
     panelListEl.innerHTML = '';
   }
-  panelCloseBtn.addEventListener('click', closeClusterPanel);
+  panelCloseBtn?.addEventListener('click', closeClusterPanel);
 
   let _refreshingLikes = false;
   async function refreshLikesNow() {
@@ -1294,11 +1303,13 @@ async function init() {
       ? 'none'
       : 'block';
   }
-  syncEdgeZone();
-  new MutationObserver(syncEdgeZone).observe(appEl, {
-    attributes: true,
-    attributeFilter: ['class'],
-  });
+  if (appEl) {
+    syncEdgeZone();
+    new MutationObserver(syncEdgeZone).observe(appEl, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+  }
 
   let ezStart = null;
   function onStart(e) {
@@ -1327,7 +1338,7 @@ async function init() {
   window.addEventListener('mouseup', onEnd);
 
   // 좋아요 클릭 처리 부분
-  panelListEl.addEventListener('click', async (e) => {
+  panelListEl?.addEventListener('click', async (e) => {
     const likeBtn = e.target.closest('.cp-likebtn');
     if (likeBtn) {
       e.preventDefault();
@@ -1438,6 +1449,14 @@ async function init() {
       clearMoodPins();
 
       await fetchClustersInView();
+
+      if (!SV_CLUSTERS || SV_CLUSTERS.length === 0) {
+        // ✅ 폴백: 클러스터가 없으면 핀 모드로 바로 전환
+        await fetchPinsInView();
+        renderMoodPins(POINTS);
+        return;
+      }
+
       SV_CLUSTERS.forEach((c) => {
         const size = bubbleSizeByCount(c.count);
         const pos = new kakao.maps.LatLng(c.lat, c.lng);
