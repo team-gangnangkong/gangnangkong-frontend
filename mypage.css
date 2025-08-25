@@ -14,7 +14,7 @@ body {
 .profile-card {
   background: #fff;
   border-radius: 13px;
-  margin: 23px 17px;
+  margin: 12px 17px 25px;
   padding: 24px 20px 17px 20px;
   box-shadow: 0 1px 7px 0 rgba(166, 150, 133, 0.04);
 }
@@ -96,8 +96,10 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 0 17px 7px 17px;
-  font-size: 17px;
+  padding: 8px 17px 12px 20px;
+  margin-left: 2px;
+  margin-top: 5px;
+  font-size: 18px;
   font-weight: 700;
   color: #232529;
 }
@@ -109,6 +111,51 @@ body {
   margin-top: 6px;
   text-decoration: none;
 }
+.request-image-wrap {
+  position: relative;
+  border-radius: 13px;
+  overflow: hidden; /* 모서리 안쪽으로 잘리게 */
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.request-actions .action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); /* 가독성 살짝 */
+}
+
+.request-actions .action svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+/* 이미지 아래, 카드 안에서 줄 맞춰 표시 */
+.request-actions {
+  position: static; /* ← absolute 없애기 */
+  right: auto;
+  bottom: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end; /* 오른쪽 정렬 */
+  margin-top: 8px; /* 이미지와 간격 */
+  padding-right: 4px; /* 살짝 여유 */
+  color: #f87171;
+  z-index: auto;
+  font-weight: 500;
+  pointer-events: auto; /* 이제 겹치지 않으니 클릭 가능하게 */
+}
+
+/* 버튼만 깔끔하게 */
+.request-actions .action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
 .request-list {
   margin: 0 0 0 0;
   padding: 0 18px 0 18px;
@@ -152,7 +199,7 @@ body {
 }
 .tag-status {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 4px 12px 3px 12px;
   border-radius: 9px;
   letter-spacing: -0.2px;
@@ -165,7 +212,7 @@ body {
 }
 .status-not {
   background: #fef2f2;
-  color: #ef4444;
+  color: #f87171;
 }
 .status-done {
   background: #f87171;

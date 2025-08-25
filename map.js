@@ -15,6 +15,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ==== API 기본 설정 ====
 const API_BASE = 'https://sorimap.it.com'; // 배포 시 교체
+const eq6 = (a, b) => Math.abs(+a - +b) < 1e-6;
+const PIN_ZOOM_LEVEL = 3;
 
 const ENDPOINTS = {
   // 지도 클러스터 (줌아웃 시)
@@ -137,35 +139,83 @@ async function recordSelectedPlace({ id, kakaoPlaceId, name, addr, lat, lng }) {
 }
 
 // ===== 공통 변환/유틸 =====
-const CLUSTER_LEVEL_THRESHOLD = 7;
+const CLUSTER_LEVEL_THRESHOLD = 6;
 const SENTI = { POS: 'POSITIVE', NEG: 'NEGATIVE', NEU: 'NEUTRAL' };
 
 const typeToSenti = (t) => (t === 'neg' ? SENTI.NEG : SENTI.POS);
 
-const sentiToType = (s) => {
-  if (s === 'NEGATIVE') return 'neg';
-  if (s === 'POSITIVE') return 'pos';
-  return null; // NEUTRAL or undefined → null로
-};
+function toType(v) {
+  if (v == null) return null;
+  const t = String(v).trim().toUpperCase(); // 공백/대소문자 방어
+  if (t === 'NEGATIVE' || t === 'NEG' || t === '-1' || t === 'MINWON')
+    return 'neg';
+  if (t === 'POSITIVE' || t === 'POS' || t === '1' || t === 'MUNHWA')
+    return 'pos';
+  if (t === 'NEUTRAL' || t === 'NEU' || t === '0') return null; // 중립은 패널에서만 쓰고 핀은 제외
+  return null;
+}
+
+// --- content/title 추출 유틸 ---
+function stripTags(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html == null ? '' : String(html);
+  return tmp.textContent || tmp.innerText || '';
+}
+function pickContent(row) {
+  // 서버가 content 말고 contents/text/body/description/contentHtml 등으로 줄 때 커버
+  const raw =
+    row?.content ??
+    row?.contents ??
+    row?.text ??
+    row?.body ??
+    row?.description ??
+    (typeof row?.contentHtml === 'string' ? stripTags(row.contentHtml) : '');
+
+  return typeof raw === 'string' ? raw : '';
+}
+function pickAddr(row) {
+  return row?.address ?? row?.addr ?? row?.location ?? '';
+}
 
 function normalizeItem(row) {
-  // 1순위: sentiment, 2순위: 서버 type(MINWON/MUNHWA)
-  const typeFromSenti = sentiToType(row.sentiment);
-  const typeFromRow =
-    row.type === 'MINWON' ? 'neg' : row.type === 'MUNHWA' ? 'pos' : null;
+  // 1) 타입 정규화
+  const typeFromSenti = toType(row.sentiment);
+  const typeFromRow = toType(row.type);
+  const type = typeFromSenti ?? typeFromRow ?? 'neg';
 
-  const type = typeFromSenti ?? typeFromRow ?? 'pos'; // 마지막 기본값 'pos'
+  // 2) id/주소/본문 등 필드 유연 추출
+  const id =
+    row.id ??
+    row.feedId ??
+    row.feedID ??
+    row.feed_id ??
+    row.postId ??
+    row.post_id ??
+    null;
+
+  const addr = pickAddr(row);
+  const content = pickContent(row);
+
+  // 문화쪽에서 종종 review/comment에 본문이 들어오면 그쪽도 같이 받기
+  const review =
+    row.review ??
+    row.comment ??
+    row.note ??
+    row.reviewText ??
+    row.review_text ??
+    '';
 
   return {
-    id: row.id,
+    id,
     type,
     lat: +row.lat,
     lng: +row.lng,
     title: row.title || (row.type === 'MINWON' ? '민원' : '문화'),
-    addr: row.address || '',
-    content: row.content || '',
-    likes: row.likes ?? 0,
-    likedByMe: !!row.likedByMe,
+    addr,
+    content, // ✅ 이제 다양한 키로 와도 채워짐
+    review, // 문화 카드에서 우선 사용
+    likes: row.likes ?? row.likeCount ?? 0,
+    likedByMe: !!(row.likedByMe ?? row.isLiked ?? row.liked),
     status: row.status || 'OPEN',
     progress: Number.isFinite(row.progress)
       ? row.progress
@@ -174,7 +224,7 @@ function normalizeItem(row) {
       : row.status === 'IN_PROGRESS'
       ? 60
       : 10,
-    imageUrls: row.imageUrls || [],
+    imageUrls: row.imageUrls || row.images || [],
     sentiment: row.sentiment,
   };
 }
@@ -223,6 +273,30 @@ async function init() {
   let POINTS = []; // 줌-인 시 개별 핀들
   let SV_CLUSTERS = []; // 줌-아웃 시 서버 클러스터들
 
+  let _lastClusterArea = null; // { items?: Array, bounds?: kakao.maps.LatLngBounds }
+
+  function boundsFromPixelRadius(centerLatLng, radiusPx = 80) {
+    const proj = map.getProjection();
+    const pt = proj.containerPointFromCoords(centerLatLng);
+    const sw = proj.coordsFromContainerPoint(
+      new kakao.maps.Point(pt.x - radiusPx, pt.y + radiusPx)
+    );
+    const ne = proj.coordsFromContainerPoint(
+      new kakao.maps.Point(pt.x + radiusPx, pt.y - radiusPx)
+    );
+    return new kakao.maps.LatLngBounds(sw, ne);
+  }
+  function inBounds(bounds, lat, lng) {
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    return (
+      lat >= sw.getLat() &&
+      lat <= ne.getLat() &&
+      lng >= sw.getLng() &&
+      lng <= ne.getLng()
+    );
+  }
+
   let _fetchingPins = false;
   let _fetchingClusters = false;
   async function fetchClustersInView() {
@@ -243,11 +317,18 @@ async function init() {
         lat: +c.lat,
         lng: +c.lng,
         count: c.count ?? 0,
-        type: sentiToType(c.sentiment),
+        type: toType(c.sentiment) ?? toType(c.type) ?? 'neg',
       }));
     } catch (e) {
       console.warn('clusters fail', e);
       SV_CLUSTERS = [];
+      console.debug(
+        '[CLUSTERS types]',
+        SV_CLUSTERS.reduce(
+          (a, c) => ((a[c.type] = (a[c.type] || 0) + 1), a),
+          {}
+        )
+      );
     } finally {
       _fetchingClusters = false;
     }
@@ -281,9 +362,18 @@ async function init() {
         ).catch(() => []), // 서버가 NEU 미구현이어도 안전
       ]);
 
-      POINTS = [].concat(neg || [], pos || [], neu || []).map(normalizeItem);
+      // fetchPinsInView 안에서 각 응답에 sentiment를 주입
+      POINTS = [
+        ...(neg || []).map((r) => ({ ...r, sentiment: SENTI.NEG })),
+        ...(pos || []).map((r) => ({ ...r, sentiment: SENTI.POS })),
+        ...(neu || []).map((r) => ({ ...r, sentiment: SENTI.NEU })),
+      ].map(normalizeItem);
 
       attachCatFromCache(POINTS);
+      console.debug(
+        '[POINTS types]',
+        POINTS.reduce((a, p) => ((a[p.type] = (a[p.type] || 0) + 1), a), {})
+      );
     } catch (e) {
       console.warn('panel fail', e);
       POINTS = [];
@@ -315,8 +405,8 @@ async function init() {
   const getAllPoints = () => POINTS;
 
   // ==== 아이콘 파일 경로 ====
-  const POS_URL = '/image/positive.png';
-  const NEG_URL = '/image/negative.png';
+  const POS_URL = new URL('/image/positive.png', location.origin).href;
+  const NEG_URL = new URL('/image/negative.png', location.origin).href;
 
   let _stickyMoodPin = null;
   let _stickyKey = null;
@@ -417,7 +507,10 @@ async function init() {
 
   function makeMoodOverlay(p) {
     const el = document.createElement('div');
-    el.className = `mood-pin ${p.type}`;
+    // p.type 기준으로 안전 타입 결정
+    const safeType = p.type === 'pos' || p.type === 'neg' ? p.type : 'neg';
+    // 핀은 mood-pin 클래스로! (클러스터는 cluster-bubble 유지)
+    el.className = `mood-pin ${safeType}`;
     el.innerHTML = `<img src="${p.type === 'pos' ? POS_URL : NEG_URL}" alt="${
       p.type
     }">`;
@@ -449,11 +542,12 @@ async function init() {
     el.addEventListener('touchcancel', clearTouchHover);
 
     // 클릭시 토글 + 패널 열기
+    // 클릭시 토글 + 패널 열기
     el.addEventListener('click', (e) => {
       e.preventDefault();
       const turnedOn = setStickyMoodPin(el, key);
 
-      // 토글 OFF면 패널/그림자도 함께 닫고 종료
+      // 토글 OFF면 강조만 해제
       if (!turnedOn) {
         try {
           const card = findCardByLatLng(latKey, lngKey);
@@ -462,10 +556,36 @@ async function init() {
         return;
       }
 
-      // ON일 때만 패널 열기 + 카드 위로
-      const itemsOfType = POINTS.filter((it) => it.type === p.type);
-      openClusterPanel(itemsOfType, p.type);
-      requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+      // ✅ 클릭한 좌표와 타입이 정확히 같은 '그 글' 1건만 패널로
+      if (_lastClusterArea) {
+        let group = [];
+        if (_lastClusterArea.items) {
+          group = _lastClusterArea.items.filter((it) => it.type === p.type);
+        } else if (_lastClusterArea.bounds) {
+          group = POINTS.filter(
+            (it) =>
+              it.type === p.type &&
+              inBounds(_lastClusterArea.bounds, it.lat, it.lng)
+          );
+        }
+        if (group.length) {
+          openClusterPanel(group, p.type);
+          requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+          return;
+        }
+      }
+
+      // 컨텍스트가 없거나 빈 경우엔 클릭한 그 글만 (기존 안전장치)
+      const theOne = POINTS.find(
+        (it) => it.type === p.type && eq6(it.lat, latKey) && eq6(it.lng, lngKey)
+      );
+      if (theOne) {
+        openClusterPanel([theOne], p.type);
+      } else {
+        const itemsOfType = POINTS.filter((it) => it.type === p.type);
+        openClusterPanel(itemsOfType, p.type);
+        requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+      }
     });
 
     const ov = new kakao.maps.CustomOverlay({
@@ -512,6 +632,18 @@ async function init() {
     _clusterOverlays.forEach((o) => o.setMap(null));
     _clusterOverlays = [];
   }
+  kakao.maps.event.addListener(map, 'zoom_changed', () => {
+    const lv = map.getLevel();
+    if (lv >= CLUSTER_LEVEL_THRESHOLD) {
+      // 줌아웃: 클러스터 모드 → PNG 핀 즉시 제거
+      clearMoodPins();
+      _lastClusterArea = null;
+    } else {
+      // 줌인: 핀 모드 → 클러스터 즉시 제거
+      clearClusters();
+    }
+  });
+
   function clusterPoints(points, map, radiusPx = 80) {
     const proj = map.getProjection();
     const buckets = [];
@@ -599,33 +731,44 @@ async function init() {
     el.addEventListener('click', (e) => {
       e.preventDefault();
 
+      // ✅ 클릭 즉시 화면에서 클러스터 제거 (한 프레임도 안 보이게)
+      clearClusters();
+
+      const centerLL = posLatLng ?? ov.getPosition();
+
       if (typeof onClick === 'function') {
+        _lastClusterArea = { bounds: boundsFromPixelRadius(centerLL, 80) };
         onClick();
+        setTimeout(() => renderClustersOrPins(), 0);
         return;
-      }
-
-      const allItems = c.items || [];
-      const itemsOfType = allItems.filter((p) =>
-        type === 'pos' ? p.type === 'pos' : p.type === 'neg'
-      );
-
-      const bounds = new kakao.maps.LatLngBounds();
-      allItems.forEach((p) =>
-        bounds.extend(new kakao.maps.LatLng(p.lat, p.lng))
-      );
-
-      if (
-        typeof bounds.isEmpty === 'function'
-          ? !bounds.isEmpty()
-          : allItems.length
-      ) {
-        map.setBounds(bounds, 80, 80, 80, 80);
       } else {
-        map.setCenter(posLatLng ?? new kakao.maps.LatLng(c.lat, c.lng));
-        map.setLevel(Math.max(4, CLUSTER_LEVEL_THRESHOLD - 1));
-      }
+        const allItems = Array.isArray(c.items) ? c.items : [];
+        const itemsOfType = allItems.filter((p) => p.type === type);
+        _lastClusterArea = { items: allItems };
 
-      openClusterPanel(itemsOfType, type);
+        const bounds = new kakao.maps.LatLngBounds();
+        allItems.forEach((p) =>
+          bounds.extend(new kakao.maps.LatLng(p.lat, p.lng))
+        );
+
+        if (
+          typeof bounds.isEmpty === 'function'
+            ? !bounds.isEmpty()
+            : allItems.length
+        ) {
+          map.setBounds(bounds, 80, 80, 80, 80);
+          // bounds가 끝난 다음 꼭 임계치 아래(4)로 고정
+          kakao.maps.event.addListener(map, 'idle', function once() {
+            kakao.maps.event.removeListener(map, 'idle', once);
+            map.setLevel(PIN_ZOOM_LEVEL); // ✅ 4로 강제
+          });
+        } else {
+          map.setCenter(posLatLng ?? new kakao.maps.LatLng(c.lat, c.lng));
+          map.setLevel(PIN_ZOOM_LEVEL); // ✅ 4로 강제
+        }
+
+        openClusterPanel(itemsOfType, type);
+      }
     });
 
     return ov;
@@ -920,11 +1063,11 @@ async function init() {
 
     panelBadgeEl.hidden = true;
     const titleEl = document.querySelector('.cp-title');
-    if (titleEl) {
-      titleEl.innerHTML = `<span class="cp-dyn">${count}개의 ${
-        isPos ? '문화' : '소리'
-      }</span>`;
-    }
+    // if (titleEl) {
+    //   titleEl.innerHTML = `<span class="cp-dyn">${count}개의 ${
+    //     isPos ? '문화' : '소리'
+    //   }</span>`;
+    // }
 
     panelBadgeEl.textContent = isPos ? '문화' : '민원';
     panelBadgeEl.classList.remove('pos');
@@ -942,7 +1085,7 @@ async function init() {
         if (isPosType) {
           // === 문화 카드 ===
           const category = it.category || '';
-          const rawReview = (it.review ?? it.content ?? '').trim();
+          const rawReview = (it.review || it.content || '').trim();
           const review = escapeHTML(
             rawReview || '작성된 문화 후기/설명이 아직 없습니다.'
           );
@@ -992,7 +1135,7 @@ async function init() {
         }
 
         // === 민원(neg) 카드 ===
-        const raw = (it.content ?? it.snippet ?? '').trim();
+        const raw = (it.content || it.snippet || '').trim();
         const content = escapeHTML(raw || '작성된 민원 내용이 아직 없습니다.');
 
         return `
@@ -1307,12 +1450,7 @@ async function init() {
           3000,
           () => {
             map.setCenter(pos);
-            map.setLevel(Math.max(4, CLUSTER_LEVEL_THRESHOLD - 1));
-            const once = () => {
-              kakao.maps.event.removeListener(map, 'idle', once);
-              openPanelForType(c.type);
-            };
-            kakao.maps.event.addListener(map, 'idle', once);
+            map.setLevel(PIN_ZOOM_LEVEL); // ← 고정 4
           }
         );
 
@@ -1455,14 +1593,19 @@ async function init() {
 </svg>`;
 
   const ui = document.querySelector('.map-ui');
-  let wrap = ui.querySelector('.map-fab-wrap');
-  if (!wrap) {
-    wrap = document.createElement('div');
-    wrap.className = 'map-fab-wrap';
-    ui.appendChild(wrap);
+  if (ui) {
+    let wrap = ui.querySelector('.map-fab-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'map-fab-wrap';
+      ui.appendChild(wrap);
+    }
+    wrap.replaceChildren(listBtn);
+    if (myposBtn) wrap.appendChild(myposBtn);
+  } else {
+    // 버튼은 건너뛰되 지도 렌더는 계속 진행
+    console.warn('[map-ui] 컨테이너 없음: FAB 생성 생략');
   }
-  wrap.replaceChildren(listBtn);
-  if (myposBtn) wrap.appendChild(myposBtn);
 
   function activateMyPos(loc) {
     ensureHeadingOverlay(loc, '#F87171');
@@ -2149,21 +2292,22 @@ async function init() {
       }
 
       try {
-  if (window.opener && !window.opener.closed) {
-    // onPlaceSelected가 있으면 그거 우선, 없으면 setLocation만이라도
-    const send = window.opener.onPlaceSelected || window.opener.setLocation;
-    if (typeof send === 'function') {
-      // address, lat, lng, kakaoPlaceId 모두 전달
-      send(
-        _selectedPlace.addr,
-        _selectedPlace.lat,
-        _selectedPlace.lng,
-        _selectedPlace.kakaoPlaceId
-      );
-   }
-    window.close(); // 팝업이라면 닫기
-  }
-} catch (_) {}
+        if (window.opener && !window.opener.closed) {
+          // onPlaceSelected가 있으면 그거 우선, 없으면 setLocation만이라도
+          const send =
+            window.opener.onPlaceSelected || window.opener.setLocation;
+          if (typeof send === 'function') {
+            // address, lat, lng, kakaoPlaceId 모두 전달
+            send(
+              _selectedPlace.addr,
+              _selectedPlace.lat,
+              _selectedPlace.lng,
+              _selectedPlace.kakaoPlaceId
+            );
+          }
+          window.close(); // 팝업이라면 닫기
+        }
+      } catch (_) {}
 
       const sheet = document.getElementById('placeSheet');
       const inputFull = document.getElementById('searchFull');

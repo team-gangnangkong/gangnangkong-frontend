@@ -169,6 +169,7 @@ async function loadAllFeeds(status, kakaoPlaceId = null) {
   } catch (error) {
     console.error(error);
     console.error(error);
+    console.error(error);
     feedListContainer.innerHTML =
       "<p>상태별 피드를 불러오는 중 오류가 발생했습니다.</p>";
   }
@@ -205,6 +206,11 @@ async function filterFeedsByCategory(category) {
 
     const feeds = await response.json();
 
+    if (feeds && feeds.length > 0) {
+      renderFeeds(feeds);
+    } else {
+      renderDummyFilteredFeeds(category);
+    }
     if (feeds && feeds.length > 0) {
       renderFeeds(feeds);
     } else {

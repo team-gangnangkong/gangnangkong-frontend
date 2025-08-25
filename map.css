@@ -379,6 +379,7 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background: var(--cp-fill-neg);
 }
 .cluster-bubble.pos {
   /* 문화(긍정) */

@@ -48,7 +48,7 @@ body {
 .profile-img.is-fallback {
   object-fit: contain; /* 테두리 안에 다 보이게 */
   background: #fff; /* 원형 배경 */
-  padding: 8px;
+  padding: 6px;
 
   width: 91%;
   height: 91%;
