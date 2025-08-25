@@ -84,7 +84,7 @@ function setMunhwaSentimentColor(sentiment) {
 const titleInput = writeForm.querySelector('input[name="title"]');
 const locationInput = writeForm.querySelector('input[name="address"]');
 const contentInput = writeForm.querySelector(
-  'textarea[name="content"], textarea#contentInput, textarea#content, #content, textarea[name="review"]'
+  'textarea[name="content"], textarea#contentInput, textarea#content, #content'
 );
 const photoInput = writeForm.querySelector('input[type="file"]');
 
@@ -233,7 +233,7 @@ writeForm.addEventListener('submit', async (e) => {
   const feedData = {
     title: (titleInput?.value ?? '').trim(),
     content: contentVal,
-    review: contentVal,
+    // review: contentVal,
     // type: selectedType,   // ⬅⬅ 이 줄 삭제! (AI가 자동 분류)
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
