@@ -800,6 +800,18 @@ async function init() {
   const panelCloseBtn = document.getElementById('cp-close');
   const panelSortBtn = document.getElementById('cp-sort');
 
+  function findCardByLatLng(lat, lng) {
+    const list = document.getElementById('cp-list');
+    if (!list) return null;
+
+    const toKey = (a, b) => `${(+a).toFixed(6)}|${(+b).toFixed(6)}`;
+    const want = toKey(lat, lng);
+
+    const cards = Array.from(list.querySelectorAll('.cp-card'));
+    const hit = cards.find((c) => toKey(c.dataset.lat, c.dataset.lng) === want);
+    return hit || null;
+  }
+
   let _lastPanelItems = [];
   let _lastPanelType = null;
 
