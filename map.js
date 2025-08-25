@@ -148,24 +148,68 @@ const sentiToType = (s) => {
   return null; // NEUTRAL or undefined → null로
 };
 
+// --- content/title 추출 유틸 ---
+function stripTags(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html == null ? '' : String(html);
+  return tmp.textContent || tmp.innerText || '';
+}
+function pickContent(row) {
+  // 서버가 content 말고 contents/text/body/description/contentHtml 등으로 줄 때 커버
+  const raw =
+    row?.content ??
+    row?.contents ??
+    row?.text ??
+    row?.body ??
+    row?.description ??
+    (typeof row?.contentHtml === 'string' ? stripTags(row.contentHtml) : '');
+
+  return typeof raw === 'string' ? raw : '';
+}
+function pickAddr(row) {
+  return row?.address ?? row?.addr ?? row?.location ?? '';
+}
+
 function normalizeItem(row) {
-  // 1순위: sentiment, 2순위: 서버 type(MINWON/MUNHWA)
+  // 1) 타입 정규화
   const typeFromSenti = sentiToType(row.sentiment);
   const typeFromRow =
     row.type === 'MINWON' ? 'neg' : row.type === 'MUNHWA' ? 'pos' : null;
+  const type = typeFromSenti ?? typeFromRow ?? 'pos';
 
-  const type = typeFromSenti ?? typeFromRow ?? 'pos'; // 마지막 기본값 'pos'
+  // 2) id/주소/본문 등 필드 유연 추출
+  const id =
+    row.id ??
+    row.feedId ??
+    row.feedID ??
+    row.feed_id ??
+    row.postId ??
+    row.post_id ??
+    null;
+
+  const addr = pickAddr(row);
+  const content = pickContent(row);
+
+  // 문화쪽에서 종종 review/comment에 본문이 들어오면 그쪽도 같이 받기
+  const review =
+    row.review ??
+    row.comment ??
+    row.note ??
+    row.reviewText ??
+    row.review_text ??
+    '';
 
   return {
-    id: row.id,
+    id,
     type,
     lat: +row.lat,
     lng: +row.lng,
     title: row.title || (row.type === 'MINWON' ? '민원' : '문화'),
-    addr: row.address || '',
-    content: row.content || '',
-    likes: row.likes ?? 0,
-    likedByMe: !!row.likedByMe,
+    addr,
+    content, // ✅ 이제 다양한 키로 와도 채워짐
+    review, // 문화 카드에서 우선 사용
+    likes: row.likes ?? row.likeCount ?? 0,
+    likedByMe: !!(row.likedByMe ?? row.isLiked ?? row.liked),
     status: row.status || 'OPEN',
     progress: Number.isFinite(row.progress)
       ? row.progress
@@ -174,7 +218,7 @@ function normalizeItem(row) {
       : row.status === 'IN_PROGRESS'
       ? 60
       : 10,
-    imageUrls: row.imageUrls || [],
+    imageUrls: row.imageUrls || row.images || [],
     sentiment: row.sentiment,
   };
 }
@@ -946,7 +990,7 @@ async function init() {
         if (isPosType) {
           // === 문화 카드 ===
           const category = it.category || '';
-          const rawReview = (it.review ?? it.content ?? '').trim();
+          const rawReview = (it.review || it.content || '').trim();
           const review = escapeHTML(
             rawReview || '작성된 문화 후기/설명이 아직 없습니다.'
           );
@@ -996,7 +1040,7 @@ async function init() {
         }
 
         // === 민원(neg) 카드 ===
-        const raw = (it.content ?? it.snippet ?? '').trim();
+        const raw = (it.content || it.snippet || '').trim();
         const content = escapeHTML(raw || '작성된 민원 내용이 아직 없습니다.');
 
         return `
