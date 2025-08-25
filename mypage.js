@@ -25,6 +25,27 @@ window.addEventListener('unhandledrejection', (e) =>
         ? API_BASE + u
         : u
       : u;
+
+  const absolutize = (u) => {
+    if (!u) return u;
+    if (u.startsWith('//')) return 'https:' + u;
+    if (u.startsWith('http://')) return u.replace(/^http:\/\//, 'https://');
+    if (u.startsWith('/')) return API_BASE + u;
+    return u;
+  };
+
+  // 백엔드가 어떤 키로 보내든 첫 이미지를 뽑아 절대 HTTPS URL로
+  const firstImageUrl = (feed) => {
+    const cand =
+      feed?.imageUrl ??
+      feed?.imageUrls?.[0] ??
+      feed?.images?.[0]?.url ??
+      feed?.images?.[0] ??
+      feed?.files?.[0]?.url ??
+      feed?.files?.[0];
+
+    return cand ? absolutize(cand) : null;
+  };
   const isDefaultMarker = (u) =>
     typeof u === 'string' && u.trim().toUpperCase() === 'DEFAULT';
 
@@ -202,26 +223,35 @@ window.addEventListener('unhandledrejection', (e) =>
       .map((feed) => {
         const statusClass = 'status-not';
         const statusText = '미해결';
-        const img = feed.imageUrl
-          ? `<img src="${feed.imageUrl}" alt="${feed.title}" style="max-width:100%;height:auto;margin-top:8px;"/>`
+
+        // ✅ 여기!
+        const imgSrc = firstImageUrl(feed) || './image/default.jpg';
+        const img = imgSrc
+          ? `<img src="${imgSrc}" alt="${
+              feed.title ?? ''
+            }" class="request-img" />`
           : '';
+
+        // address 필드명 혼용 대비
+        const placeText = feed.address ?? feed.location ?? '';
+
         return `
-          <div class="request-card" data-feed-id="${feed.feedId}">
-            <div class="request-title-row">
-              <div class="request-title">${feed.title}</div>
-              <span class="tag-status ${statusClass}">${statusText}</span>
-            </div>
-            <div class="request-desc">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" aria-hidden="true">
-                <path d="M12.24 3.09c1.1 1.1 1.73 2.59 1.76 4.14.02 1.56-.56 3.06-1.62 4.2l-.14.14-2.82 2.83c-.36.35-.85.56-1.36.57-.51.02-1-.17-1.37-.5l-.1-.1-2.83-2.83C2.63 10.45 2 8.92 2 7.33c0-1.59.63-3.12 1.76-4.24A6.05 6.05 0 0 1 8 1.33a6.05 6.05 0 0 1 4.24 1.76zM8 5.33c-.26 0-.52.05-.77.16-.24.1-.46.27-.63.44-.18.18-.33.38-.43.62-.11.23-.17.48-.17.73s.06.5.17.73c.1.24.25.44.43.62.17.17.39.34.63.44.25.11.5.16.77.16.53 0 1.04-.21 1.41-.58.36-.37.58-.88.58-1.41 0-.53-.22-1.03-.58-1.41A1.95 1.95 0 0 0 8 5.33z" fill="#9CA3AF"/>
-              </svg>
-              ${feed.location ?? ''}
-            </div>
-            ${img}
-            <div>좋아요: ${feed.likeCount ?? 0} | 댓글: ${
+        <div class="request-card" data-feed-id="${feed.feedId}">
+          <div class="request-title-row">
+            <div class="request-title">${feed.title ?? ''}</div>
+            <span class="tag-status ${statusClass}">${statusText}</span>
+          </div>
+          <div class="request-desc">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" aria-hidden="true">
+              <path d="M12.24 3.09c1.1 1.1 1.73 2.59 1.76 4.14.02 1.56-.56 3.06-1.62 4.2l-.14.14-2.82 2.83c-.36.35-.85.56-1.36.57-.51.02-1-.17-1.37-.5l-.1-.1-2.83-2.83C2.63 10.45 2 8.92 2 7.33c0-1.59.63-3.12 1.76-4.24A6.05 6.05 0 0 1 8 1.33a6.05 6.05 0 0 1 4.24 1.76zM8 5.33c-.26 0-.52.05-.77.16-.24.1-.46.27-.63.44-.18.18-.33.38-.43.62-.11.23-.17.48-.17.73s.06.5.17.73c.1.24.25.44.43.62.17.17.39.34.63.44.25.11.5.16.77.16.53 0 1.04-.21 1.41-.58.36-.37.58-.88.58-1.41 0-.53-.22-1.03-.58-1.41A1.95 1.95 0 0 0 8 5.33z" fill="#9CA3AF"/>
+            </svg>
+            ${placeText}
+          </div>
+          ${img}
+          <div>좋아요: ${feed.likeCount ?? 0} | 댓글: ${
           feed.commentCount ?? 0
         }</div>
-          </div>`;
+        </div>`;
       })
       .join('');
   }

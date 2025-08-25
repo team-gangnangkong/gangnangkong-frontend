@@ -117,7 +117,7 @@ body {
   gap: 15px;
 }
 .request-card {
-  background: #fafbfc;
+  background: #fff;
   border-radius: 13px;
   box-shadow: 0 0.5px 0 rgba(95, 95, 99, 0.03);
   padding: 15px 16px 13px 16px;

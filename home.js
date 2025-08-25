@@ -1,3 +1,13 @@
+const API_BASE = 'https://sorimap.it.com';
+const toHttps = (u) =>
+  typeof u === 'string' ? u.replace(/^http:\/\//, 'https://') : u;
+const absolutize = (u) => {
+  if (!u) return u;
+  let s = toHttps(u);
+  if (s.startsWith('/')) s = API_BASE + s; // 상대경로 → 절대경로
+  return s;
+};
+
 // 글쓰기 버튼 클릭 시 write.html로 이동
 document.getElementById('writeBtn').addEventListener('click', function () {
   window.location.href = 'write.html';
@@ -6,59 +16,54 @@ document.getElementById('writeBtn').addEventListener('click', function () {
 // community.js 내용 그대로 옮김
 const feedListContainer = document.querySelector('.card-list');
 
-/**
- * 피드 데이터를 받아서 카드 리스트에 렌더링
- * @param {Array} feeds - 피드 배열
- */
 function renderFeeds(feeds) {
-  feedListContainer.innerHTML = ''; // 초기화
+  feedListContainer.innerHTML = '';
 
   feeds.forEach((feed) => {
     const card = document.createElement('div');
     card.className = 'card';
 
-    const imageUrl =
-      feed.imageUrls && feed.imageUrls.length > 0
-        ? feed.imageUrls[0]
-        : './image/default.jpg';
+    // ✅ imageUrl 계산 + 절대/HTTPS 보정
+    const imgSrc = absolutize(
+      feed.imageUrl ||
+        (feed.imageUrls && feed.imageUrls[0]) ||
+        './image/default.jpg'
+    );
 
-    // 지역구 불러오는 걸 어떻게 작업하는지 모르겠어서 일단 건너뜀
-    // <span class="badge">${feed.badge}</span>
     card.innerHTML = `
-  <div class="card-img-wrap">
-    <img src="${feed.imageUrl}" class="card-img" alt="피드 이미지" />
-    <span class="card-arrow">
-      <svg width="22" height="22" fill="none">
-        <use xlink:href="#icon-arrow"></use>
-      </svg>
-    </span>
-  </div>
-  <div class="card-content">
-    <div class="card-title-row">
-      <div class="card-title">${feed.title}</div>
-      <span class="card-like">
-        <svg width="19" height="18" fill="none">
-          <use xlink:href="#icon-like"></use>
-        </svg>
-        <span>${feed.likes}</span>
-      </span>
-    </div>
-    <div class="card-desc">
-      <svg width="16" height="16" fill="none">
-        <use xlink:href="#icon-location"></use>
-      </svg>
-      <span>${feed.address}</span>
-    </div>
-    <div class="card-preview">
-      ${feed.content}
-    </div>
-  </div>
-`;
+      <div class="card-img-wrap">
+        <img src="${imgSrc}" class="card-img" alt="피드 이미지" />
+        <span class="card-arrow">
+          <svg width="22" height="22" fill="none">
+            <use xlink:href="#icon-arrow"></use>
+          </svg>
+        </span>
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <div class="card-title">${feed.title || ''}</div>
+          <span class="card-like">
+            <svg width="19" height="18" fill="none">
+              <use xlink:href="#icon-like"></use>
+            </svg>
+            <span>${feed.likes ?? 0}</span>
+          </span>
+        </div>
+        <div class="card-desc">
+          <svg width="16" height="16" fill="none">
+            <use xlink:href="#icon-location"></use>
+          </svg>
+          <span>${feed.address || ''}</span>
+        </div>
+        <div class="card-preview">
+          ${feed.content || ''}
+        </div>
+      </div>
+    `;
 
     feedListContainer.appendChild(card);
   });
 }
-
 /**
  * 전체 피드 조회 API 호출 후 렌더링
  * @param {number|null} kakaoPlaceId - kakaoPlaceId 필터링 값 (없으면 null)
