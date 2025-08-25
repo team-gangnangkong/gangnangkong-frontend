@@ -1,18 +1,15 @@
 document.querySelector('.header svg')?.addEventListener('click', () => {
   window.history.back();
 });
-// 피드 작성 form
 const writeForm = document.getElementById('feedForm');
 if (!writeForm) {
   console.warn('feedForm가 없습니다. HTML에 id="feedForm" 추가해주세요.');
-  // 더 진행하면 에러라면 여기서 return 도 가능
 }
 
 const latInput = document.getElementById('latInput');
 const lngInput = document.getElementById('lngInput');
 const kidInput = document.getElementById('kakaoPlaceIdInput');
 
-// === 카테고리 버튼 관련 ===
 const minwonBtn = document.getElementById('minwonBtn');
 const munhwaBtn = document.getElementById('munhwaBtn');
 const categoryBtns = [minwonBtn, munhwaBtn];
@@ -27,9 +24,8 @@ categoryBtns.forEach((btn) => {
 
 let selectedType = 'MINWON';
 let selectedImages = [];
-const selectedImageKeys = new Set(); // ⬅️ (추가) 원본파일 중복 방지용 키
+const selectedImageKeys = new Set();
 
-// 카테고리 버튼 클릭(토글 및 감정 색상 해제)
 categoryBtns.forEach((btn) => {
   btn.addEventListener('click', () => {
     categoryBtns.forEach((b) =>
@@ -37,17 +33,13 @@ categoryBtns.forEach((btn) => {
     );
     btn.classList.add('selected');
     selectedType = btn.dataset.type;
-    // 문화 선택 시(감정 분석 결과 대비, 초기 감정색 없앰)
     if (selectedType === 'MUNHWA') {
-      // setMunhwaSentimentColor("POSITIVE" / "NEGATIVE")는
-      // 실제 AI 로직에서 따로 호출해줍니다.
     }
     updateButtonColor();
   });
 });
 
 // === 위치 지도 연동 ===
-
 function setLocation(address, lat, lng, kakaoPlaceId) {
   document.querySelector('#addressInput').value = address;
   document.querySelector('#latInput').value = lat;
@@ -56,9 +48,7 @@ function setLocation(address, lat, lng, kakaoPlaceId) {
   if (kid) kid.value = kakaoPlaceId || '';
 }
 
-// map.html → write.html 값 전달
 function onPlaceSelected(address, lat, lng, kakaoPlaceId) {
-  // 같은 창에서 받는 구조라면 그냥 주입
   setLocation(address, lat, lng);
   const kidEl = document.getElementById('kakaoPlaceIdInput');
   if (kidEl) kidEl.value = kakaoPlaceId || '';
@@ -67,9 +57,7 @@ function onPlaceSelected(address, lat, lng, kakaoPlaceId) {
   } catch (_) {}
 }
 
-// === 감정 분석 결과(문화) 색상 반영 함수 ===
 function setMunhwaSentimentColor(sentiment) {
-  // 문화 버튼 선택 상태일 때만 적용
   munhwaBtn.classList.remove('munhwa-positive', 'munhwa-negative');
   if (selectedType === 'MUNHWA') {
     if (sentiment === 'POSITIVE') {
@@ -80,7 +68,6 @@ function setMunhwaSentimentColor(sentiment) {
   }
 }
 
-// === form 유효성 검사/상태제어 ===
 const titleInput = writeForm.querySelector('input[name="title"]');
 const locationInput = writeForm.querySelector('input[name="address"]');
 const contentInput = writeForm.querySelector(
@@ -88,7 +75,7 @@ const contentInput = writeForm.querySelector(
 );
 const photoInput = writeForm.querySelector('input[type="file"]');
 
-const photoUploadBox = document.querySelector('.photo-upload'); //사진 업로드 미리보기
+const photoUploadBox = document.querySelector('.photo-upload');
 const submitBtn = writeForm.querySelector('.submit-btn');
 
 function isFormValid() {
@@ -96,9 +83,8 @@ function isFormValid() {
   const addrVal = locationInput.value.trim();
   const isAddressFilled = !!addrVal && /\d/.test(addrVal);
   const hasLatLng = !!latInput.value && !!lngInput.value;
-  const hasKid = /^\d+$/.test(kidInput.value.trim()); // 카카오 장소 ID 필수 유지
+  const hasKid = /^\d+$/.test(kidInput.value.trim());
 
-  // ⬇ 카테고리 선택 체크 삭제
   return isTitle && isAddressFilled && hasLatLng && hasKid;
 }
 
@@ -114,7 +100,6 @@ function updateButtonColor() {
   }
 }
 
-// 유효성 검사 이벤트 바인딩
 [titleInput, locationInput].forEach((input) => {
   input.addEventListener('input', updateButtonColor);
 });
@@ -123,7 +108,6 @@ categoryBtns.forEach((btn) => {
 });
 photoInput.addEventListener('change', updateButtonColor);
 
-// === 피드 등록(이미지/데이터) ===
 function getAccessTokenFromCookie() {
   const cookies = document.cookie.split('; ');
   for (const c of cookies) {
@@ -134,28 +118,24 @@ function getAccessTokenFromCookie() {
   return null;
 }
 
-// ✅ feed(JSON) + images(0~N) 한 번에 전송
 async function createFeedMultipart(feedData, files = []) {
   const fd = new FormData();
 
   fd.append('feed', JSON.stringify(feedData));
-
-  // 이미지 여러 장
   files.forEach((f) => fd.append('images', f, f.name));
 
   const res = await fetch('https://sorimap.it.com/api/feeds', {
     method: 'POST',
     credentials: 'include',
-    body: fd, // Content-Type은 브라우저가 boundary 포함 자동 설정
+    body: fd,
   });
   if (!res.ok) {
     const msg = await res.text().catch(() => '');
     throw new Error(`피드(멀티파트) 작성 실패: ${res.status} ${msg}`);
   }
-  return res.json(); // 문서상 생성된 feed id 등 반환
+  return res.json();
 }
 
-// ==== 사진 선택/누적/미리보기 ====
 const MAX_IMAGES = 8;
 
 let gridEl = null;
@@ -175,7 +155,7 @@ function renderPreviews() {
       gridEl.remove();
       gridEl = null;
     }
-    return; // 아이콘/텍스트 다시 보임
+    return;
   }
 
   photoUploadBox.classList.add('has-images');
@@ -196,9 +176,7 @@ function renderPreviews() {
     del.textContent = '✕';
     del.addEventListener('click', () => {
       selectedImages.splice(idx, 1);
-      // 키셋은 간단히 초기화(중복 선택 대비)
       selectedImageKeys.clear();
-      // 현재 선택들로 다시 키 재구성은 생략(실사용상 문제 없음)
       renderPreviews();
       updateButtonColor();
     });
@@ -208,7 +186,6 @@ function renderPreviews() {
     grid.appendChild(item);
   });
 
-  // + 추가 타일
   const add = document.createElement('button');
   add.type = 'button';
   add.className = 'add-tile';
@@ -217,12 +194,8 @@ function renderPreviews() {
   grid.appendChild(add);
 }
 
-// ⛔ (삭제) 원본 파일을 그대로 누적하던 change 핸들러
-//    → 프리뷰/업로드 두 배가 되는 문제 방지
-
 renderPreviews();
 
-//제출버튼
 writeForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!isFormValid()) return;
@@ -233,15 +206,12 @@ writeForm.addEventListener('submit', async (e) => {
   const feedData = {
     title: (titleInput?.value ?? '').trim(),
     content: contentVal,
-    // review: contentVal,
-    // type: selectedType,   // ⬅⬅ 이 줄 삭제! (AI가 자동 분류)
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
     kakaoPlaceId: Number(writeForm.kakaoPlaceId?.value?.trim() || 0),
   };
   delete feedData.locationId;
-  // (안전용) 혹시라도 남아있으면 제거
   delete feedData.type;
 
   const kidRaw = writeForm.kakaoPlaceId?.value?.trim();
@@ -254,12 +224,10 @@ writeForm.addEventListener('submit', async (e) => {
   }
 
   try {
-    // 🔁 멀티파트 한 방에 전송 (이미지 없으면 images 파트 없이 전송됨)
     const created = await createFeedMultipart(feedData, selectedImages);
     try {
       const map = JSON.parse(localStorage.getItem('myFeedTypeMap') || '{}');
       if (created?.feedId) {
-        // 서버로 보낸 원본 값: "MINWON" | "MUNHWA"
         map[String(created.feedId)] = feedData.type;
         localStorage.setItem('myFeedTypeMap', JSON.stringify(map));
       }
@@ -281,7 +249,6 @@ writeForm.addEventListener('submit', async (e) => {
 updateButtonColor();
 
 (() => {
-  // ====== 공용 DOM ======
   const addrInput = document.getElementById('addressInput');
   const overlay = document.getElementById('addrOverlay');
   const btnClose = document.getElementById('addrBack');
@@ -297,9 +264,9 @@ updateButtonColor();
   const asPickBtn = document.getElementById('as-pickBtn');
 
   let places, geocoder;
-  let ovMap = null; // 오버레이용 지도
-  let ovMarker = null; // 선택 핀
-  let _selectedPlace = null; // {kakaoPlaceId, name, addr, lat, lng}
+  let ovMap = null;
+  let ovMarker = null;
+  let _selectedPlace = null;
 
   function makeSelectPinImage(size = 34) {
     const svg = `
@@ -345,7 +312,7 @@ updateButtonColor();
         level: 5,
       });
     }
-    showSearchUI(); // ← 추가
+    showSearchUI();
     setTimeout(() => {
       try {
         ovMap.relayout();
@@ -354,16 +321,14 @@ updateButtonColor();
     }, 30);
   }
 
-  // === 상태 전환 도우미 ===
   function showSearchUI() {
-    overlay.classList.remove('picked'); // 검색 패널 모드
+    overlay.classList.remove('picked');
     sheetEl.hidden = true;
   }
 
   function showMapUI() {
-    overlay.classList.add('picked'); // 지도/선택 모드
+    overlay.classList.add('picked');
     sheetEl.hidden = false;
-    // 지도 DOM이 보이도록 바뀐 뒤에 relayout
     setTimeout(() => {
       try {
         ovMap && ovMap.relayout();
@@ -380,7 +345,6 @@ updateButtonColor();
     _selectedPlace = null;
   }
 
-  // 주소칸 클릭 → 검색 패널 열기
   addrInput.addEventListener('click', (e) => {
     e.preventDefault();
     openOverlay();
@@ -390,7 +354,6 @@ updateButtonColor();
     if (!overlay.hidden && e.key === 'Escape') closeOverlay();
   });
 
-  // ====== 검색(기존과 동일) ======
   let debounceId = null,
     seq = 0;
   function render(items) {
@@ -462,7 +425,6 @@ updateButtonColor();
     );
   }
 
-  // === 이미지 압축 함수 ===
   async function compressImage(
     file,
     { maxW = 1600, maxH = 1600, quality = 0.8 } = {}
@@ -487,7 +449,6 @@ updateButtonColor();
     });
   }
 
-  // ✅ 선택 직후 압축 적용 + 중복 방지 + 최대 8장 제한
   photoInput.addEventListener('change', async () => {
     const picked = Array.from(photoInput.files || []).filter((f) =>
       f.type.startsWith('image/')
@@ -508,12 +469,9 @@ updateButtonColor();
     photoInput.value = '';
   });
 
-  // ====== 리스트 → 지도에 표시 + 시트 열기 ======
   function showOnMap({ kakaoPlaceId, name, addr, lat, lng }) {
-    // 1) 먼저 보이게 전환
     showMapUI();
 
-    // 2) 보이게 된 다음 레이아웃/센터/마커 처리 (다음 틱)
     setTimeout(() => {
       const pos = new kakao.maps.LatLng(lat, lng);
       try {
@@ -537,7 +495,6 @@ updateButtonColor();
       }
     }, 0);
 
-    // 3) 선택 정보/버튼 상태 업데이트
     _selectedPlace = { kakaoPlaceId, name, addr, lat, lng };
     asName.textContent = name;
     asAddr.textContent = addr || '주소 정보 없음';
@@ -548,7 +505,6 @@ updateButtonColor();
     const li = e.target.closest('li');
     if (!li) return;
 
-    // 지도 없으면 생성(안전장치)
     if (!ovMap) {
       ovMap = new kakao.maps.Map(mapEl, {
         center: new kakao.maps.LatLng(37.5665, 126.978),
@@ -572,7 +528,6 @@ updateButtonColor();
     });
   });
 
-  // ====== 선택하기 → 폼에 주입 +(선택 저장) + 닫기 ======
   asPickBtn.addEventListener('click', async () => {
     if (!_selectedPlace) return;
     const { kakaoPlaceId, name, addr, lat, lng } = _selectedPlace;
@@ -587,7 +542,7 @@ updateButtonColor();
       try {
         const res = await fetch('https://sorimap.it.com/search/select', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }, // JSON 필요
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
             kakaoPlaceId,
