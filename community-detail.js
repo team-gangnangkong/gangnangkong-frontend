@@ -18,6 +18,26 @@
  * 참고: fetch API 사용, 비동기 함수 정의 및 await 사용
  */
 
+/**
+ * 커뮤니티 상세 페이지 주요 기능 정리
+ *
+ * - 상세 피드 데이터 API 호출 및 렌더링
+ * - 댓글 목록 조회, 댓글 작성 기능 (API 연동 포함)
+ * - 피드 공감(좋아요) 버튼 기능 및 API 연동
+ * - 근처 다른 이슈(피드) 목록 조회 및 렌더링
+ * - UI 이벤트 처리: 뒤로가기, 댓글 입력, 공감 버튼 클릭 등
+ * - 더미 데이터 활용: API 오류 시 임시 데이터로 화면 출력 보장
+ * - 카카오 장소 ID(kakaoPlaceId)를 이용한 위치 기반 필터링 구현
+ * - 토큰 쿠키에서 JWT 토큰 추출 함수 포함
+ *
+ * 사용 시:
+ * 페이지 로드 시 query param에서 feedId 얻어와 상세 데이터 호출,
+ * 댓글과 근처 이슈도 동시에 로딩
+ * 사용자 인터랙션에 맞춰 댓글 및 공감 상태 제어
+ *
+ * 참고: fetch API 사용, 비동기 함수 정의 및 await 사용
+ */
+
 /* 근처 다른 이슈 <div class="related-section"> 누르면
   비슷한 지역 필터링된 피드를 보여주는 링크로 이동해야 함
   - **Query Params (선택)**
@@ -177,6 +197,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="comment-time">${new Date(
               c.createdAt
             ).toLocaleString()}</span>
+            <span class="comment-author">${c.author}</span>
+            <span class="comment-time">${new Date(
+              c.createdAt
+            ).toLocaleString()}</span>
           </div>
           <div class="comment-text">${c.body}</div>
         </div>`;
@@ -209,6 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 댓글 등록 API 호출
   // 댓글 등록 API 호출
   async function postComment(feedId, body) {
     try {

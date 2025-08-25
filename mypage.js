@@ -170,25 +170,46 @@ window.addEventListener('unhandledrejection', (e) =>
   }
 
   // 공감 히스토리 채우기 (기존 리스트 갈아끼움)
+  // 공감 히스토리 채우기 (ratio 없으면 likeCount로 계산 + 최소폭 보장)
   function hydrateLikeHistory(list) {
     if (!Array.isArray(list)) return;
     const box = document.querySelector('.like-history-list');
     if (!box) return;
 
+    const counts = list.map((it) => Number(it?.likeCount ?? 0));
+    const max = Math.max(0, ...counts);
+
+    // 안전한 퍼센트 계산기
+    const toPercent = (it) => {
+      const given = it?.ratio;
+      if (given != null && !Number.isNaN(Number(given))) {
+        // 서버가 준 ratio 우선
+        const p = Math.max(0, Number(given));
+        // 좋아요가 0이 아니면 최소 8% 보장
+        return it.likeCount > 0 && p < 8 ? 8 : p;
+      }
+      // ratio 없으면 likeCount 비율로 계산
+      if (max === 0) return 0;
+      let p = (Number(it.likeCount || 0) / max) * 100;
+      // 0 초과면 최소 8% 보장
+      if (it.likeCount > 0 && p < 8) p = 8;
+      return Math.min(100, Math.max(0, Math.round(p)));
+    };
+
     box.innerHTML = list
-      .map(
-        (it) => `
-        <div class="like-history-row">
-          <div class="like-history-label">${it.weekLabel ?? '-'}</div>
-          <span class="like-bar-icon">👍🏻</span>
-          <div class="like-bar-bg">
-            <div class="like-bar-fill" style="width: ${Number(
-              it.ratio ?? 0
-            )}%"></div>
-          </div>
-          <span class="like-count">${it.likeCount ?? 0}</span>
-        </div>`
-      )
+      .map((it) => {
+        const percent = toPercent(it);
+        return `
+      <div class="like-history-row">
+        <div class="like-history-label">${it.weekLabel ?? '-'}</div>
+        <span class="like-bar-icon">👍🏻</span>
+        <div class="like-bar-bg">
+          <div class="like-bar-fill" style="width: ${percent}%"></div>
+        </div>
+        <span class="like-count">${Number(it.likeCount ?? 0)}</span>
+      </div>
+    `;
+      })
       .join('');
   }
 
