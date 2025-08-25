@@ -1,9 +1,12 @@
-document.querySelector('.header svg').addEventListener('click', () => {
+document.querySelector('.header svg')?.addEventListener('click', () => {
   window.history.back();
 });
-
 // 피드 작성 form
 const writeForm = document.getElementById('feedForm');
+if (!writeForm) {
+  console.warn('feedForm가 없습니다. HTML에 id="feedForm" 추가해주세요.');
+  // 더 진행하면 에러라면 여기서 return 도 가능
+}
 
 const latInput = document.getElementById('latInput');
 const lngInput = document.getElementById('lngInput');
@@ -37,20 +40,23 @@ categoryBtns.forEach((btn) => {
 
 // === 위치 지도 연동 ===
 
-function setLocation(address, lat, lng) {
+function setLocation(address, lat, lng, kakaoPlaceId) {
   document.querySelector('#addressInput').value = address;
   document.querySelector('#latInput').value = lat;
   document.querySelector('#lngInput').value = lng;
+  const kid = document.querySelector('#kakaoPlaceIdInput');
+  if (kid) kid.value = kakaoPlaceId || '';
 }
 
 // map.html → write.html 값 전달
-function onPlaceSelected(address, lat, lng) {
-  if (window.opener && typeof window.opener.setLocation === 'function') {
-    window.opener.setLocation(address, lat, lng);
-    window.close();
-  } else {
-    alert('위치 정보를 전달할 수 없습니다.');
-  }
+function onPlaceSelected(address, lat, lng, kakaoPlaceId) {
+  // 같은 창에서 받는 구조라면 그냥 주입
+  setLocation(address, lat, lng);
+  const kidEl = document.getElementById('kakaoPlaceIdInput');
+  if (kidEl) kidEl.value = kakaoPlaceId || '';
+  try {
+    updateButtonColor?.();
+  } catch (_) {}
 }
 
 // === 감정 분석 결과(문화) 색상 반영 함수 ===
@@ -291,7 +297,7 @@ updateButtonColor();
       if (window.kakao && kakao.maps && kakao.maps.load) return go();
       const s = document.createElement('script');
       s.src =
-        'https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_APP_KEY&libraries=services&autoload=false';
+        'https://dapi.kakao.com/v2/maps/sdk.js?appkey=31f2a998f3401f3977505d440b37a84c&libraries=services&autoload=false';
       s.onload = go;
       document.head.appendChild(s);
     });

@@ -2148,6 +2148,23 @@ async function init() {
         pickBtn.textContent = '선택하기';
       }
 
+      try {
+  if (window.opener && !window.opener.closed) {
+    // onPlaceSelected가 있으면 그거 우선, 없으면 setLocation만이라도
+    const send = window.opener.onPlaceSelected || window.opener.setLocation;
+    if (typeof send === 'function') {
+      // address, lat, lng, kakaoPlaceId 모두 전달
+      send(
+        _selectedPlace.addr,
+        _selectedPlace.lat,
+        _selectedPlace.lng,
+        _selectedPlace.kakaoPlaceId
+      );
+   }
+    window.close(); // 팝업이라면 닫기
+  }
+} catch (_) {}
+
       const sheet = document.getElementById('placeSheet');
       const inputFull = document.getElementById('searchFull');
       const smallInput = document.getElementById('search-input');
