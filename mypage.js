@@ -58,42 +58,6 @@ window.addEventListener('unhandledrejection', (e) =>
       u
     );
 
-  // ---- content helpers ----
-  function stripTags(html) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
-  }
-  function getFeedContent(feed) {
-    const raw =
-      feed?.content ??
-      feed?.contents ??
-      feed?.text ??
-      feed?.body ??
-      feed?.description ??
-      (typeof feed?.contentHtml === 'string'
-        ? stripTags(feed.contentHtml)
-        : '');
-    return typeof raw === 'string' ? raw : '';
-  }
-  function esc(s) {
-    return String(s).replace(
-      /[&<>"']/g,
-      (m) =>
-        ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;',
-        }[m])
-    );
-  }
-  function snippet(s, n = 120) {
-    const t = String(s).trim().replace(/\s+/g, ' ');
-    return t.length > n ? t.slice(0, n) + '…' : t;
-  }
-
   let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;
   const isJson = (res) =>
@@ -299,7 +263,8 @@ window.addEventListener('unhandledrejection', (e) =>
 
         <div class="request-image-wrap">
           <img src="${imgSrc}" alt="${feed.title ?? ''}" class="request-img" />
-          <div class="request-actions">
+        </div>
+        <div class="request-actions">
             <span class="action card-like">
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                 <path d="M9 11v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
@@ -317,7 +282,6 @@ window.addEventListener('unhandledrejection', (e) =>
               <span>${feed.commentCount ?? 0}</span>
             </span>
           </div>
-        </div>
       </div>`;
       })
       .join('');

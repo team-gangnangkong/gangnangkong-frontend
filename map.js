@@ -464,8 +464,10 @@ async function init() {
 
   function makeMoodOverlay(p) {
     const el = document.createElement('div');
-    const safeType = type === 'pos' || type === 'neg' ? type : 'neg';
-    el.className = `cluster-bubble ${safeType}`;
+    // p.type 기준으로 안전 타입 결정
+    const safeType = p.type === 'pos' || p.type === 'neg' ? p.type : 'neg';
+    // 핀은 mood-pin 클래스로! (클러스터는 cluster-bubble 유지)
+    el.className = `mood-pin ${safeType}`;
     el.innerHTML = `<img src="${p.type === 'pos' ? POS_URL : NEG_URL}" alt="${
       p.type
     }">`;

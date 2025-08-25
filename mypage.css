@@ -131,7 +131,7 @@ body {
 }
 .request-actions {
   position: absolute;
-  left: 12px;
+  right: 12px;
   bottom: 12px;
   display: flex;
   gap: 12px;
@@ -140,6 +140,7 @@ body {
   z-index: 2;
   pointer-events: none; /* 카드 클릭 방해 안 하게 (필요 시 제거) */
 }
+
 .request-list {
   margin: 0 0 0 0;
   padding: 0 18px 0 18px;
