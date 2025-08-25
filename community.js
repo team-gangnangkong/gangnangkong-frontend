@@ -108,7 +108,7 @@ function renderFeeds(feeds) {
               <svg width="19" height="18" fill="none">
                 <use xlink:href="#icon-comment"></use>
               </svg>
-              <span>${feed.comments}</span>
+              <span>0</span>
             </span>
           </div>
           
@@ -253,6 +253,43 @@ categoryButtons.forEach((btn) => {
     filterFeedsByCategory(currentCategory);
   });
 });
+
+// 댓글 개수 UI 업데이트
+function updateCommentCountUI(count) {
+  document
+    .querySelectorAll(".card-comment span")
+    .forEach((e) => (e.textContent = count));
+  const commentTitleSpan = document.querySelector(".comment-title span");
+  if (commentTitleSpan) commentTitleSpan.textContent = count;
+}
+
+// 댓글 조회 API 호출
+async function fetchComments(feedId) {
+  try {
+    const response = await fetch(
+      `https://sorimap.it.com/api/comments/${feedId}`,
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+    if (!response.ok) throw new Error("댓글 조회 실패");
+    const data = await response.json();
+    const comments = data.map((c) => ({
+      author: c.userNickname || "익명",
+      body: c.body,
+      createdAt: c.createdAt,
+    }));
+    const commentCount = comments.length;
+    console.log("댓글 수:", commentCount);
+    renderComments(comments);
+    updateCommentCountUI(commentCount); // 댓글 수 UI 동기화
+  } catch (e) {
+    console.error(e);
+    renderComments([]);
+    updateCommentCountUI(0);
+  }
+}
 
 // --- 초기 렌더링은 더미 데이터 기반 전체 목록 ---
 renderFeeds(dummyFeeds);

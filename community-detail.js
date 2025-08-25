@@ -149,27 +149,29 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   ];
 
-  // 더미 댓글
-  const comments = [
-    {
-      author: "익명1",
-      body: "저도 같은 문제 겪었어요!",
-      createdAt: "2025-08-24T10:30:00Z",
-    },
-    {
-      author: "익명2",
-      body: "빠른 해결 부탁드립니다.",
-      createdAt: "2025-08-24T11:45:00Z",
-    },
-    {
-      author: "익명3",
-      body: "감사합니다, 좋은 정보였어요.",
-      createdAt: "2025-08-25T09:15:00Z",
-    },
-  ];
+  let comments = []; // 빈 배열로 초기화해두면 더미 댓글 없어도 참조 가능
 
-  // 문서 로드 직후 더미 댓글 렌더링
-  renderComments(comments);
+  // 더미 댓글
+  // const comments = [
+  //   {
+  //     author: "익명1",
+  //     body: "저도 같은 문제 겪었어요!",
+  //     createdAt: "2025-08-24T10:30:00Z",
+  //   },
+  //   {
+  //     author: "익명2",
+  //     body: "빠른 해결 부탁드립니다.",
+  //     createdAt: "2025-08-24T11:45:00Z",
+  //   },
+  //   {
+  //     author: "익명3",
+  //     body: "감사합니다, 좋은 정보였어요.",
+  //     createdAt: "2025-08-25T09:15:00Z",
+  //   },
+  // ];
+
+  // // 문서 로드 직후 더미 댓글 렌더링
+  // renderComments(comments);
 
   // --- 상세 피드 렌더링 ---
   function renderFeedDetail(feed) {
@@ -259,7 +261,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const response = await fetch(
         `https://sorimap.it.com/api/comments/${feedId}`,
-        { method: "GET" }
+        {
+          method: "GET",
+          credentials: "include",
+        }
       );
       if (!response.ok) throw new Error("댓글 조회 실패");
       const data = await response.json();
@@ -421,12 +426,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (val.length === 0) return;
 
     sendBtn.disabled = true;
-
-    // 입력값 먼저 비우고 버튼 비활성화 & 상태 업데이트
     commentInput.value = "";
     updateSendBtnState();
 
-    // 로컬에 댓글 즉시 추가 및 렌더링
+    // 로컬에 임시 댓글 추가 후 렌더링
     const newComment = {
       author: "익명",
       body: val,
@@ -439,10 +442,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const result = await postComment(feedId, val);
 
     if (result) {
-      comments.push(result);
+      // 서버 댓글로 덮어쓰기 대신, 필요 시 로컬 댓글에 서버 식별자 등 업데이트만 처리
+      // 예를 들어, 서버 id를 새 댓글에 추가하려면 다음처럼 수정 가능
+      Object.assign(comments[comments.length - 1], {
+        id: result.id,
+        author: result.userNickname || "익명",
+        createdAt: result.createdAt,
+      });
       renderComments(comments);
     } else {
-      // 실패 시 사용자에게 알림 처리 가능
       alert("서버에 댓글 등록 실패, 로컬에만 저장되었습니다.");
     }
 
