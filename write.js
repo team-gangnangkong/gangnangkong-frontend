@@ -79,7 +79,8 @@ function isFormValid() {
   const isCategory = categoryBtns.some((btn) =>
     btn.classList.contains('selected')
   );
-  const isAddressFilled = locationInput.value.trim() !== '';
+  const addrVal = locationInput.value.trim();
+  const isAddressFilled = !!addrVal && /\d/.test(addrVal);
   const hasLatLng = !!latInput.value && !!lngInput.value;
   const hasKid = /^\d+$/.test(kidInput.value.trim());
 
@@ -123,12 +124,7 @@ function getAccessTokenFromCookie() {
 async function createFeedMultipart(feedData, files = []) {
   const fd = new FormData();
 
-  // feed 파트를 application/json 으로
-  fd.append(
-    'feed',
-    new Blob([JSON.stringify(feedData)], { type: 'application/json' }),
-    'feed.json'
-  );
+  fd.append('feed', JSON.stringify(feedData));
 
   // 이미지 여러 장
   files.forEach((f) => fd.append('images', f, f.name));
@@ -549,6 +545,12 @@ updateButtonColor();
   asPickBtn.addEventListener('click', async () => {
     if (!_selectedPlace) return;
     const { kakaoPlaceId, name, addr, lat, lng } = _selectedPlace;
+    if (!addr || !addr.trim()) {
+      alert(
+        '이 결과에는 도로명/지번 주소가 없습니다. 주소가 있는 항목을 선택해줘!'
+      );
+      return;
+    }
 
     if (kakaoPlaceId) {
       try {
@@ -576,7 +578,7 @@ updateButtonColor();
       }
     }
 
-    addrInput.value = addr || name;
+    addrInput.value = addr;
     latInput.value = String(lat || 0);
     lngInput.value = String(lng || 0);
     kidInput.value = kakaoPlaceId || '';
