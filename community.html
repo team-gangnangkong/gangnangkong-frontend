@@ -72,6 +72,14 @@
           fill="white"
         />
       </symbol>
+
+      <!-- 검색 돋보기 아이콘 심볼 -->
+      <symbol id="icon-search" viewBox="0 0 26 26" fill="none">
+        <path
+          d="M10.2917 17.3333C8.32361 17.3333 6.65817 16.6516 5.29533 15.288C3.9325 13.9244 3.25072 12.259 3.25 10.2917C3.24928 8.32433 3.93106 6.65889 5.29533 5.29533C6.65961 3.93178 8.32506 3.25 10.2917 3.25C12.2583 3.25 13.9241 3.93178 15.2891 5.29533C16.6541 6.65889 17.3355 8.32433 17.3333 10.2917C17.3333 11.0861 17.2069 11.8354 16.9542 12.5396C16.7014 13.2437 16.3583 13.8667 15.925 14.4083L21.9917 20.475C22.1903 20.6736 22.2896 20.9264 22.2896 21.2333C22.2896 21.5403 22.1903 21.7931 21.9917 21.9917C21.7931 22.1903 21.5403 22.2896 21.2333 22.2896C20.9264 22.2896 20.6736 22.1903 20.475 21.9917L14.4083 15.925C13.8667 16.3583 13.2438 16.7014 12.5396 16.9542C11.8354 17.2069 11.0861 17.3333 10.2917 17.3333ZM10.2917 15.1667C11.6458 15.1667 12.7971 14.6929 13.7453 13.7453C14.6936 12.7978 15.1674 11.6466 15.1667 10.2917C15.1659 8.93678 14.6922 7.78592 13.7453 6.83908C12.7985 5.89225 11.6473 5.41811 10.2917 5.41667C8.93606 5.41522 7.7852 5.88936 6.83908 6.83908C5.89297 7.78881 5.41883 8.93967 5.41667 10.2917C5.4145 11.6437 5.88864 12.7949 6.83908 13.7453C7.78953 14.6958 8.94039 15.1696 10.2917 15.1667Z"
+          fill="#EF4444"
+        />
+      </symbol>
     </svg>
 
     <div class="viewport">
@@ -104,19 +112,11 @@
             <!-- 검색창 -->
             <div class="search-wrap">
               <div class="search-bar">
-                <!-- 검색 아이콘 -->
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="26"
-                  height="26"
-                  viewBox="0 0 26 26"
-                  fill="none"
-                >
-                  <path
-                    d="M10.2917 17.3333C8.32361 17.3333 6.65817 16.6516 5.29533 15.288C3.9325 13.9244 3.25072 12.259 3.25 10.2917C3.24928 8.32433 3.93106 6.65889 5.29533 5.29533C6.65961 3.93178 8.32506 3.25 10.2917 3.25C12.2583 3.25 13.9241 3.93178 15.2891 5.29533C16.6541 6.65889 17.3355 8.32433 17.3333 10.2917C17.3333 11.0861 17.2069 11.8354 16.9542 12.5396C16.7014 13.2437 16.3583 13.8667 15.925 14.4083L21.9917 20.475C22.1903 20.6736 22.2896 20.9264 22.2896 21.2333C22.2896 21.5403 22.1903 21.7931 21.9917 21.9917C21.7931 22.1903 21.5403 22.2896 21.2333 22.2896C20.9264 22.2896 20.6736 22.1903 20.475 21.9917L14.4083 15.925C13.8667 16.3583 13.2438 16.7014 12.5396 16.9542C11.8354 17.2069 11.0861 17.3333 10.2917 17.3333ZM10.2917 15.1667C11.6458 15.1667 12.7971 14.6929 13.7453 13.7453C14.6936 12.7978 15.1674 11.6466 15.1667 10.2917C15.1659 8.93678 14.6922 7.78592 13.7453 6.83908C12.7985 5.89225 11.6473 5.41811 10.2917 5.41667C8.93606 5.41522 7.7852 5.88936 6.83908 6.83908C5.89297 7.78881 5.41883 8.93967 5.41667 10.2917C5.4145 11.6437 5.88864 12.7949 6.83908 13.7453C7.78953 14.6958 8.94039 15.1696 10.2917 15.1667Z"
-                    fill="#EF4444"
-                  />
+                <!-- 검색 돋보기 아이콘 -->
+                <svg width="26" height="26" fill="none">
+                  <use xlink:href="#icon-search" />
                 </svg>
+
                 <input type="text" placeholder="위치를 검색해 보세요" />
               </div>
             </div>
@@ -138,13 +138,14 @@
             ></div>
 
             <!-- 카드 리스트 -->
+            <!-- data-feed-id="${feed.id}" -->
             <div class="card-list">
               <!-- 카드 리스트의 카드는 JS가 동적으로 추가함 -->
-              <div class="card" data-feed-id="${feed.id}">
+              <div class="card" data-feed-id="123" style="cursor: pointer">
                 <div class="card-img-wrap">
                   <img
-                    src="./image/dark.jpg"
-                    alt="어두운 골목길"
+                    src="./image/default.jpg"
+                    alt="피드 이미지"
                     class="card-img"
                   />
                   <!-- 지역구 불러오는 작업을 어떻게 하는지 모르겠어서 일단 건너뜀 -->
@@ -178,7 +179,7 @@
                     <svg width="16" height="16" fill="none">
                       <use xlink:href="#icon-location" />
                     </svg>
-                    <span>수정구 산성대로 100 지하</span>
+                    <span>테스트 주소</span>
                   </div>
                 </div>
               </div>
@@ -195,5 +196,163 @@
     </div>
 
     <script src="community.js"></script>
+
+    <!-- <script>
+      // 뒤로가기 버튼 기능 완료
+      document.querySelector(".header").addEventListener("click", () => {
+        window.history.back();
+      });
+
+      // 1. 더미 데이터 준비 완료
+      const dummyFeeds = [
+        {
+          id: "1",
+          title: "모란역 쓰레기 문제",
+          content: "쓰레기가 쌓여서 냄새가 심해요",
+          type: "MINWON",
+          address: "성남시 중원구 성남대로",
+          lat: 37.4321,
+          lng: 127.1299,
+          kakaoPlaceId: "1234567890",
+          likes: 5,
+          imageUrls: ["./image/crosswalk.jpg"],
+        },
+        {
+          id: "2",
+          title: "청년 문화 공연 안내",
+          content: "이번 주말에 청년밴드 공연이 있어요!",
+          type: "MUNHWA",
+          address: "성남시 수정구 신흥동 문화의 거리",
+          lat: 37.4456,
+          lng: 127.1567,
+          kakaoPlaceId: "2345678901",
+          likes: 10,
+          imageUrls: ["./image/dark.jpg"],
+        },
+        {
+          id: "3",
+          title: "도로 파손 신고",
+          content: "보행로가 꺼져서 위험합니다.",
+          type: "MINWON",
+          address: "성남시 분당구 판교로",
+          lat: 37.3957,
+          lng: 127.1103,
+          kakaoPlaceId: "3456789012",
+          likes: 3,
+          imageUrls: ["./image/drain.jpg"],
+        },
+      ];
+
+      // 2. 카드 렌더링 함수 작성 완료
+      const feedListContainer = document.querySelector(".card-list");
+
+      function renderFeeds(feeds) {
+        if (!feeds.length) {
+          feedListContainer.innerHTML = "<p>피드가 없습니다.</p>";
+          return;
+        }
+        feedListContainer.innerHTML = feeds
+          .map(
+            (feed) => `
+          <div class="card" data-feed-id="${feed.id}" style="cursor: pointer">
+            <div class="card-img-wrap">
+              <img src="${feed.imageUrls}" alt="피드 이미지" class="card-img"/>
+              <span class="card-arrow">
+                <svg width="22" height="22" fill="none">
+                  <use xlink:href="#icon-arrow" />
+                </svg>
+              </span>
+            </div>
+            <div class="card-content">
+              <div class="card-title-row">
+                <div class="card-title">${feed.title}</div>
+                <span class="card-like">
+                  <svg width="19" height="18" fill="none">
+                    <use xlink:href="#icon-like" />
+                  </svg>
+                  <span>0</span>
+                </span>
+                <span class="card-comment">
+                  <svg width="19" height="18" fill="none">
+                    <use xlink:href="#icon-comment" />
+                  </svg>
+                  <span>0</span>
+                </span>
+              </div>
+              <div class="card-desc">
+                <svg width="16" height="16" fill="none">
+                  <use xlink:href="#icon-location" />
+                </svg>
+                <span>${feed.address}</span>
+              </div>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+
+        //  카드 클릭 이벤트. 해당 게시물 상세로 이동. 
+        document.querySelectorAll(".card").forEach((card) => {
+          card.addEventListener("click", () => {
+            const feedId = card.getAttribute("data-feed-id");
+            if (feedId) {
+              window.location.href = `community-detail.html?id=${feedId}`;
+            }
+            console.log("클릭된 피드 ID:", feedId);
+          });
+        });
+      }
+
+      // 전체 / 민원 / 문화 버튼 필터링 기능
+
+      const categoryButtons = document.querySelectorAll(
+        ".community-btns .category-btn"
+      );
+
+      let currentCategory = "ALL"; // 초기값: 전체
+
+      // 3. 초기 전체 렌더링
+      renderFeeds(dummyFeeds);
+
+      // 4. 카테고리 필터 함수 수정 (더미데이터 기반)
+      async function filterFeedsByCategory(category) {
+        let filteredFeeds = [];
+        if (category === "ALL") {
+          filteredFeeds = dummyFeeds;
+        } else {
+          filteredFeeds = dummyFeeds.filter((feed) => feed.type === category);
+        }
+        renderFeeds(filteredFeeds);
+      }
+
+      // 카테고리 버튼 클릭 이벤트 핸들러
+      categoryButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          // 기존 선택된 버튼 active 해제
+          categoryButtons.forEach((b) => b.classList.remove("active"));
+
+          // 클릭한 버튼 active 추가
+          btn.classList.add("active");
+
+          // 버튼 텍스트로 카테고리 결정
+          let selected = btn.textContent.trim().toUpperCase();
+
+          if (selected === "전체".toUpperCase()) {
+            currentCategory = "ALL";
+            console.log("전체 카테고리 선택");
+          } else if (selected === "민원".toUpperCase()) {
+            currentCategory = "MINWON";
+            console.log("민원 카테고리 선택");
+          } else if (selected === "문화".toUpperCase()) {
+            currentCategory = "MUNHWA";
+            console.log("문화 카테고리 선택");
+          } else {
+            currentCategory = "ALL"; // 기본값 fallback
+          }
+
+          filterFeedsByCategory(currentCategory);
+        });
+      });
+    </script> -->
   </body>
 </html>

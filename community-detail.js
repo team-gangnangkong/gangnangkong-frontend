@@ -1,3 +1,23 @@
+/**
+ * 커뮤니티 상세 페이지 주요 기능 정리
+ *
+ * - 상세 피드 데이터 API 호출 및 렌더링
+ * - 댓글 목록 조회, 댓글 작성 기능 (API 연동 포함)
+ * - 피드 공감(좋아요) 버튼 기능 및 API 연동
+ * - 근처 다른 이슈(피드) 목록 조회 및 렌더링
+ * - UI 이벤트 처리: 뒤로가기, 댓글 입력, 공감 버튼 클릭 등
+ * - 더미 데이터 활용: API 오류 시 임시 데이터로 화면 출력 보장
+ * - 카카오 장소 ID(kakaoPlaceId)를 이용한 위치 기반 필터링 구현
+ * - 토큰 쿠키에서 JWT 토큰 추출 함수 포함
+ *
+ * 사용 시:
+ * 페이지 로드 시 query param에서 feedId 얻어와 상세 데이터 호출,
+ * 댓글과 근처 이슈도 동시에 로딩
+ * 사용자 인터랙션에 맞춰 댓글 및 공감 상태 제어
+ *
+ * 참고: fetch API 사용, 비동기 함수 정의 및 await 사용
+ */
+
 /* 근처 다른 이슈 <div class="related-section"> 누르면
   비슷한 지역 필터링된 피드를 보여주는 링크로 이동해야 함
   - **Query Params (선택)**
@@ -6,229 +26,373 @@
   지역구 badge도 이 기능 이용해서 하면 되는지?
 */
 
-// 뒤로가기 버튼 기능
-document.querySelector('.header svg').addEventListener('click', () => {
-  window.history.back();
-});
+//  postComment(feedId, body) 마이데이터에서 users/me/nickname 불러와야 함.
+// 현재 닉네임 author 익명으로 고정
+/* 상태별 조회 시
+```
+GET https://sorimap.it.com/api/feeds/status/{status}
+```
+- **Path Variable → 대문자여야함.**
+    - `status`: `OPEN` (미해결) 기본값| `IN_PROGRESS` (해결중)| `RESOLVED` (해결완료)
+*/
 
-// community 피드에서 보낸 피드 id 가져옴
-// 상세 페이지(community-detail.html)에서 URL 쿼리에서 id 파라미터 추출
-function getQueryParam(param) {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(param);
-}
+/*
+단건 조회 
+GET https://sorimap.it.com/api/feeds/api/feeds/{id}
+*/
 
-const feedId = getQueryParam('id');
+/* 공감 기능 Reaction API
+POST https://sorimap.it.com/api/reactions/like?feedId={피드ID}
 
-// 단건 조회 API
-async function loadFeedDetail(feedId) {
-  try {
-    const response = await fetch(`https://sorimap.it.com/api/feeds/${feedId}`);
-    if (!response.ok) throw new Error('피드 상세 조회 실패');
-    const feed = await response.json();
-    renderFeedDetail(feed); // 화면에 데이터 렌더링 함수 호출
-  } catch (error) {
-    console.error(error);
-    // 적절한 에러 처리 UI
-  }
-}
-
-if (feedId) {
-  loadFeedDetail(feedId);
-}
-
-// 피드 상세 데이터 화면 렌더링
-function renderFeedDetail(feed) {
-  document.querySelector('.post-title').textContent = feed.title;
-  document.querySelector('.post-desc').textContent = feed.content;
-  document.querySelector('.location-bar span').textContent = feed.address;
-  // 이미지, 좋아요 수, 상태, 작성자 등도 추가 렌더링
-  if (feed.imageUrls && feed.imageUrls.length > 0) {
-    const imgElem = document.querySelector('.post-img');
-    imgElem.src = feed.imageUrls[0];
-    imgElem.alt = feed.title;
-  }
-  // 좋아요 수
-  document.querySelector('.like-count').textContent = feed.likes;
-  // 기타 필요 정보 렌더링
-}
-
-// 댓글 조회 API 호출 및 화면 렌더링 연동
-async function fetchComments(feedId) {
-  try {
-    const response = await fetch(
-      `https://sorimap.it.com/api/comments/${feedId}`,
-      {
-        method: 'GET',
-        credentials: 'omit', // 쿠키 없음
-      }
-    );
-    if (!response.ok) throw new Error('댓글 조회 실패');
-    const data = await response.json();
-    comments = data.map((item) => ({
-      author: '익명', // userId 기반 author 이름 필요 시 추가 구현
-      body: item.body,
-      createdAt: item.createdAt,
-    }));
-    renderComments();
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-// 공감 누르기 API 호출 함수
-async function postLike(feedId) {
-  try {
-    const response = await fetch(
-      `https://sorimap.it.com/api/reactions/like?feedId=${feedId}`,
-      {
-        method: 'POST',
-        credentials: 'include', // 쿠키(ACCESS-TOKEN) 포함
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    if (!response.ok) throw new Error('서버 오류');
-    const result = await response.text();
-    return result;
-  } catch (error) {
-    alert(error.message);
-    return null;
-  }
-}
+- **요청 파라미터 (QueryParam)**
+    - `feedId`: 공감할 피드의 ID (예: 1, 2, 3 …)
+- **요청 쿠키 (Cookie)**
+    - `ACCESS-TOKEN`: 로그인 후 발급받은 JWT 토큰
+  reaction 버튼 누를 시, 공감 완료
+  한 번 더 중복으로 누를 시, 이미 공감하였습니다
+*/
 
 document.addEventListener('DOMContentLoaded', () => {
+  // --- 뒤로가기 버튼 ---
+  document.querySelector('.header').addEventListener('click', () => {
+    window.history.back();
+  });
+
+  // --- 토큰 쿠키 ---
+  function getAccessTokenFromCookie() {
+    const cookies = document.cookie.split('; ');
+    for (const c of cookies) {
+      if (c.startsWith('ACCESS-TOKEN=')) {
+        return c.split('=')[1];
+      }
+    }
+    return null;
+  }
+
+  // 상세페이지 내 DOM 요소
   const commentInput = document.querySelector('.comment-input');
   const sendBtn = document.querySelector('.comment-send-btn');
   const sendSvgPath = sendBtn.querySelector('svg path');
   const commentList = document.getElementById('comment-list');
   const noComment = document.getElementById('no-comment');
-  const commentTitle = document.getElementById('comment-title');
   const likeBtn = document.querySelector('.like-btn');
-  const likeCountSpan = document.querySelector('.card-like span'); // 공감 숫자 부분
-  const feedId = 1; // 실제 피드 ID로 교체
-  fetchComments(feedId);
+  const likeCountSpan = document.querySelector('.card-like span');
+  const feedListContainer = document.querySelector('.card-list');
 
-  let comments = []; // 댓글 배열
+  // URL에서 feedId와 kakaoPlaceId 가져오기 (kakaoPlaceId용 변수 추가)
+  const urlParams = new URLSearchParams(window.location.search);
+  const feedId = urlParams.get('id') || '1';
+  let kakaoPlaceId = null; // 상세 피드별 kakaoPlaceId 이후에 세팅 예정
 
-  // 시간 문자열 (몇 분 전)
-  function formatTime(date) {
-    const diff = Math.floor((Date.now() - date.getTime()) / 60000);
-    return diff <= 0 ? '방금 전' : `${diff}분 전`;
+  // 더미 피드
+  const dummyFeeds = [
+    {
+      id: '1',
+      title: '모란역 쓰레기 문제',
+      content: '쓰레기가 쌓여서 냄새가 심해요',
+      type: 'MINWON',
+      address: '성남시 중원구 성남대로',
+      lat: 37.4321,
+      lng: 127.1299,
+      kakaoPlaceId: '1234567890',
+      likes: 5,
+      imageUrls: ['./image/crosswalk.jpg'],
+    },
+    {
+      id: '2',
+      title: '청년 문화 공연 안내',
+      content: '이번 주말에 청년밴드 공연이 있어요!',
+      type: 'MUNHWA',
+      address: '성남시 수정구 신흥동 문화의 거리',
+      lat: 37.4456,
+      lng: 127.1567,
+      kakaoPlaceId: '2345678901',
+      likes: 10,
+      imageUrls: ['./image/dark.jpg'],
+    },
+    {
+      id: '3',
+      title: '도로 파손 신고',
+      content: '보행로가 꺼져서 위험합니다.',
+      type: 'MINWON',
+      address: '성남시 분당구 판교로',
+      lat: 37.3957,
+      lng: 127.1103,
+      kakaoPlaceId: '3456789012',
+      likes: 3,
+      imageUrls: ['./image/drain.jpg'],
+    },
+  ];
+
+  // 더미 댓글
+  let comments = [
+    {
+      author: '익명1',
+      body: '저도 같은 문제 겪었어요!',
+      createdAt: '2025-08-24T10:30:00Z',
+    },
+    {
+      author: '익명2',
+      body: '빠른 해결 부탁드립니다.',
+      createdAt: '2025-08-24T11:45:00Z',
+    },
+    {
+      author: '익명3',
+      body: '감사합니다, 좋은 정보였어요.',
+      createdAt: '2025-08-25T09:15:00Z',
+    },
+  ];
+
+  // --- 상세 피드 렌더링 ---
+  function renderFeedDetail(feed) {
+    document.querySelector('.post-title').textContent = feed.title;
+    document.querySelector('.post-desc').textContent = feed.content;
+    document.querySelector('.location-bar span').textContent = feed.address;
+    if (feed.imageUrls && feed.imageUrls.length > 0) {
+      const imgElem = document.querySelector('.post-img');
+      imgElem.src = feed.imageUrls[0];
+      imgElem.alt = feed.title;
+    }
+    likeCountSpan.textContent = feed.likes || 0;
+    kakaoPlaceId = feed.kakaoPlaceId || null;
   }
 
-  // 댓글 렌더링
-  function renderComments() {
-    if (comments.length === 0) {
+  // --- 댓글 렌더링 ---
+  function renderComments(comments) {
+    if (!comments || comments.length === 0) {
       commentList.style.display = 'none';
       noComment.style.display = 'flex';
-      commentTitle.textContent = '댓글 0';
-    } else {
-      commentList.innerHTML = '';
-      comments.forEach((item) => {
-        const el = document.createElement('div');
-        el.className = 'comment-item';
-        el.innerHTML = `
+      updateCommentCountUI(0);
+      return;
+    }
+    commentList.innerHTML = '';
+    comments.forEach((c) => {
+      const el = document.createElement('div');
+      el.className = 'comment-item';
+      el.innerHTML = `
         <span class="comment-profile-dot"></span>
         <div class="comment-content">
           <div class="comment-top">
-            <span class="comment-author">${item.author}</span>
-            <span class="comment-time">${formatTime(
-              new Date(item.createdAt)
-            )}</span>
+            <span class="comment-author">${c.author}</span>
+            <span class="comment-time">${new Date(
+              c.createdAt
+            ).toLocaleString()}</span>
           </div>
-          <div class="comment-text">${item.body}</div>
-        </div>
-      `;
-        commentList.appendChild(el);
-      });
-      commentList.style.display = 'block';
-      noComment.style.display = 'none';
-      commentTitle.textContent = `댓글 ${comments.length}`;
+          <div class="comment-text">${c.body}</div>
+        </div>`;
+      commentList.appendChild(el);
+    });
+    commentList.style.display = 'block';
+    noComment.style.display = 'none';
+    updateCommentCountUI(comments.length);
+  }
+
+  // 댓글 개수 UI 업데이트
+  function updateCommentCountUI(count) {
+    document
+      .querySelectorAll('.card-comment span')
+      .forEach((e) => (e.textContent = count));
+    const commentTitleSpan = document.querySelector('.comment-title span');
+    if (commentTitleSpan) commentTitleSpan.textContent = count;
+  }
+
+  // 댓글 입력 상태에 따른 전송 버튼 상태 변경
+  function updateSendBtnState() {
+    if (commentInput.value.trim().length > 0) {
+      sendSvgPath.style.fill = '#F87171';
+      sendBtn.style.cursor = 'pointer';
+      sendBtn.disabled = false;
+    } else {
+      sendSvgPath.style.fill = '#9CA3AF';
+      sendBtn.style.cursor = 'default';
+      sendBtn.disabled = true;
     }
   }
 
-  // 댓글 등록 API
+  // 댓글 등록 API 호출
   async function postComment(feedId, body) {
     try {
       const response = await fetch('https://sorimap.it.com/api/comments', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // 쿠키는 자동으로 전송되므로 따로 토큰 헤더는 필요없음 (또는 필요 시 Authorization 헤더 추가)
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ feedId, body }),
-        credentials: 'include', // 쿠키 포함 요청
       });
-
-      if (!response.ok) {
-        throw new Error(`댓글 등록 실패: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data; // 보통 새로 생성된 댓글 데이터 반환 예상
-    } catch (error) {
-      alert(error.message);
+      if (!response.ok) throw new Error('댓글 등록 실패');
+      return await response.json();
+    } catch (e) {
+      alert(e.message);
       return null;
     }
   }
 
-  // 댓글 추가 처리 함수
-  async function addComment() {
-    const val = commentInput.value.trim();
-    if (val.length === 0) return;
-
-    // feedId는 임의로 1로 설정, 실제 구현 시 현재 게시글 ID로 교체
-    const feedId = 1;
-
-    sendBtn.disabled = true; // 중복 클릭 방지
-    const result = await postComment(feedId, val);
-    sendBtn.disabled = false;
-
-    if (result) {
-      // API서 반환된 새 댓글을 comments 배열에 추가하고 화면 갱신
-      comments.push({
-        author: result.author || '을랑이', // 기본 작성자 이름
-        body: result.body || val,
-        createdAt: result.createdAt || new Date().toISOString(),
-      });
-      commentInput.value = '';
-      updateSendBtnState();
-      renderComments();
+  // 댓글 조회 API 호출
+  async function fetchComments(feedId) {
+    try {
+      const response = await fetch(
+        `https://sorimap.it.com/api/comments/${feedId}`,
+        { method: 'GET' }
+      );
+      if (!response.ok) throw new Error('댓글 조회 실패');
+      const data = await response.json();
+      comments = data.map((c) => ({
+        author: '익명',
+        body: c.body,
+        createdAt: c.createdAt,
+      }));
+      renderComments(comments);
+    } catch (e) {
+      console.error(e);
+      renderComments([]);
     }
   }
 
-  // 공감 버튼
+  // --- 피드 상세 API 호출 ---
+  async function loadFeedDetail(feedId) {
+    try {
+      const response = await fetch(
+        `https://sorimap.it.com/api/feeds/${feedId}`
+      );
+      if (!response.ok) throw new Error('피드 상세 조회 실패');
+      const feed = await response.json();
+      renderFeedDetail(feed);
+      fetchComments(feedId);
+      loadNearbyFeeds(feed.kakaoPlaceId, feedId);
+    } catch {
+      // 오류 시 더미 데이터 렌더링
+      const feed =
+        dummyFeeds.find((f) => f.id.toString() === feedId) || dummyFeeds[0];
+      renderFeedDetail(feed);
+      fetchComments(feedId);
+      loadNearbyFeeds(feed.kakaoPlaceId, feedId);
+    }
+  }
+
+  // --- 근처 다른 이슈 로드 (kakaoPlaceId 기반) ---
+  async function loadNearbyFeeds(kakaoPlaceId, currentFeedId) {
+    if (!kakaoPlaceId) return;
+    try {
+      let url = `https://sorimap.it.com/api/feeds?locationId=${kakaoPlaceId}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('근처 피드 조회 실패');
+      let feeds = await response.json();
+
+      // 현재 피드 제외
+      feeds = feeds.filter((f) => f.id.toString() !== currentFeedId.toString());
+
+      renderNearbyFeeds(feeds);
+    } catch {
+      // 오류 시 기본 더미배열 렌더링 (필요시 구현)
+      renderNearbyFeeds(
+        dummyFeeds.filter((f) => f.kakaoPlaceId === kakaoPlaceId)
+      );
+    }
+  }
+
+  // --- 근처 이슈 렌더링 함수 ---
+  function renderNearbyFeeds(feeds) {
+    feedListContainer.innerHTML = '';
+    if (!feeds.length) {
+      feedListContainer.innerHTML = '<p>근처 이슈가 없습니다.</p>';
+      return;
+    }
+    feeds.forEach((feed) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.cursor = 'pointer';
+      const imageUrl =
+        feed.imageUrls && feed.imageUrls.length > 0
+          ? feed.imageUrls[0]
+          : './image/default.jpg';
+      card.innerHTML = `
+        <div class="card-img-wrap">
+          <img src="${imageUrl}" alt="피드 이미지" class="card-img" />
+          <span class="card-arrow">
+            <svg width="22" height="22" fill="none">
+              <use xlink:href="#icon-arrow"></use>
+            </svg>
+          </span>
+        </div>
+        <div class="card-content">
+          <div class="card-title-row">
+            <div class="card-title">${feed.title}</div>
+            <span class="card-like">
+              <svg width="19" height="18" fill="none">
+                <use xlink:href="#icon-like"></use>
+              </svg>
+              <span>${feed.likes}</span>
+            </span>
+          </div>
+          <div class="card-desc">
+            <svg width="16" height="16" fill="none">
+              <use xlink:href="#icon-location"></use>
+            </svg>
+            <span>${feed.address}</span>
+          </div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        window.location.href = `community-detail.html?id=${feed.id}`;
+      });
+      feedListContainer.appendChild(card);
+    });
+  }
+
+  // --- 공감 버튼 이벤트 처리 ---
   likeBtn.addEventListener('click', async () => {
     likeBtn.disabled = true;
-    const resultMsg = await postLike(feedId);
-    likeBtn.disabled = false;
-    if (resultMsg) {
-      alert(resultMsg); // "공감 완료" 또는 "이미 공감하셨습니다."
+    try {
+      const response = await fetch(
+        `https://sorimap.it.com/api/reactions/like?feedId=${feedId}`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+      if (!response.ok) throw new Error('공감 처리 실패');
 
-      // "공감 완료"일 때만 카운트 증가
-      if (resultMsg.includes('공감 완료')) {
+      const text = await response.text();
+      alert(text);
+
+      if (text.includes('공감 완료')) {
         let count = parseInt(likeCountSpan.textContent, 10) || 0;
         likeCountSpan.textContent = count + 1;
       }
-      // 중복 공감 시(이미 공감하셨습니다.) 카운트 변화 없음
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      likeBtn.disabled = false;
     }
   });
 
-  // 버튼 SVG 색 및 커서 상태 갱신
-  // 이거 지금 안 됨
+  // --- 댓글 전송 버튼 및 입력 상태 처리 ---
   function updateSendBtnState() {
     if (commentInput.value.trim().length > 0) {
-      sendSvgPath.setAttribute('fill', '#F87171');
+      sendSvgPath.style.fill = '#F87171';
       sendBtn.style.cursor = 'pointer';
+      sendBtn.disabled = false;
     } else {
-      sendSvgPath.setAttribute('fill', '#9CA3AF');
+      sendSvgPath.style.fill = '#9CA3AF';
       sendBtn.style.cursor = 'default';
+      sendBtn.disabled = true;
     }
   }
 
-  // 이벤트 바인딩
+  async function addComment() {
+    const val = commentInput.value.trim();
+    if (val.length === 0) return;
+    sendBtn.disabled = true;
+    const result = await postComment(feedId, val);
+    if (result) {
+      comments.push(result);
+      renderComments(comments);
+      commentInput.value = '';
+      updateSendBtnState();
+    }
+    sendBtn.disabled = false;
+  }
+
   sendBtn.addEventListener('click', addComment);
   commentInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -238,88 +402,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   commentInput.addEventListener('input', updateSendBtnState);
 
-  // 초기 렌더 및 상태 적용
-  renderComments();
-  updateSendBtnState();
-});
-
-// 근처 다른 이슈 피드 조회 용도
-// community.js 내용 그대로 옮김
-const feedListContainer = document.querySelector('.card-list');
-
-/**
- * 피드 데이터를 받아서 카드 리스트에 렌더링
- * @param {Array} feeds - 피드 배열
- */
-function renderFeeds(feeds) {
-  feedListContainer.innerHTML = ''; // 초기화
-
-  feeds.forEach((feed) => {
-    const card = document.createElement('div');
-    card.className = 'card';
-
-    const imageUrl =
-      feed.imageUrls && feed.imageUrls.length > 0
-        ? feed.imageUrls[0]
-        : './image/default.jpg';
-
-    // 지역구 불러오는 걸 어떻게 작업하는지 모르겠어서 일단 건너뜀
-    // <span class="badge">${feed.badge}</span>
-    card.innerHTML = `
-  <div class="card-img-wrap">
-    <img src="${feed.imageUrl}" class="card-img" alt="피드 이미지" />
-    <span class="card-arrow">
-      <svg width="22" height="22" fill="none">
-        <use xlink:href="#icon-arrow"></use>
-      </svg>
-    </span>
-  </div>
-  <div class="card-content">
-    <div class="card-title-row">
-      <div class="card-title">${feed.title}</div>
-      <span class="card-like">
-        <svg width="19" height="18" fill="none">
-          <use xlink:href="#icon-like"></use>
-        </svg>
-        <span>${feed.likes}</span>
-      </span>
-    </div>
-    <div class="card-desc">
-      <svg width="16" height="16" fill="none">
-        <use xlink:href="#icon-location"></use>
-      </svg>
-      <span>${feed.address}</span>
-    </div>
-    <div class="card-preview">
-      ${feed.content}
-    </div>
-  </div>
-`;
-
-    feedListContainer.appendChild(card);
-  });
-}
-
-/**
- * 전체 피드 조회 API 호출 후 렌더링
- * @param {number|null} kakaoPlaceId - kakaoPlaceId 필터링 값 (없으면 null)
- */
-async function loadFeeds(kakaoPlaceId = null) {
-  try {
-    let url = 'https://sorimap.it.com/api/feeds';
-
-    if (kakaoPlaceId) {
-      url += `?kakaoPlaceId=${kakaoPlaceId}`;
-    }
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('전체 피드 조회 실패: ' + response.status);
-    }
-    const feeds = await response.json();
-    renderFeeds(feeds);
-  } catch (error) {
-    console.error('피드 불러오기 에러:', error);
-    feedListContainer.innerHTML =
-      '<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>';
+  // --- 초기 데이터 로드 ---
+  if (feedId) {
+    loadFeedDetail(feedId);
+  } else {
+    // feedId 없으면 예외처리: 더미 첫 피드 렌더링
+    renderFeedDetail(dummyFeeds[0]);
+    fetchComments(dummyFeeds[0].id);
+    loadNearbyFeeds(dummyFeeds[0].kakaoPlaceId, dummyFeeds[0].id);
   }
-}
+});
