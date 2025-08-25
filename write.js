@@ -219,6 +219,8 @@ writeForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!isFormValid()) return;
 
+  submitBtn.disabled = true;
+
   const feedData = {
     title: writeForm.title.value.trim(),
     content: writeForm.content.value.trim(),
@@ -226,6 +228,7 @@ writeForm.addEventListener('submit', async (e) => {
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
+    kakaoPlaceId: Number(writeForm.kakaoPlaceId?.value?.trim() || 0),
   };
   delete feedData.locationId;
 
@@ -242,9 +245,14 @@ writeForm.addEventListener('submit', async (e) => {
     // 🔁 멀티파트 한 방에 전송 (이미지 없으면 images 파트 없이 전송됨)
     const created = await createFeedMultipart(feedData, selectedImages);
     alert('피드가 성공적으로 작성되었습니다!');
+    location.replace('/home.html');
     console.log('작성 완료된 피드:', created);
   } catch (err) {
     alert('피드 작성 중 오류: ' + err.message);
+    _isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('is-disabled');
+    submitBtn.textContent = prevTxt;
   }
 });
 
