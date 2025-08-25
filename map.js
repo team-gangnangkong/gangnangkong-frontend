@@ -1223,11 +1223,45 @@ async function init() {
       .join('');
 
     enrichCategories(sorted);
+    ensureItemBodies(sorted, isPos);
     panelEl.hidden = false;
     appEl?.classList.add('panel-open');
     updatePanelMax();
     setPanelHeight('half');
     setHoverAllowed(true);
+  }
+
+  async function ensureItemBodies(items, isPos) {
+    // 본문이 비어 있고 id가 있는 카드들만 대상
+    const needs = items.filter((it) => {
+      const t = ((it.review || it.content || it.snippet || '') + '').trim();
+      return it.id && !t;
+    });
+    if (!needs.length) return;
+
+    const results = await Promise.allSettled(
+      needs.map((it) => api(ENDPOINTS.feedDetail(it.id)))
+    );
+
+    results.forEach((r, i) => {
+      if (r.status !== 'fulfilled' || !r.value) return;
+      const detail = normalizeItem(r.value);
+      const it = needs[i];
+
+      // 메모리 보강
+      it.review = it.review || detail.review || detail.content || '';
+      it.content = it.content || detail.content || detail.review || '';
+
+      // DOM 보강
+      const card = findCardByLatLng(it.lat, it.lng);
+      if (!card) return;
+      const selector = isPos ? '.cp-bubble-text' : '.cp-complaint-text';
+      const el = card.querySelector(selector);
+      const txt = (
+        isPos ? it.review || it.content : it.content || it.review || ''
+      ).trim();
+      if (el && txt) el.textContent = txt;
+    });
   }
 
   function openLastPanel(fallbackType = 'neg') {

@@ -84,7 +84,7 @@ function setMunhwaSentimentColor(sentiment) {
 const titleInput = writeForm.querySelector('input[name="title"]');
 const locationInput = writeForm.querySelector('input[name="address"]');
 const contentInput = writeForm.querySelector(
-  'textarea[name="content"], #contentInput'
+  'textarea[name="content"], textarea#contentInput, textarea#content, #content, textarea[name="review"]'
 );
 const photoInput = writeForm.querySelector('input[type="file"]');
 
