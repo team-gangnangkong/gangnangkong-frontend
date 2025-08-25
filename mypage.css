@@ -253,7 +253,8 @@ body {
 
 /* 바깥 */
 .viewport {
-  min-height: 100dvh;
+  min-height: 0; /* 추가 */
+  height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -267,11 +268,12 @@ body {
   background: var(--bg-soft) !important;
   border-radius: 18px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+
   display: flex;
   flex-direction: column;
   position: relative;
-  min-height: 100dvh;
+  height: 100dvh; /* 고정 높이로 내부 스크롤 공간 확보 */
+  min-height: 0;
 }
 
 @media (max-width: 600px) {
@@ -287,6 +289,7 @@ body {
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   background: var(--bg-soft);
   padding-bottom: var(--nav-h);
 }
