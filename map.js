@@ -15,6 +15,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ==== API 기본 설정 ====
 const API_BASE = 'https://sorimap.it.com'; // 배포 시 교체
+const eq6 = (a, b) => Math.abs(+a - +b) < 1e-6;
 
 const ENDPOINTS = {
   // 지도 클러스터 (줌아웃 시)
@@ -499,11 +500,12 @@ async function init() {
     el.addEventListener('touchcancel', clearTouchHover);
 
     // 클릭시 토글 + 패널 열기
+    // 클릭시 토글 + 패널 열기
     el.addEventListener('click', (e) => {
       e.preventDefault();
       const turnedOn = setStickyMoodPin(el, key);
 
-      // 토글 OFF면 패널/그림자도 함께 닫고 종료
+      // 토글 OFF면 강조만 해제
       if (!turnedOn) {
         try {
           const card = findCardByLatLng(latKey, lngKey);
@@ -512,10 +514,19 @@ async function init() {
         return;
       }
 
-      // ON일 때만 패널 열기 + 카드 위로
-      const itemsOfType = POINTS.filter((it) => it.type === p.type);
-      openClusterPanel(itemsOfType, p.type);
-      requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+      // ✅ 클릭한 좌표와 타입이 정확히 같은 '그 글' 1건만 패널로
+      const theOne = POINTS.find(
+        (it) => it.type === p.type && eq6(it.lat, latKey) && eq6(it.lng, lngKey)
+      );
+
+      if (theOne) {
+        openClusterPanel([theOne], p.type); // 한 장만 렌더
+      } else {
+        // 혹시 못 찾으면 (안전장치) 기존 동작 유지
+        const itemsOfType = POINTS.filter((it) => it.type === p.type);
+        openClusterPanel(itemsOfType, p.type);
+        requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+      }
     });
 
     const ov = new kakao.maps.CustomOverlay({
@@ -1356,13 +1367,10 @@ async function init() {
           size,
           3000,
           () => {
+            // ✅ 패널은 열지 않는다. 확대만!
             map.setCenter(pos);
             map.setLevel(Math.max(4, CLUSTER_LEVEL_THRESHOLD - 1));
-            const once = () => {
-              kakao.maps.event.removeListener(map, 'idle', once);
-              openPanelForType(c.type);
-            };
-            kakao.maps.event.addListener(map, 'idle', once);
+            // idle 시 자동으로 pins가 렌더됨(renderClustersOrPins가 알아서 호출)
           }
         );
 

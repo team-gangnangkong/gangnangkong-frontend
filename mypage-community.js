@@ -3,32 +3,44 @@
   let _allFeeds = [];
 
   // ---- 타입 정규화 ('civil' | 'culture') ----
+  // ---- 타입 정규화 ('civil' | 'culture') ----
   function normalizeFeedType(feed) {
+    // 서버에서 올 수 있는 다양한 키를 최대한 수용
     const raw = (
       feed?.type ??
       feed?.feedType ??
       feed?.category ??
-      feed?.categoryType ??
       feed?.kind ??
       feed?.sentiment ??
-      feed?.tag ??
       ''
     )
       .toString()
       .trim()
       .toUpperCase();
 
-    if (['MINWON', 'CIVIL', 'NEG', 'NEGATIVE', '민원'].includes(raw))
+    // 가장 확실: 작성시 저장한 type
+    if (
+      raw === 'MINWON' ||
+      raw === 'CIVIL' ||
+      raw === 'NEG' ||
+      raw === 'NEGATIVE'
+    )
       return 'civil';
-    if (['MUNHWA', 'CULTURE', 'POS', 'POSITIVE', '문화'].includes(raw))
+    if (
+      raw === 'MUNHWA' ||
+      raw === 'CULTURE' ||
+      raw === 'POS' ||
+      raw === 'POSITIVE'
+    )
       return 'culture';
 
-    // 제목/태그에서 한 번 더 추론 (옵션)
+    // 혹시 title 등에 '민원/문화' 단어가 포함된 경우의 보정(옵션)
     const t = (feed?.title ?? '').toString();
     if (/민원/.test(t)) return 'civil';
     if (/문화/.test(t)) return 'culture';
 
-    return null; // 모르면 null
+    // 모르겠으면 null (전체 탭에서는 보이고, 민원/문화 탭에서는 제외)
+    return null;
   }
 
   const absolutize = (u) => {
@@ -68,12 +80,16 @@
   async function fetchMyFeeds() {
     const list = await apiGet('/api/feeds/my');
     _allFeeds = (Array.isArray(list) ? list : []).map((f) => {
-      // 1차: 서버/추론 정규화
-      let t = normalizeFeedType(f); // 'civil' | 'culture' | null
-      // 2차: 여전히 없으면 로컬 저장값으로 보강
+      let t = normalizeFeedType(f);
       if (!t) t = typeFromLocal(f.feedId);
       return { ...f, _type: t };
     });
+
+    // 디버깅(임시): 실제 _type이 어떻게 들어왔는지 확인
+    console.table(
+      _allFeeds.map(({ feedId, title, _type }) => ({ feedId, title, _type }))
+    );
+
     renderFiltered();
   }
 
@@ -229,15 +245,17 @@
     );
   }
 
-  // 로컬에 저장된 타입(MINWON/MUNHWA) → civil/culture로 매핑
   function typeFromLocal(feedId) {
     try {
       const map = JSON.parse(localStorage.getItem('myFeedTypeMap') || '{}');
       const raw = map[String(feedId)];
       if (!raw) return null;
-      const up = String(raw).toUpperCase();
-      if (up === 'MINWON') return 'civil';
-      if (up === 'MUNHWA') return 'culture';
+      const up = String(raw).trim().toUpperCase();
+
+      if (['MINWON', 'CIVIL', 'NEG', 'NEGATIVE', '민원'].includes(up))
+        return 'civil';
+      if (['MUNHWA', 'CULTURE', 'POS', 'POSITIVE', '문화'].includes(up))
+        return 'culture';
       return null;
     } catch {
       return null;
