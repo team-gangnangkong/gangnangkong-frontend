@@ -2,6 +2,46 @@
   const API_BASE = 'https://sorimap.it.com';
   let _allFeeds = [];
 
+  // ---- 타입 정규화 ('civil' | 'culture') ----
+  function normalizeFeedType(feed) {
+    // 서버에서 올 수 있는 다양한 키를 최대한 수용
+    const raw = (
+      feed?.type ??
+      feed?.feedType ??
+      feed?.category ??
+      feed?.kind ??
+      feed?.sentiment ??
+      ''
+    )
+      .toString()
+      .trim()
+      .toUpperCase();
+
+    // 가장 확실: 작성시 저장한 type
+    if (
+      raw === 'MINWON' ||
+      raw === 'CIVIL' ||
+      raw === 'NEG' ||
+      raw === 'NEGATIVE'
+    )
+      return 'civil';
+    if (
+      raw === 'MUNHWA' ||
+      raw === 'CULTURE' ||
+      raw === 'POS' ||
+      raw === 'POSITIVE'
+    )
+      return 'culture';
+
+    // 혹시 title 등에 '민원/문화' 단어가 포함된 경우의 보정(옵션)
+    const t = (feed?.title ?? '').toString();
+    if (/민원/.test(t)) return 'civil';
+    if (/문화/.test(t)) return 'culture';
+
+    // 모르겠으면 null (전체 탭에서는 보이고, 민원/문화 탭에서는 제외)
+    return null;
+  }
+
   const absolutize = (u) => {
     if (!u) return u;
     if (u.startsWith('//')) return 'https:' + u;
@@ -38,8 +78,11 @@
   // 내 피드 목록 불러오기
   async function fetchMyFeeds() {
     const list = await apiGet('/api/feeds/my');
-    _allFeeds = Array.isArray(list) ? list : [];
-    renderFeedList(_allFeeds);
+    _allFeeds = (Array.isArray(list) ? list : []).map((f) => ({
+      ...f,
+      _type: normalizeFeedType(f), // 'civil' | 'culture' | null
+    }));
+    renderFiltered();
   }
 
   // 리스트 렌더
@@ -63,6 +106,36 @@
         location.href = `feed-detail.html?feedId=${encodeURIComponent(id)}`;
       });
     });
+  }
+
+  function getActiveChipType() {
+    return (
+      document.querySelector('.category-btn.active')?.dataset.type || 'all'
+    ); // 'all' | 'civil' | 'culture'
+  }
+
+  function getSearchQuery() {
+    return (
+      document.querySelector('.search-bar input')?.value.trim().toLowerCase() ||
+      ''
+    );
+  }
+
+  function renderFiltered() {
+    const chip = getActiveChipType(); // 탭 상태
+    const q = getSearchQuery(); // 검색어
+
+    const filtered = _allFeeds.filter((f) => {
+      const okType = chip === 'all' || f._type === chip;
+      if (!okType) return false;
+
+      if (!q) return true;
+      const title = (f.title || '').toLowerCase();
+      const loc = (f.location || '').toLowerCase();
+      return title.includes(q) || loc.includes(q);
+    });
+
+    renderFeedList(filtered);
   }
 
   // 카드 한 개 HTML
@@ -168,15 +241,7 @@
   function bindSearch() {
     const input = document.querySelector('.search-bar input');
     if (!input) return;
-    input.addEventListener('input', () => {
-      const q = input.value.trim().toLowerCase();
-      const filtered = _allFeeds.filter(
-        (f) =>
-          (f.title || '').toLowerCase().includes(q) ||
-          (f.location || '').toLowerCase().includes(q)
-      );
-      renderFeedList(filtered);
-    });
+    input.addEventListener('input', renderFiltered);
   }
 
   // 카테고리 칩 토글(필요하면 서버 category 필드로 필터링 추가)
@@ -188,12 +253,7 @@
           .forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
 
-        const type = btn.dataset.type || 'all';
-        // 백엔드에서 category/type 제공 시 아래 사용:
-        // const filtered = type === 'all' ? _allFeeds : _allFeeds.filter(f => (f.category || f.type) === type);
-        // renderFeedList(filtered);
-        // 현재는 서버 필드가 없으니 전체 유지
-        renderFeedList(_allFeeds);
+        renderFiltered();
       });
     });
   }

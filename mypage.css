@@ -142,6 +142,7 @@ body {
   padding-right: 4px; /* 살짝 여유 */
   color: #f87171;
   z-index: auto;
+  font-weight: 500;
   pointer-events: auto; /* 이제 겹치지 않으니 클릭 가능하게 */
 }
 
