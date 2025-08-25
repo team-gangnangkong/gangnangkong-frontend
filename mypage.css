@@ -129,16 +129,28 @@ body {
   height: 18px;
   display: block;
 }
+/* 이미지 아래, 카드 안에서 줄 맞춰 표시 */
 .request-actions {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
+  position: static; /* ← absolute 없애기 */
+  right: auto;
+  bottom: auto;
   display: flex;
   gap: 12px;
   align-items: center;
-  color: #f87171; /* ← 원하는 색 */
-  z-index: 2;
-  pointer-events: none; /* 카드 클릭 방해 안 하게 (필요 시 제거) */
+  justify-content: flex-end; /* 오른쪽 정렬 */
+  margin-top: 8px; /* 이미지와 간격 */
+  padding-right: 4px; /* 살짝 여유 */
+  color: #f87171;
+  z-index: auto;
+  pointer-events: auto; /* 이제 겹치지 않으니 클릭 가능하게 */
+}
+
+/* 버튼만 깔끔하게 */
+.request-actions .action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
 }
 
 .request-list {
