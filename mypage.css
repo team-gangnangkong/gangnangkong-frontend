@@ -109,6 +109,37 @@ body {
   margin-top: 6px;
   text-decoration: none;
 }
+.request-image-wrap {
+  position: relative;
+  border-radius: 13px;
+  overflow: hidden; /* 모서리 안쪽으로 잘리게 */
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.request-actions .action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); /* 가독성 살짝 */
+}
+
+.request-actions .action svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+.request-actions {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #f87171; /* ← 원하는 색 */
+  z-index: 2;
+  pointer-events: none; /* 카드 클릭 방해 안 하게 (필요 시 제거) */
+}
 .request-list {
   margin: 0 0 0 0;
   padding: 0 18px 0 18px;

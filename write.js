@@ -75,6 +75,9 @@ function setMunhwaSentimentColor(sentiment) {
 // === form 유효성 검사/상태제어 ===
 const titleInput = writeForm.querySelector('input[name="title"]');
 const locationInput = writeForm.querySelector('input[name="address"]');
+const contentInput = writeForm.querySelector(
+  'textarea[name="content"], #contentInput'
+);
 const photoInput = writeForm.querySelector('input[type="file"]');
 
 const photoUploadBox = document.querySelector('.photo-upload'); //사진 업로드 미리보기
@@ -222,8 +225,8 @@ writeForm.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
 
   const feedData = {
-    title: writeForm.title.value.trim(),
-    content: writeForm.content.value.trim(),
+    title: titleInput?.value.trim() || '',
+    content: contentInput?.value.trim() || '',
     type: selectedType, // "MINWON" | "MUNHWA"
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,

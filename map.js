@@ -243,7 +243,10 @@ async function init() {
         lat: +c.lat,
         lng: +c.lng,
         count: c.count ?? 0,
-        type: sentiToType(c.sentiment),
+        type:
+          sentiToType(c.sentiment) ||
+          (c.type === 'MUNHWA' ? 'pos' : c.type === 'MINWON' ? 'neg' : null) ||
+          'neg',
       }));
     } catch (e) {
       console.warn('clusters fail', e);
@@ -417,7 +420,8 @@ async function init() {
 
   function makeMoodOverlay(p) {
     const el = document.createElement('div');
-    el.className = `mood-pin ${p.type}`;
+    const safeType = type === 'pos' || type === 'neg' ? type : 'neg';
+    el.className = `cluster-bubble ${safeType}`;
     el.innerHTML = `<img src="${p.type === 'pos' ? POS_URL : NEG_URL}" alt="${
       p.type
     }">`;
@@ -2149,21 +2153,22 @@ async function init() {
       }
 
       try {
-  if (window.opener && !window.opener.closed) {
-    // onPlaceSelected가 있으면 그거 우선, 없으면 setLocation만이라도
-    const send = window.opener.onPlaceSelected || window.opener.setLocation;
-    if (typeof send === 'function') {
-      // address, lat, lng, kakaoPlaceId 모두 전달
-      send(
-        _selectedPlace.addr,
-        _selectedPlace.lat,
-        _selectedPlace.lng,
-        _selectedPlace.kakaoPlaceId
-      );
-   }
-    window.close(); // 팝업이라면 닫기
-  }
-} catch (_) {}
+        if (window.opener && !window.opener.closed) {
+          // onPlaceSelected가 있으면 그거 우선, 없으면 setLocation만이라도
+          const send =
+            window.opener.onPlaceSelected || window.opener.setLocation;
+          if (typeof send === 'function') {
+            // address, lat, lng, kakaoPlaceId 모두 전달
+            send(
+              _selectedPlace.addr,
+              _selectedPlace.lat,
+              _selectedPlace.lng,
+              _selectedPlace.kakaoPlaceId
+            );
+          }
+          window.close(); // 팝업이라면 닫기
+        }
+      } catch (_) {}
 
       const sheet = document.getElementById('placeSheet');
       const inputFull = document.getElementById('searchFull');

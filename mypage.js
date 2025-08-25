@@ -58,6 +58,42 @@ window.addEventListener('unhandledrejection', (e) =>
       u
     );
 
+  // ---- content helpers ----
+  function stripTags(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  }
+  function getFeedContent(feed) {
+    const raw =
+      feed?.content ??
+      feed?.contents ??
+      feed?.text ??
+      feed?.body ??
+      feed?.description ??
+      (typeof feed?.contentHtml === 'string'
+        ? stripTags(feed.contentHtml)
+        : '');
+    return typeof raw === 'string' ? raw : '';
+  }
+  function esc(s) {
+    return String(s).replace(
+      /[&<>"']/g,
+      (m) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        }[m])
+    );
+  }
+  function snippet(s, n = 120) {
+    const t = String(s).trim().replace(/\s+/g, ' ');
+    return t.length > n ? t.slice(0, n) + '…' : t;
+  }
+
   let _isLoggingOut = false;
   const api = (p) => `${API_BASE}${p}`;
   const isJson = (res) =>
@@ -244,64 +280,45 @@ window.addEventListener('unhandledrejection', (e) =>
       .map((feed) => {
         const statusClass = 'status-not';
         const statusText = '미해결';
-
-        // ✅ 여기!
         const imgSrc = firstImageUrl(feed) || './image/default.jpg';
-        const img = imgSrc
-          ? `<img src="${imgSrc}" alt="${
-              feed.title ?? ''
-            }" class="request-img" />`
-          : '';
-
-        // address 필드명 혼용 대비
         const placeText = feed.address ?? feed.location ?? '';
 
         return `
-        <div class="request-card" data-feed-id="${feed.feedId}">
-          <div class="request-title-row">
-            <div class="request-title">${feed.title ?? ''}</div>
-            <span class="tag-status ${statusClass}">${statusText}</span>
+      <div class="request-card" data-feed-id="${feed.feedId}">
+        <div class="request-title-row">
+          <div class="request-title">${feed.title ?? ''}</div>
+          <span class="tag-status ${statusClass}">${statusText}</span>
+        </div>
+
+        <div class="request-desc">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" aria-hidden="true">
+            <path d="M12.24 3.09c1.1 1.1 1.73 2.59 1.76 4.14.02 1.56-.56 3.06-1.62 4.2l-.14.14-2.82 2.83c-.36.35-.85.56-1.36.57-.51.02-1-.17-1.37-.5l-.1-.1-2.83-2.83C2.63 10.45 2 8.92 2 7.33c0-1.59.63-3.12 1.76-4.24A6.05 6.05 0 0 1 8 1.33a6.05 6.05 0 0 1 4.24 1.76zM8 5.33c-.26 0-.52.05-.77.16-.24.1-.46.27-.63.44-.18.18-.33.38-.43.62-.11.23-.17.48-.17.73s.06.5.17.73c.1.24.25.44.43.62.17.17.39.34.63.44.25.11.5.16.77.16.53 0 1.04-.21 1.41-.58.36-.37.58-.88.58-1.41 0-.53-.22-1.03-.58-1.41A1.95 1.95 0 0 0 8 5.33z" fill="#9CA3AF"/>
+          </svg>
+          ${placeText}
+        </div>
+
+        <div class="request-image-wrap">
+          <img src="${imgSrc}" alt="${feed.title ?? ''}" class="request-img" />
+          <div class="request-actions">
+            <span class="action card-like">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M9 11v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+                <path d="M9 11l4.2-7.2a2 2 0 0 1 3.7.9v5.3h3a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 1.5H9V11Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+              </svg>
+              <span>${feed.likeCount ?? 0}</span>
+            </span>
+            <span class="action card-comment">
+              <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+                <path d="M12 3c5 0 9 3.7 9 8.2S17 19.5 12 19.5c-1.4 0-2.8-.3-4.1-.8L4 20l.8-3.1C4 15.4 3 13.9 3 11.2 3 6.7 7 3 12 3Z"
+                      fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <line x1="7.5" y1="10" x2="16.5" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="7.5" y1="13" x2="14.5" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <span>${feed.commentCount ?? 0}</span>
+            </span>
           </div>
-          <div class="request-desc">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" aria-hidden="true">
-              <path d="M12.24 3.09c1.1 1.1 1.73 2.59 1.76 4.14.02 1.56-.56 3.06-1.62 4.2l-.14.14-2.82 2.83c-.36.35-.85.56-1.36.57-.51.02-1-.17-1.37-.5l-.1-.1-2.83-2.83C2.63 10.45 2 8.92 2 7.33c0-1.59.63-3.12 1.76-4.24A6.05 6.05 0 0 1 8 1.33a6.05 6.05 0 0 1 4.24 1.76zM8 5.33c-.26 0-.52.05-.77.16-.24.1-.46.27-.63.44-.18.18-.33.38-.43.62-.11.23-.17.48-.17.73s.06.5.17.73c.1.24.25.44.43.62.17.17.39.34.63.44.25.11.5.16.77.16.53 0 1.04-.21 1.41-.58.36-.37.58-.88.58-1.41 0-.53-.22-1.03-.58-1.41A1.95 1.95 0 0 0 8 5.33z" fill="#9CA3AF"/>
-            </svg>
-            ${placeText}
-          </div>
-          ${img}
-          <span class="card-like">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-    <!-- 손바닥 부분(안쪽 사각형) -->
-    <path
-      d="M9 11v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Z"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linejoin="round"
-      stroke-linecap="round"
-    />
-    <!-- 엄지/바깥 라인 -->
-    <path
-      d="M9 11l4.2-7.2a2 2 0 0 1 3.7.9v5.3h3a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 1.5H9V11Z"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linejoin="round"
-      stroke-linecap="round"
-    />
-  </svg>
-            <span>${feed.likeCount ?? 0}</span>
-          </span>
-          <span class="card-comment">
-            <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
-          <path d="M12 3c5 0 9 3.7 9 8.2S17 19.5 12 19.5c-1.4 0-2.8-.3-4.1-.8L4 20l.8-3.1C4 15.4 3 13.9 3 11.2 3 6.7 7 3 12 3Z"
-                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-          <line x1="7.5" y1="10" x2="16.5" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="7.5" y1="13" x2="14.5" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-            <span>${feed.commentCount ?? 0}</span>
-          </span>
-        </div>`;
+        </div>
+      </div>`;
       })
       .join('');
   }
