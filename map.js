@@ -16,6 +16,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ==== API 기본 설정 ====
 const API_BASE = 'https://sorimap.it.com'; // 배포 시 교체
 const eq6 = (a, b) => Math.abs(+a - +b) < 1e-6;
+const PIN_ZOOM_LEVEL = 3;
 
 const ENDPOINTS = {
   // 지도 클러스터 (줌아웃 시)
@@ -697,9 +698,13 @@ async function init() {
           : allItems.length
       ) {
         map.setBounds(bounds, 80, 80, 80, 80);
+        kakao.maps.event.addListener(map, 'idle', function once() {
+          kakao.maps.event.removeListener(map, 'idle', once);
+          map.setLevel(PIN_ZOOM_LEVEL); // ← bounds 맞춘 뒤 4로 고정
+        });
       } else {
         map.setCenter(posLatLng ?? new kakao.maps.LatLng(c.lat, c.lng));
-        map.setLevel(2);
+        map.setLevel(PIN_ZOOM_LEVEL); // ← 고정 4
       }
 
       openClusterPanel(itemsOfType, type);
@@ -1383,10 +1388,8 @@ async function init() {
           size,
           3000,
           () => {
-            // ✅ 패널은 열지 않는다. 확대만!
             map.setCenter(pos);
-            map.setLevel(Math.max(4, CLUSTER_LEVEL_THRESHOLD - 1));
-            // idle 시 자동으로 pins가 렌더됨(renderClustersOrPins가 알아서 호출)
+            map.setLevel(PIN_ZOOM_LEVEL); // ← 고정 4
           }
         );
 
