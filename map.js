@@ -139,7 +139,7 @@ async function recordSelectedPlace({ id, kakaoPlaceId, name, addr, lat, lng }) {
 }
 
 // ===== 공통 변환/유틸 =====
-const CLUSTER_LEVEL_THRESHOLD = 7;
+const CLUSTER_LEVEL_THRESHOLD = 6;
 const SENTI = { POS: 'POSITIVE', NEG: 'NEGATIVE', NEU: 'NEUTRAL' };
 
 const typeToSenti = (t) => (t === 'neg' ? SENTI.NEG : SENTI.POS);
@@ -272,6 +272,30 @@ async function init() {
   // 서버 데이터
   let POINTS = []; // 줌-인 시 개별 핀들
   let SV_CLUSTERS = []; // 줌-아웃 시 서버 클러스터들
+
+  let _lastClusterArea = null; // { items?: Array, bounds?: kakao.maps.LatLngBounds }
+
+  function boundsFromPixelRadius(centerLatLng, radiusPx = 80) {
+    const proj = map.getProjection();
+    const pt = proj.containerPointFromCoords(centerLatLng);
+    const sw = proj.coordsFromContainerPoint(
+      new kakao.maps.Point(pt.x - radiusPx, pt.y + radiusPx)
+    );
+    const ne = proj.coordsFromContainerPoint(
+      new kakao.maps.Point(pt.x + radiusPx, pt.y - radiusPx)
+    );
+    return new kakao.maps.LatLngBounds(sw, ne);
+  }
+  function inBounds(bounds, lat, lng) {
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    return (
+      lat >= sw.getLat() &&
+      lat <= ne.getLat() &&
+      lng >= sw.getLng() &&
+      lng <= ne.getLng()
+    );
+  }
 
   let _fetchingPins = false;
   let _fetchingClusters = false;
@@ -533,14 +557,31 @@ async function init() {
       }
 
       // ✅ 클릭한 좌표와 타입이 정확히 같은 '그 글' 1건만 패널로
+      if (_lastClusterArea) {
+        let group = [];
+        if (_lastClusterArea.items) {
+          group = _lastClusterArea.items.filter((it) => it.type === p.type);
+        } else if (_lastClusterArea.bounds) {
+          group = POINTS.filter(
+            (it) =>
+              it.type === p.type &&
+              inBounds(_lastClusterArea.bounds, it.lat, it.lng)
+          );
+        }
+        if (group.length) {
+          openClusterPanel(group, p.type);
+          requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+          return;
+        }
+      }
+
+      // 컨텍스트가 없거나 빈 경우엔 클릭한 그 글만 (기존 안전장치)
       const theOne = POINTS.find(
         (it) => it.type === p.type && eq6(it.lat, latKey) && eq6(it.lng, lngKey)
       );
-
       if (theOne) {
-        openClusterPanel([theOne], p.type); // 한 장만 렌더
+        openClusterPanel([theOne], p.type);
       } else {
-        // 혹시 못 찾으면 (안전장치) 기존 동작 유지
         const itemsOfType = POINTS.filter((it) => it.type === p.type);
         openClusterPanel(itemsOfType, p.type);
         requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
@@ -596,6 +637,7 @@ async function init() {
     if (lv >= CLUSTER_LEVEL_THRESHOLD) {
       // 줌아웃: 클러스터 모드 → PNG 핀 즉시 제거
       clearMoodPins();
+      _lastClusterArea = null;
     } else {
       // 줌인: 핀 모드 → 클러스터 즉시 제거
       clearClusters();
@@ -692,13 +734,17 @@ async function init() {
       // ✅ 클릭 즉시 화면에서 클러스터 제거 (한 프레임도 안 보이게)
       clearClusters();
 
+      const centerLL = posLatLng ?? ov.getPosition();
+
       if (typeof onClick === 'function') {
-        onClick(); // onClick 쓴 곳(예: renderClustersOrPins)에서도 레벨 4로 강제되게 해 둠
+        _lastClusterArea = { bounds: boundsFromPixelRadius(centerLL, 80) };
+        onClick();
+        setTimeout(() => renderClustersOrPins(), 0);
+        return;
       } else {
-        const allItems = c.items || [];
-        const itemsOfType = allItems.filter((p) =>
-          type === 'pos' ? p.type === 'pos' : p.type === 'neg'
-        );
+        const allItems = Array.isArray(c.items) ? c.items : [];
+        const itemsOfType = allItems.filter((p) => p.type === type);
+        _lastClusterArea = { items: allItems };
 
         const bounds = new kakao.maps.LatLngBounds();
         allItems.forEach((p) =>
@@ -1547,14 +1593,19 @@ async function init() {
 </svg>`;
 
   const ui = document.querySelector('.map-ui');
-  let wrap = ui.querySelector('.map-fab-wrap');
-  if (!wrap) {
-    wrap = document.createElement('div');
-    wrap.className = 'map-fab-wrap';
-    ui.appendChild(wrap);
+  if (ui) {
+    let wrap = ui.querySelector('.map-fab-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'map-fab-wrap';
+      ui.appendChild(wrap);
+    }
+    wrap.replaceChildren(listBtn);
+    if (myposBtn) wrap.appendChild(myposBtn);
+  } else {
+    // 버튼은 건너뛰되 지도 렌더는 계속 진행
+    console.warn('[map-ui] 컨테이너 없음: FAB 생성 생략');
   }
-  wrap.replaceChildren(listBtn);
-  if (myposBtn) wrap.appendChild(myposBtn);
 
   function activateMyPos(loc) {
     ensureHeadingOverlay(loc, '#F87171');
