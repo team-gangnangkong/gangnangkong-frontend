@@ -139,7 +139,7 @@ async function recordSelectedPlace({ id, kakaoPlaceId, name, addr, lat, lng }) {
 }
 
 // ===== 공통 변환/유틸 =====
-const CLUSTER_LEVEL_THRESHOLD = 6;
+const CLUSTER_LEVEL_THRESHOLD = 7;
 const SENTI = { POS: 'POSITIVE', NEG: 'NEGATIVE', NEU: 'NEUTRAL' };
 
 const typeToSenti = (t) => (t === 'neg' ? SENTI.NEG : SENTI.POS);
@@ -694,8 +694,6 @@ async function init() {
 
       if (typeof onClick === 'function') {
         onClick(); // onClick 쓴 곳(예: renderClustersOrPins)에서도 레벨 4로 강제되게 해 둠
-        setTimeout(() => renderClustersOrPins(), 0);
-        return;
       } else {
         const allItems = c.items || [];
         const itemsOfType = allItems.filter((p) =>
