@@ -329,6 +329,7 @@ async function init() {
         ).catch(() => []), // 서버가 NEU 미구현이어도 안전
       ]);
 
+      // fetchPinsInView 안에서 각 응답에 sentiment를 주입
       POINTS = [
         ...(neg || []).map((r) => ({ ...r, sentiment: SENTI.NEG })),
         ...(pos || []).map((r) => ({ ...r, sentiment: SENTI.POS })),
@@ -698,7 +699,7 @@ async function init() {
         map.setBounds(bounds, 80, 80, 80, 80);
       } else {
         map.setCenter(posLatLng ?? new kakao.maps.LatLng(c.lat, c.lng));
-        map.setLevel(4);
+        map.setLevel(2);
       }
 
       openClusterPanel(itemsOfType, type);
