@@ -313,13 +313,12 @@ async function init() {
           locationId: LOCATION_ID,
         })
       );
-      SV_CLUSTERS = (arr || [])
-        .map((c) => {
-          const t = toType(c.sentiment) ?? toType(c.type); // pos/neg만
-          if (!t) return null; // 중립/알 수 없음은 버림
-          return { lat: +c.lat, lng: +c.lng, count: c.count ?? 0, type: t };
-        })
-        .filter(Boolean);
+      SV_CLUSTERS = (arr || []).map((c) => ({
+        lat: +c.lat,
+        lng: +c.lng,
+        count: c.count ?? 0,
+        type: toType(c.sentiment) ?? toType(c.type) ?? 'neg',
+      }));
     } catch (e) {
       console.warn('clusters fail', e);
       SV_CLUSTERS = [];
@@ -339,7 +338,7 @@ async function init() {
     _fetchingPins = true;
     try {
       const bb = getViewportBounds(map);
-      const [neg, pos] = await Promise.all([
+      const [neg, pos, neu] = await Promise.all([
         api(
           ENDPOINTS.panel({
             ...bb,
@@ -354,14 +353,21 @@ async function init() {
             locationId: LOCATION_ID,
           })
         ),
+        api(
+          ENDPOINTS.panel({
+            ...bb,
+            sentiment: SENTI.NEU,
+            locationId: LOCATION_ID,
+          })
+        ).catch(() => []), // 서버가 NEU 미구현이어도 안전
       ]);
 
+      // fetchPinsInView 안에서 각 응답에 sentiment를 주입
       POINTS = [
         ...(neg || []).map((r) => ({ ...r, sentiment: SENTI.NEG })),
         ...(pos || []).map((r) => ({ ...r, sentiment: SENTI.POS })),
-      ]
-        .map(normalizeItem)
-        .filter((it) => it.type === 'pos' || it.type === 'neg'); // 안전망
+        ...(neu || []).map((r) => ({ ...r, sentiment: SENTI.NEU })),
+      ].map(normalizeItem);
 
       attachCatFromCache(POINTS);
       console.debug(
@@ -735,7 +741,9 @@ async function init() {
         return;
       } else {
         const allItems = c.items || [];
-        const itemsOfType = allItems.filter((p) => p.type === type);
+        const itemsOfType = allItems.filter((p) =>
+          type === 'pos' ? p.type === 'pos' : p.type === 'neg'
+        );
         _lastClusterArea = { items: allItems };
 
         const bounds = new kakao.maps.LatLngBounds();
