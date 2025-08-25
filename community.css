@@ -1,3 +1,7 @@
+body {
+  margin: 0;
+}
+
 /* 바깥 */
 .viewport {
   height: 100%;
@@ -214,6 +218,11 @@
   color: #222;
   margin-bottom: 3px;
 }
+.card-meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .card-like,
 .card-comment {
   display: inline-flex;
@@ -254,10 +263,11 @@
 }
 
 /* 글쓰기 버튼 */
+/* 글쓰기 버튼 */
 .fab-write {
-  position: fixed;
+  position: absolute;
   right: 18px;
-  bottom: 20px;
+  bottom: calc(20px + var(--nav-h) + env(safe-area-inset-bottom, 0px));
   z-index: 200;
 
   background: #f87171;

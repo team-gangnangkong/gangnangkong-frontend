@@ -1,4 +1,4 @@
-// API 불러오기 실패 시 더미데이터 출력
+// community.js 전체 코드 정리본
 
 // --- 뒤로가기 버튼 기능 ---
 document.querySelector(".header").addEventListener("click", () => {
@@ -10,7 +10,7 @@ document.getElementById("writeBtn").addEventListener("click", () => {
   window.location.href = "write.html";
 });
 
-// --- 토큰 쿠키 가져오기 (community-detail.js와 동일) ---
+// --- 토큰 쿠키 가져오기 ---
 function getAccessTokenFromCookie() {
   const cookies = document.cookie.split("; ");
   for (const c of cookies) {
@@ -21,7 +21,7 @@ function getAccessTokenFromCookie() {
   return null;
 }
 
-// --- 더미 데이터 준비 ---
+// --- 더미 데이터 ---
 const dummyFeeds = [
   {
     id: "1",
@@ -61,17 +61,73 @@ const dummyFeeds = [
   },
 ];
 
-// --- 카드 리스트 컨테이너 선택 ---
+// --- 카드 리스트 컨테이너 ---
 const feedListContainer = document.querySelector(".card-list");
 
-// --- 피드 데이터 받아서 카드 리스트 렌더링 ---
-function renderFeeds(feeds) {
-  feedListContainer.innerHTML = ""; // 초기화
+// --- 로컬스토리지 키 ---
+const LOCAL_STORAGE_COMMENT_KEY = "community_comments";
+const LOCAL_STORAGE_LIKES_KEY = "community_likes";
 
+// --- 로컬스토리지 유틸 함수 ---
+function loadFromLocalStorage(key, feedId) {
+  const saved = localStorage.getItem(key);
+  if (!saved) return [];
+  try {
+    const allData = JSON.parse(saved);
+    return feedId ? allData[feedId] || [] : allData;
+  } catch {
+    return [];
+  }
+}
+
+function saveToLocalStorage(key, feedId, data) {
+  const saved = localStorage.getItem(key);
+  let allData = {};
+  if (saved) {
+    try {
+      allData = JSON.parse(saved);
+    } catch {}
+  }
+  allData[feedId] = data;
+  localStorage.setItem(key, JSON.stringify(allData));
+}
+
+// --- 댓글 개수 UI 업데이트 ---
+function updateCommentCountUI(count) {
+  document
+    .querySelectorAll(".card-comment span")
+    .forEach((el) => (el.textContent = count));
+  const commentTitleSpan = document.querySelector(".comment-title span");
+  if (commentTitleSpan) commentTitleSpan.textContent = count;
+}
+
+// --- 카드 별 댓글 개수 업데이트 ---
+function updateCardsCommentCountWithLocalStorage(feeds) {
+  feeds.forEach((feed) => {
+    const localComments = loadFromLocalStorage(
+      LOCAL_STORAGE_COMMENT_KEY,
+      feed.id
+    );
+    const localCount = localComments.length;
+    const card = feedListContainer.querySelector(
+      `.card[data-feed-id="${feed.id}"]`
+    );
+    if (card) {
+      const commentCountSpan = card.querySelector(".card-comment span");
+      if (commentCountSpan) commentCountSpan.textContent = localCount;
+    }
+  });
+}
+
+// --- 카드 리스트 렌더링 (좋아요 로컬 반영 포함) ---
+function renderFeeds(feeds) {
+  feedListContainer.innerHTML = "";
   if (!feeds.length) {
     feedListContainer.innerHTML = "<p>피드가 없습니다.</p>";
     return;
   }
+
+  const likesData = loadFromLocalStorage(LOCAL_STORAGE_LIKES_KEY);
 
   feeds.forEach((feed) => {
     const card = document.createElement("div");
@@ -79,118 +135,62 @@ function renderFeeds(feeds) {
     card.setAttribute("data-feed-id", feed.id);
     card.style.cursor = "pointer";
 
-    // 카드 내 HTML 내용 세팅 (이미지, 제목, 좋아요, 주소 등)
     const imageUrl =
       feed.imageUrls && feed.imageUrls.length > 0
         ? feed.imageUrls[0]
         : "./image/default.jpg";
+    const localLikeInfo = likesData[feed.id];
+    const likeCountToDisplay = localLikeInfo ? localLikeInfo.count : feed.likes;
 
     card.innerHTML = `
       <div class="card-img-wrap">
         <img src="${imageUrl}" alt="피드 이미지" class="card-img" />
         <span class="card-arrow">
-          <svg width="22" height="22" fill="none">
-            <use xlink:href="#icon-arrow"></use>
-          </svg>
+          <svg width="22" height="22" fill="none"><use xlink:href="#icon-arrow"></use></svg>
         </span>
       </div>
       <div class="card-content">
         <div class="card-title-row">
           <div class="card-title">${feed.title}</div>
-          <div>
-            <span class="card-like">
-              <svg width="19" height="18" fill="none">
-                <use xlink:href="#icon-like"></use>
-              </svg>
-              <span>${feed.likes}</span>
-            </span>
-            <span class=" card-comment">
-              <svg width="19" height="18" fill="none">
-                <use xlink:href="#icon-comment"></use>
-              </svg>
-              <span>${feed.comments}</span>
-            </span>
+          <div class="card-meta">
+            <div class="card-like">
+              <svg width="19" height="18" fill="none"><use xlink:href="#icon-like"></use></svg>
+              <span>${likeCountToDisplay}</span>
+            </div>
+            <div class="card-comment">
+              <svg width="19" height="18" fill="none"><use xlink:href="#icon-comment"></use></svg>
+              <span>0</span>
+            </div>
           </div>
-          
         </div>
         <div class="card-desc">
-          <svg width="16" height="16" fill="none">
-            <use xlink:href="#icon-location"></use>
-          </svg>
+          <svg width="16" height="16" fill="none"><use xlink:href="#icon-location"></use></svg>
           <span>${feed.address}</span>
         </div>
       </div>
     `;
 
-    // 카드 클릭 이벤트: 상세 페이지로 feedId 넘김
     card.addEventListener("click", () => {
-      const feedId = card.getAttribute("data-feed-id");
-      if (feedId) {
-        window.location.href = `community-detail.html?id=${feedId}`;
-      }
-      console.log("클릭된 피드 ID:", feedId);
+      window.location.href = `community-detail.html?id=${feed.id}`;
     });
 
     feedListContainer.appendChild(card);
   });
+
+  updateCardsCommentCountWithLocalStorage(feeds);
 }
 
-// 전체 피드 조회 API
-async function loadAllFeeds(kakaoPlaceId = null) {
+// --- API + 클라이언트 필터 통합 함수 ---
+async function filterFeedsByCategory(type) {
   try {
-    let url = "https://sorimap.it.com/api/feeds";
-    if (kakaoPlaceId) url += `?kakaoPlaceId=${kakaoPlaceId}`;
-
+    const url = "https://sorimap.it.com/api/feeds";
     const response = await fetch(url);
-    if (!response.ok) throw new Error("전체 피드 조회 실패 " + response.status);
+    if (!response.ok) throw new Error("피드 조회 실패: " + response.status);
+    let feeds = await response.json();
 
-    const feeds = await response.json();
-    renderFeeds(feeds);
-  } catch (error) {
-    console.error(error);
-    // feedListContainer.innerHTML =
-    //   "<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>";
-    renderFeeds(dummyFeeds); // 오류 시 더미데이터 렌더링
-  }
-}
+    if (type !== "ALL") feeds = feeds.filter((feed) => feed.type === type);
 
-// 게시물 상세 조회 API
-async function loadFeedDetail(id) {
-  try {
-    const url = `https://sorimap.it.com/api/feeds/${id}`;
-    const response = await fetch(url);
-    if (!response.ok)
-      throw new Error("게시물 상세 조회 실패 " + response.status);
-
-    const feed = await response.json();
-    renderFeedDetail(feed);
-  } catch (error) {
-    console.error(error);
-    // 기본 더미 데이터 렌더링 등의 대체 처리 가능
-  }
-}
-
-// --- API 통신 + 더미 데이터 fallback 통합 필터 함수 ---
-async function filterFeedsByCategory(category) {
-  try {
-    let url = "https://sorimap.it.com/api/feeds";
-    if (type === "MINWON" || type === "MUNHWA") {
-      url += `?type=${type}`;
-    }
-
-    const response = await fetch(url);
-
-    if (!response.ok)
-      throw new Error("필터링 피드 조회 실패: " + response.status);
-
-    const feeds = await response.json();
-
-    if (feeds && feeds.length > 0) {
-      renderFeeds(feeds);
-    } else {
-      renderDummyFilteredFeeds(type);
-    }
-    if (feeds && feeds.length > 0) {
+    if (feeds.length > 0) {
       renderFeeds(feeds);
     } else {
       renderDummyFilteredFeeds(type);
@@ -201,14 +201,11 @@ async function filterFeedsByCategory(category) {
   }
 }
 
-// --- 더미 데이터에서 카테고리 필터링 후 렌더링 ---
+// --- 더미 데이터 필터링 렌더링 ---
 function renderDummyFilteredFeeds(type) {
   let filteredFeeds = [];
-  if (type === "ALL") {
-    filteredFeeds = dummyFeeds;
-  } else {
-    filteredFeeds = dummyFeeds.filter((feed) => feed.type === type);
-  }
+  if (type === "ALL") filteredFeeds = dummyFeeds;
+  else filteredFeeds = dummyFeeds.filter((feed) => feed.type === type);
   renderFeeds(filteredFeeds);
 }
 
@@ -222,20 +219,14 @@ categoryButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     categoryButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
-
     const selected = btn.textContent.trim().toUpperCase();
-
     if (selected === "전체".toUpperCase()) currentCategory = "ALL";
     else if (selected === "민원".toUpperCase()) currentCategory = "MINWON";
     else if (selected === "문화".toUpperCase()) currentCategory = "MUNHWA";
     else currentCategory = "ALL";
-
     filterFeedsByCategory(currentCategory);
   });
 });
 
-// --- 초기 렌더링은 더미 데이터 기반 전체 목록 ---
+// --- 초기 렌더링 ---
 renderFeeds(dummyFeeds);
-
-// 초기 렌더링
-// loadAllFeeds();
