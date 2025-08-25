@@ -17,6 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
 const API_BASE = 'https://sorimap.it.com'; // 배포 시 교체
 const eq6 = (a, b) => Math.abs(+a - +b) < 1e-6;
 const PIN_ZOOM_LEVEL = 3;
+let _pendingClusterZoom = false;
 
 const ENDPOINTS = {
   // 지도 클러스터 (줌아웃 시)
@@ -740,13 +741,15 @@ async function init() {
 
       // ✅ 클릭 즉시 화면에서 클러스터 제거 (한 프레임도 안 보이게)
       clearClusters();
+      _pendingClusterZoom = true;
+      el.style.display = 'none';
 
       const centerLL = posLatLng ?? ov.getPosition();
 
       if (typeof onClick === 'function') {
         _lastClusterArea = { bounds: boundsFromPixelRadius(centerLL, 80) };
         onClick();
-        setTimeout(() => renderClustersOrPins(), 0);
+
         return;
       } else {
         const allItems = Array.isArray(c.items) ? c.items : [];
@@ -1519,6 +1522,14 @@ async function init() {
   }, 0);
 
   kakao.maps.event.addListener(map, 'idle', () => {
+    if (_pendingClusterZoom) {
+      // 줌 완료 대기: 레벨이 임계 미만으로 내려오면 그때만 한 번 그림
+      if (map.getLevel() < CLUSTER_LEVEL_THRESHOLD) {
+        _pendingClusterZoom = false;
+        renderClustersOrPins(); // → 핀 모드 렌더
+      }
+      return; // 중간 idle(예: setBounds 직후)에서는 아무것도 안 함
+    }
     renderClustersOrPins();
     checkStickyAutoClear();
   });
