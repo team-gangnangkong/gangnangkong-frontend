@@ -473,3 +473,8 @@
 .container::-webkit-scrollbar {
   display: none;
 }
+
+/* 웹킷 기반 브라우저에서 스크롤바 숨기기 */
+::-webkit-scrollbar {
+  display: none;
+}

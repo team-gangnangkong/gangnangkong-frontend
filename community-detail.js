@@ -18,6 +18,26 @@
  * 참고: fetch API 사용, 비동기 함수 정의 및 await 사용
  */
 
+/**
+ * 커뮤니티 상세 페이지 주요 기능 정리
+ *
+ * - 상세 피드 데이터 API 호출 및 렌더링
+ * - 댓글 목록 조회, 댓글 작성 기능 (API 연동 포함)
+ * - 피드 공감(좋아요) 버튼 기능 및 API 연동
+ * - 근처 다른 이슈(피드) 목록 조회 및 렌더링
+ * - UI 이벤트 처리: 뒤로가기, 댓글 입력, 공감 버튼 클릭 등
+ * - 더미 데이터 활용: API 오류 시 임시 데이터로 화면 출력 보장
+ * - 카카오 장소 ID(kakaoPlaceId)를 이용한 위치 기반 필터링 구현
+ * - 토큰 쿠키에서 JWT 토큰 추출 함수 포함
+ *
+ * 사용 시:
+ * 페이지 로드 시 query param에서 feedId 얻어와 상세 데이터 호출,
+ * 댓글과 근처 이슈도 동시에 로딩
+ * 사용자 인터랙션에 맞춰 댓글 및 공감 상태 제어
+ *
+ * 참고: fetch API 사용, 비동기 함수 정의 및 await 사용
+ */
+
 /* 근처 다른 이슈 <div class="related-section"> 누르면
   비슷한 지역 필터링된 피드를 보여주는 링크로 이동해야 함
   - **Query Params (선택)**
@@ -91,6 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
       title: '모란역 쓰레기 문제',
       content: '쓰레기가 쌓여서 냄새가 심해요',
       type: 'MINWON',
+      sentiment: 'NEGATIVE',
+      status: 'OPEN',
       address: '성남시 중원구 성남대로',
       lat: 37.4321,
       lng: 127.1299,
@@ -103,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title: '청년 문화 공연 안내',
       content: '이번 주말에 청년밴드 공연이 있어요!',
       type: 'MUNHWA',
+      sentiment: 'POSITIVE',
       address: '성남시 수정구 신흥동 문화의 거리',
       lat: 37.4456,
       lng: 127.1567,
@@ -115,6 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
       title: '도로 파손 신고',
       content: '보행로가 꺼져서 위험합니다.',
       type: 'MINWON',
+      sentiment: 'NEGATIVE',
+      status: 'IN_PROGRESS',
       address: '성남시 분당구 판교로',
       lat: 37.3957,
       lng: 127.1103,
@@ -125,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   // 더미 댓글
-  let comments = [
+  const comments = [
     {
       author: '익명1',
       body: '저도 같은 문제 겪었어요!',
@@ -142,6 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
       createdAt: '2025-08-25T09:15:00Z',
     },
   ];
+
+  // 문서 로드 직후 더미 댓글 렌더링
+  renderComments(comments);
 
   // --- 상세 피드 렌더링 ---
   function renderFeedDetail(feed) {
@@ -236,14 +264,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!response.ok) throw new Error('댓글 조회 실패');
       const data = await response.json();
       comments = data.map((c) => ({
-        author: '익명',
+        author: c.userNickname || '익명', // 서버 userNickname을 author에 사용, 없으면 익명 처리
         body: c.body,
         createdAt: c.createdAt,
       }));
+      const commentCount = comments.length;
+      console.log('댓글 수:', commentCount);
       renderComments(comments);
     } catch (e) {
       console.error(e);
-      renderComments([]);
+      renderComments(comments);
     }
   }
 
@@ -272,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadNearbyFeeds(kakaoPlaceId, currentFeedId) {
     if (!kakaoPlaceId) return;
     try {
-      let url = `https://sorimap.it.com/api/feeds?locationId=${kakaoPlaceId}`;
+      let url = `https://sorimap.it.com/api/feeds?kakaoPlaceId=${kakaoPlaceId}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('근처 피드 조회 실패');
       let feeds = await response.json();
@@ -283,9 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderNearbyFeeds(feeds);
     } catch {
       // 오류 시 기본 더미배열 렌더링 (필요시 구현)
-      renderNearbyFeeds(
-        dummyFeeds.filter((f) => f.kakaoPlaceId === kakaoPlaceId)
-      );
+      renderNearbyFeeds(feeds);
     }
   }
 
@@ -360,7 +388,16 @@ document.addEventListener('DOMContentLoaded', () => {
         likeCountSpan.textContent = count + 1;
       }
     } catch (e) {
-      alert(e.message);
+      // API 호출 실패 시 여기서 대체 처리
+      alert(
+        '서버와 연결할 수 없어 더미 데이터를 기준으로 좋아요가 증가합니다.'
+      );
+
+      // 더미 데이터 업데이트 예시 (현재 화면 좋아요수 1 증가)
+      let count = parseInt(likeCountSpan.textContent, 10) || 0;
+      likeCountSpan.textContent = count + 1;
+
+      // 필요시 여기에 더미 데이터 배열 등 실제 좋아요 수 동기화 코드 추가 가능
     } finally {
       likeBtn.disabled = false;
     }
@@ -382,14 +419,33 @@ document.addEventListener('DOMContentLoaded', () => {
   async function addComment() {
     const val = commentInput.value.trim();
     if (val.length === 0) return;
+
     sendBtn.disabled = true;
+
+    // 입력값 먼저 비우고 버튼 비활성화 & 상태 업데이트
+    commentInput.value = '';
+    updateSendBtnState();
+
+    // 로컬에 댓글 즉시 추가 및 렌더링
+    const newComment = {
+      author: '익명',
+      body: val,
+      createdAt: new Date().toISOString(),
+    };
+    comments.push(newComment);
+    renderComments(comments);
+
+    // 서버에 댓글 전송
     const result = await postComment(feedId, val);
+
     if (result) {
       comments.push(result);
       renderComments(comments);
-      commentInput.value = '';
-      updateSendBtnState();
+    } else {
+      // 실패 시 사용자에게 알림 처리 가능
+      alert('서버에 댓글 등록 실패, 로컬에만 저장되었습니다.');
     }
+
     sendBtn.disabled = false;
   }
 
@@ -411,4 +467,53 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchComments(dummyFeeds[0].id);
     loadNearbyFeeds(dummyFeeds[0].kakaoPlaceId, dummyFeeds[0].id);
   }
+
+  // 더미 카드 리스트
+  function createCard(feed) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const imageUrl =
+      feed.imageUrls && feed.imageUrls.length > 0
+        ? feed.imageUrls[0]
+        : './image/default.jpg';
+    card.innerHTML = `
+    <div class="card-img-wrap">
+      <img src="${feed.imageUrls}" alt="${feed.title}" class="card-img" />
+      <span class="card-arrow">
+        <svg width="22" height="22" fill="none">
+          <use xlink:href="#icon-arrow" />
+        </svg>
+      </span>
+    </div>
+    <div class="card-content">
+      <div class="card-title-row">
+        <div class="card-title">${feed.title}</div>
+        <span class="card-like">
+          <svg width="19" height="18" fill="none">
+            <use xlink:href="#icon-like" />
+          </svg> 
+          <span>${feed.likes}</span>
+        </span>
+      </div>
+      <div class="card-desc">
+        <!-- 위치 SVG 아이콘(지도핀) -->
+        <svg width="16" height="16" fill="none">
+          <use xlink:href="#icon-location" />
+        </svg>
+        <span class="card-desc">${feed.address}</span>
+      </div>
+    `;
+    return card;
+  }
+
+  function loadDummyFeeds() {
+    const cardList = document.querySelector('.card-list');
+    if (!cardList) return;
+    dummyFeeds.forEach((feed) => {
+      const card = createCard(feed);
+      cardList.appendChild(card);
+    });
+  }
+
+  loadDummyFeeds();
 });

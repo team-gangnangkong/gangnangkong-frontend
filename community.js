@@ -97,18 +97,21 @@ function renderFeeds(feeds) {
       <div class="card-content">
         <div class="card-title-row">
           <div class="card-title">${feed.title}</div>
-          <span class="card-like">
-            <svg width="19" height="18" fill="none">
-              <use xlink:href="#icon-like"></use>
-            </svg>
-            <span>${feed.likes}</span>
-          </span>
-          <span class="card-comment">
-            <svg width="19" height="18" fill="none">
-              <use xlink:href="#icon-comment"></use>
-            </svg>
-            <span>0</span>
-          </span>
+          <div>
+            <span class="card-like">
+              <svg width="19" height="18" fill="none">
+                <use xlink:href="#icon-like"></use>
+              </svg>
+              <span>${feed.likes}</span>
+            </span>
+            <span class="card-comment">
+              <svg width="19" height="18" fill="none">
+                <use xlink:href="#icon-comment"></use>
+              </svg>
+              <span>${feed.comments}</span>
+            </span>
+          </div>
+          
         </div>
         <div class="card-desc">
           <svg width="16" height="16" fill="none">
@@ -136,7 +139,7 @@ function renderFeeds(feeds) {
 async function loadAllFeeds(kakaoPlaceId = null) {
   try {
     let url = 'https://sorimap.it.com/api/feeds';
-    if (kakaoPlaceId) url += `?locationId=${kakaoPlaceId}`;
+    if (kakaoPlaceId) url += `?kakaoPlaceId=${kakaoPlaceId}`;
 
     const response = await fetch(url);
     if (!response.ok) throw new Error('전체 피드 조회 실패 ' + response.status);
@@ -153,98 +156,106 @@ async function loadAllFeeds(kakaoPlaceId = null) {
 
 // 상태별 조회 API
 async function loadAllFeeds(status, kakaoPlaceId = null) {
-  try {
-    let url = `https://sorimap.it.com/api/feeds/status/${status.toUpperCase()}`;
-    if (kakaoPlaceId) url += `?kakaoPlaceId=${kakaoPlaceId}`;
+  // 상태별 조회 API
+  async function loadAllFeeds(status, kakaoPlaceId = null) {
+    try {
+      let url = `https://sorimap.it.com/api/feeds/status/${status.toUpperCase()}`;
+      if (kakaoPlaceId) url += `?kakaoPlaceId=${kakaoPlaceId}`;
 
-    const response = await fetch(url);
-    if (!response.ok)
-      throw new Error('상태별 피드 조회 실패 ' + response.status);
+      const response = await fetch(url);
+      if (!response.ok)
+        throw new Error('상태별 피드 조회 실패 ' + response.status);
 
-    const feeds = await response.json();
-    renderFeeds(feeds);
-  } catch (error) {
-    console.error(error);
-    feedListContainer.innerHTML =
-      '<p>상태별 피드를 불러오는 중 오류가 발생했습니다.</p>';
-  }
-}
-
-// 게시물 상세 조회 API
-async function loadFeedDetail(id) {
-  try {
-    const url = `https://sorimap.it.com/api/feeds/${id}`;
-    const response = await fetch(url);
-    if (!response.ok)
-      throw new Error('게시물 상세 조회 실패 ' + response.status);
-
-    const feed = await response.json();
-    renderFeedDetail(feed);
-  } catch (error) {
-    console.error(error);
-    // 기본 더미 데이터 렌더링 등의 대체 처리 가능
-  }
-}
-
-// --- API 통신 + 더미 데이터 fallback 통합 필터 함수 ---
-async function filterFeedsByCategory(category) {
-  try {
-    let url = 'https://sorimap.it.com/api/feeds';
-    if (category === 'MINWON' || category === 'MUNHWA') {
-      url += `?type=${category}`;
-    }
-
-    const response = await fetch(url);
-
-    if (!response.ok)
-      throw new Error('필터링 피드 조회 실패: ' + response.status);
-
-    const feeds = await response.json();
-
-    if (feeds && feeds.length > 0) {
+      const feeds = await response.json();
       renderFeeds(feeds);
-    } else {
+    } catch (error) {
+      console.error(error);
+      console.error(error);
+      feedListContainer.innerHTML =
+        '<p>상태별 피드를 불러오는 중 오류가 발생했습니다.</p>';
+    }
+  }
+
+  // 게시물 상세 조회 API
+  async function loadFeedDetail(id) {
+    try {
+      const url = `https://sorimap.it.com/api/feeds/${id}`;
+      const response = await fetch(url);
+      if (!response.ok)
+        throw new Error('게시물 상세 조회 실패 ' + response.status);
+
+      const feed = await response.json();
+      renderFeedDetail(feed);
+    } catch (error) {
+      console.error(error);
+      // 기본 더미 데이터 렌더링 등의 대체 처리 가능
+    }
+  }
+
+  // --- API 통신 + 더미 데이터 fallback 통합 필터 함수 ---
+  async function filterFeedsByCategory(category) {
+    try {
+      let url = 'https://sorimap.it.com/api/feeds';
+      if (category === 'MINWON' || category === 'MUNHWA') {
+        url += `?type=${category}`;
+      }
+
+      const response = await fetch(url);
+
+      if (!response.ok)
+        throw new Error('필터링 피드 조회 실패: ' + response.status);
+
+      const feeds = await response.json();
+
+      if (feeds && feeds.length > 0) {
+        renderFeeds(feeds);
+      } else {
+        renderDummyFilteredFeeds(category);
+      }
+      if (feeds && feeds.length > 0) {
+        renderFeeds(feeds);
+      } else {
+        renderDummyFilteredFeeds(category);
+      }
+    } catch (error) {
+      console.error('피드 필터링 오류:', error);
       renderDummyFilteredFeeds(category);
     }
-  } catch (error) {
-    console.error('피드 필터링 오류:', error);
-    renderDummyFilteredFeeds(category);
   }
-}
 
-// --- 더미 데이터에서 카테고리 필터링 후 렌더링 ---
-function renderDummyFilteredFeeds(category) {
-  let filteredFeeds = [];
-  if (category === 'ALL') {
-    filteredFeeds = dummyFeeds;
-  } else {
-    filteredFeeds = dummyFeeds.filter((feed) => feed.type === category);
+  // --- 더미 데이터에서 카테고리 필터링 후 렌더링 ---
+  function renderDummyFilteredFeeds(category) {
+    let filteredFeeds = [];
+    if (category === 'ALL') {
+      filteredFeeds = dummyFeeds;
+    } else {
+      filteredFeeds = dummyFeeds.filter((feed) => feed.type === category);
+    }
+    renderFeeds(filteredFeeds);
   }
-  renderFeeds(filteredFeeds);
-}
 
-// --- 카테고리 버튼 이벤트 처리 ---
-const categoryButtons = document.querySelectorAll(
-  '.community-btns .category-btn'
-);
-let currentCategory = 'ALL';
+  // --- 카테고리 버튼 이벤트 처리 ---
+  const categoryButtons = document.querySelectorAll(
+    '.community-btns .category-btn'
+  );
+  let currentCategory = 'ALL';
 
-categoryButtons.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    categoryButtons.forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
+  categoryButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      categoryButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
 
-    const selected = btn.textContent.trim().toUpperCase();
+      const selected = btn.textContent.trim().toUpperCase();
 
-    if (selected === '전체'.toUpperCase()) currentCategory = 'ALL';
-    else if (selected === '민원'.toUpperCase()) currentCategory = 'MINWON';
-    else if (selected === '문화'.toUpperCase()) currentCategory = 'MUNHWA';
-    else currentCategory = 'ALL';
+      if (selected === '전체'.toUpperCase()) currentCategory = 'ALL';
+      else if (selected === '민원'.toUpperCase()) currentCategory = 'MINWON';
+      else if (selected === '문화'.toUpperCase()) currentCategory = 'MUNHWA';
+      else currentCategory = 'ALL';
 
-    filterFeedsByCategory(currentCategory);
+      filterFeedsByCategory(currentCategory);
+    });
   });
-});
-
+}
 // --- 초기 렌더링은 더미 데이터 기반 전체 목록 ---
 renderFeeds(dummyFeeds);
 
