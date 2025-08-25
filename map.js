@@ -273,6 +273,30 @@ async function init() {
   let POINTS = []; // 줌-인 시 개별 핀들
   let SV_CLUSTERS = []; // 줌-아웃 시 서버 클러스터들
 
+  let _lastClusterArea = null; // { items?: Array, bounds?: kakao.maps.LatLngBounds }
+
+  function boundsFromPixelRadius(centerLatLng, radiusPx = 80) {
+    const proj = map.getProjection();
+    const pt = proj.containerPointFromCoords(centerLatLng);
+    const sw = proj.coordsFromContainerPoint(
+      new kakao.maps.Point(pt.x - radiusPx, pt.y + radiusPx)
+    );
+    const ne = proj.coordsFromContainerPoint(
+      new kakao.maps.Point(pt.x + radiusPx, pt.y - radiusPx)
+    );
+    return new kakao.maps.LatLngBounds(sw, ne);
+  }
+  function inBounds(bounds, lat, lng) {
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    return (
+      lat >= sw.getLat() &&
+      lat <= ne.getLat() &&
+      lng >= sw.getLng() &&
+      lng <= ne.getLng()
+    );
+  }
+
   let _fetchingPins = false;
   let _fetchingClusters = false;
   async function fetchClustersInView() {
@@ -289,12 +313,13 @@ async function init() {
           locationId: LOCATION_ID,
         })
       );
-      SV_CLUSTERS = (arr || []).map((c) => ({
-        lat: +c.lat,
-        lng: +c.lng,
-        count: c.count ?? 0,
-        type: toType(c.sentiment) ?? toType(c.type) ?? 'neg',
-      }));
+      SV_CLUSTERS = (arr || [])
+        .map((c) => {
+          const t = toType(c.sentiment) ?? toType(c.type); // pos/neg만
+          if (!t) return null; // 중립/알 수 없음은 버림
+          return { lat: +c.lat, lng: +c.lng, count: c.count ?? 0, type: t };
+        })
+        .filter(Boolean);
     } catch (e) {
       console.warn('clusters fail', e);
       SV_CLUSTERS = [];
@@ -314,7 +339,7 @@ async function init() {
     _fetchingPins = true;
     try {
       const bb = getViewportBounds(map);
-      const [neg, pos, neu] = await Promise.all([
+      const [neg, pos] = await Promise.all([
         api(
           ENDPOINTS.panel({
             ...bb,
@@ -329,21 +354,14 @@ async function init() {
             locationId: LOCATION_ID,
           })
         ),
-        api(
-          ENDPOINTS.panel({
-            ...bb,
-            sentiment: SENTI.NEU,
-            locationId: LOCATION_ID,
-          })
-        ).catch(() => []), // 서버가 NEU 미구현이어도 안전
       ]);
 
-      // fetchPinsInView 안에서 각 응답에 sentiment를 주입
       POINTS = [
         ...(neg || []).map((r) => ({ ...r, sentiment: SENTI.NEG })),
         ...(pos || []).map((r) => ({ ...r, sentiment: SENTI.POS })),
-        ...(neu || []).map((r) => ({ ...r, sentiment: SENTI.NEU })),
-      ].map(normalizeItem);
+      ]
+        .map(normalizeItem)
+        .filter((it) => it.type === 'pos' || it.type === 'neg'); // 안전망
 
       attachCatFromCache(POINTS);
       console.debug(
@@ -533,14 +551,31 @@ async function init() {
       }
 
       // ✅ 클릭한 좌표와 타입이 정확히 같은 '그 글' 1건만 패널로
+      if (_lastClusterArea) {
+        let group = [];
+        if (_lastClusterArea.items) {
+          group = _lastClusterArea.items.filter((it) => it.type === p.type);
+        } else if (_lastClusterArea.bounds) {
+          group = POINTS.filter(
+            (it) =>
+              it.type === p.type &&
+              inBounds(_lastClusterArea.bounds, it.lat, it.lng)
+          );
+        }
+        if (group.length) {
+          openClusterPanel(group, p.type);
+          requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+          return;
+        }
+      }
+
+      // 컨텍스트가 없거나 빈 경우엔 클릭한 그 글만 (기존 안전장치)
       const theOne = POINTS.find(
         (it) => it.type === p.type && eq6(it.lat, latKey) && eq6(it.lng, lngKey)
       );
-
       if (theOne) {
-        openClusterPanel([theOne], p.type); // 한 장만 렌더
+        openClusterPanel([theOne], p.type);
       } else {
-        // 혹시 못 찾으면 (안전장치) 기존 동작 유지
         const itemsOfType = POINTS.filter((it) => it.type === p.type);
         openClusterPanel(itemsOfType, p.type);
         requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
@@ -596,6 +631,7 @@ async function init() {
     if (lv >= CLUSTER_LEVEL_THRESHOLD) {
       // 줌아웃: 클러스터 모드 → PNG 핀 즉시 제거
       clearMoodPins();
+      _lastClusterArea = null;
     } else {
       // 줌인: 핀 모드 → 클러스터 즉시 제거
       clearClusters();
@@ -693,14 +729,14 @@ async function init() {
       clearClusters();
 
       if (typeof onClick === 'function') {
+        _lastClusterArea = { bounds: boundsFromPixelRadius(pos, 80) };
         onClick();
         setTimeout(() => renderClustersOrPins(), 0);
         return;
       } else {
         const allItems = c.items || [];
-        const itemsOfType = allItems.filter((p) =>
-          type === 'pos' ? p.type === 'pos' : p.type === 'neg'
-        );
+        const itemsOfType = allItems.filter((p) => p.type === type);
+        _lastClusterArea = { items: allItems };
 
         const bounds = new kakao.maps.LatLngBounds();
         allItems.forEach((p) =>
