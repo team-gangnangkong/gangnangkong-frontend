@@ -111,6 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "모란역 쓰레기 문제",
       content: "쓰레기가 쌓여서 냄새가 심해요",
       type: "MINWON",
+      sentiment: "NEGATIVE",
+      status: "OPEN",
       address: "성남시 중원구 성남대로",
       lat: 37.4321,
       lng: 127.1299,
@@ -123,6 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "청년 문화 공연 안내",
       content: "이번 주말에 청년밴드 공연이 있어요!",
       type: "MUNHWA",
+      sentiment: "POSITIVE",
       address: "성남시 수정구 신흥동 문화의 거리",
       lat: 37.4456,
       lng: 127.1567,
@@ -135,6 +138,8 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "도로 파손 신고",
       content: "보행로가 꺼져서 위험합니다.",
       type: "MINWON",
+      sentiment: "NEGATIVE",
+      status: "IN_PROGRESS",
       address: "성남시 분당구 판교로",
       lat: 37.3957,
       lng: 127.1103,
@@ -263,6 +268,8 @@ document.addEventListener("DOMContentLoaded", () => {
         body: c.body,
         createdAt: c.createdAt,
       }));
+      const commentCount = comments.length;
+      console.log("댓글 수:", commentCount);
       renderComments(comments);
     } catch (e) {
       console.error(e);
@@ -295,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadNearbyFeeds(kakaoPlaceId, currentFeedId) {
     if (!kakaoPlaceId) return;
     try {
-      let url = `https://sorimap.it.com/api/feeds?locationId=${kakaoPlaceId}`;
+      let url = `https://sorimap.it.com/api/feeds?kakaoPlaceId=${kakaoPlaceId}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("근처 피드 조회 실패");
       let feeds = await response.json();
@@ -306,9 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderNearbyFeeds(feeds);
     } catch {
       // 오류 시 기본 더미배열 렌더링 (필요시 구현)
-      renderNearbyFeeds(
-        dummyFeeds.filter((f) => f.kakaoPlaceId === kakaoPlaceId)
-      );
+      renderNearbyFeeds(feeds);
     }
   }
 
@@ -462,4 +467,53 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchComments(dummyFeeds[0].id);
     loadNearbyFeeds(dummyFeeds[0].kakaoPlaceId, dummyFeeds[0].id);
   }
+
+  // 더미 카드 리스트
+  function createCard(feed) {
+    const card = document.createElement("div");
+    card.className = "card";
+    const imageUrl =
+      feed.imageUrls && feed.imageUrls.length > 0
+        ? feed.imageUrls[0]
+        : "./image/default.jpg";
+    card.innerHTML = `
+    <div class="card-img-wrap">
+      <img src="${feed.imageUrls}" alt="${feed.title}" class="card-img" />
+      <span class="card-arrow">
+        <svg width="22" height="22" fill="none">
+          <use xlink:href="#icon-arrow" />
+        </svg>
+      </span>
+    </div>
+    <div class="card-content">
+      <div class="card-title-row">
+        <div class="card-title">${feed.title}</div>
+        <span class="card-like">
+          <svg width="19" height="18" fill="none">
+            <use xlink:href="#icon-like" />
+          </svg> 
+          <span>${feed.likes}</span>
+        </span>
+      </div>
+      <div class="card-desc">
+        <!-- 위치 SVG 아이콘(지도핀) -->
+        <svg width="16" height="16" fill="none">
+          <use xlink:href="#icon-location" />
+        </svg>
+        <span class="card-desc">${feed.address}</span>
+      </div>
+    `;
+    return card;
+  }
+
+  function loadDummyFeeds() {
+    const cardList = document.querySelector(".card-list");
+    if (!cardList) return;
+    dummyFeeds.forEach((feed) => {
+      const card = createCard(feed);
+      cardList.appendChild(card);
+    });
+  }
+
+  loadDummyFeeds();
 });

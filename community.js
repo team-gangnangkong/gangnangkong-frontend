@@ -1,5 +1,4 @@
 // API 불러오기 실패 시 더미데이터 출력
-// API 불러오기 실패 시 더미데이터 출력
 
 // --- 뒤로가기 버튼 기능 ---
 document.querySelector(".header").addEventListener("click", () => {
@@ -11,7 +10,6 @@ document.getElementById("writeBtn").addEventListener("click", () => {
   window.location.href = "write.html";
 });
 
-// --- 토큰 쿠키 가져오기 (community-detail.js와 동일) ---
 // --- 토큰 쿠키 가져오기 (community-detail.js와 동일) ---
 function getAccessTokenFromCookie() {
   const cookies = document.cookie.split("; ");
@@ -67,7 +65,6 @@ const dummyFeeds = [
 const feedListContainer = document.querySelector(".card-list");
 
 // --- 피드 데이터 받아서 카드 리스트 렌더링 ---
-// --- 피드 데이터 받아서 카드 리스트 렌더링 ---
 function renderFeeds(feeds) {
   feedListContainer.innerHTML = ""; // 초기화
 
@@ -82,7 +79,6 @@ function renderFeeds(feeds) {
     card.setAttribute("data-feed-id", feed.id);
     card.style.cursor = "pointer";
 
-    // 카드 내 HTML 내용 세팅 (이미지, 제목, 좋아요, 주소 등)
     // 카드 내 HTML 내용 세팅 (이미지, 제목, 좋아요, 주소 등)
     const imageUrl =
       feed.imageUrls && feed.imageUrls.length > 0
@@ -101,18 +97,21 @@ function renderFeeds(feeds) {
       <div class="card-content">
         <div class="card-title-row">
           <div class="card-title">${feed.title}</div>
-          <span class="card-like">
-            <svg width="19" height="18" fill="none">
-              <use xlink:href="#icon-like"></use>
-            </svg>
-            <span>${feed.likes}</span>
-          </span>
-          <span class="card-comment">
-            <svg width="19" height="18" fill="none">
-              <use xlink:href="#icon-comment"></use>
-            </svg>
-            <span>0</span>
-          </span>
+          <div>
+            <span class="card-like">
+              <svg width="19" height="18" fill="none">
+                <use xlink:href="#icon-like"></use>
+              </svg>
+              <span>${feed.likes}</span>
+            </span>
+            <span class="card-comment">
+              <svg width="19" height="18" fill="none">
+                <use xlink:href="#icon-comment"></use>
+              </svg>
+              <span>${feed.comments}</span>
+            </span>
+          </div>
+          
         </div>
         <div class="card-desc">
           <svg width="16" height="16" fill="none">
@@ -148,10 +147,6 @@ async function loadAllFeeds(kakaoPlaceId = null) {
     const feeds = await response.json();
     renderFeeds(feeds);
   } catch (error) {
-    console.error(error);
-    // feedListContainer.innerHTML =
-    //   "<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>";
-    renderFeeds(dummyFeeds); // 오류 시 더미데이터 렌더링
     console.error(error);
     // feedListContainer.innerHTML =
     //   "<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>";
@@ -194,12 +189,9 @@ async function loadAllFeeds(status, kakaoPlaceId = null) {
     } catch (error) {
       console.error(error);
       // 기본 더미 데이터 렌더링 등의 대체 처리 가능
-      console.error(error);
-      // 기본 더미 데이터 렌더링 등의 대체 처리 가능
     }
   }
 
-  // --- API 통신 + 더미 데이터 fallback 통합 필터 함수 ---
   // --- API 통신 + 더미 데이터 fallback 통합 필터 함수 ---
   async function filterFeedsByCategory(category) {
     try {
@@ -239,7 +231,6 @@ async function loadAllFeeds(status, kakaoPlaceId = null) {
     } else {
       filteredFeeds = dummyFeeds.filter((feed) => feed.type === category);
     }
-    renderFeeds(filteredFeeds);
     renderFeeds(filteredFeeds);
   }
 
