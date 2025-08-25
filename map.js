@@ -15,6 +15,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ==== API 기본 설정 ====
 const API_BASE = 'https://sorimap.it.com'; // 배포 시 교체
+const eq6 = (a, b) => Math.abs(+a - +b) < 1e-6;
+const PIN_ZOOM_LEVEL = 3;
 
 const ENDPOINTS = {
   // 지도 클러스터 (줌아웃 시)
@@ -148,24 +150,68 @@ const sentiToType = (s) => {
   return null; // NEUTRAL or undefined → null로
 };
 
+// --- content/title 추출 유틸 ---
+function stripTags(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html == null ? '' : String(html);
+  return tmp.textContent || tmp.innerText || '';
+}
+function pickContent(row) {
+  // 서버가 content 말고 contents/text/body/description/contentHtml 등으로 줄 때 커버
+  const raw =
+    row?.content ??
+    row?.contents ??
+    row?.text ??
+    row?.body ??
+    row?.description ??
+    (typeof row?.contentHtml === 'string' ? stripTags(row.contentHtml) : '');
+
+  return typeof raw === 'string' ? raw : '';
+}
+function pickAddr(row) {
+  return row?.address ?? row?.addr ?? row?.location ?? '';
+}
+
 function normalizeItem(row) {
-  // 1순위: sentiment, 2순위: 서버 type(MINWON/MUNHWA)
+  // 1) 타입 정규화
   const typeFromSenti = sentiToType(row.sentiment);
   const typeFromRow =
     row.type === 'MINWON' ? 'neg' : row.type === 'MUNHWA' ? 'pos' : null;
+  const type = typeFromSenti ?? typeFromRow ?? 'neg';
 
-  const type = typeFromSenti ?? typeFromRow ?? 'pos'; // 마지막 기본값 'pos'
+  // 2) id/주소/본문 등 필드 유연 추출
+  const id =
+    row.id ??
+    row.feedId ??
+    row.feedID ??
+    row.feed_id ??
+    row.postId ??
+    row.post_id ??
+    null;
+
+  const addr = pickAddr(row);
+  const content = pickContent(row);
+
+  // 문화쪽에서 종종 review/comment에 본문이 들어오면 그쪽도 같이 받기
+  const review =
+    row.review ??
+    row.comment ??
+    row.note ??
+    row.reviewText ??
+    row.review_text ??
+    '';
 
   return {
-    id: row.id,
+    id,
     type,
     lat: +row.lat,
     lng: +row.lng,
     title: row.title || (row.type === 'MINWON' ? '민원' : '문화'),
-    addr: row.address || '',
-    content: row.content || '',
-    likes: row.likes ?? 0,
-    likedByMe: !!row.likedByMe,
+    addr,
+    content, // ✅ 이제 다양한 키로 와도 채워짐
+    review, // 문화 카드에서 우선 사용
+    likes: row.likes ?? row.likeCount ?? 0,
+    likedByMe: !!(row.likedByMe ?? row.isLiked ?? row.liked),
     status: row.status || 'OPEN',
     progress: Number.isFinite(row.progress)
       ? row.progress
@@ -174,7 +220,7 @@ function normalizeItem(row) {
       : row.status === 'IN_PROGRESS'
       ? 60
       : 10,
-    imageUrls: row.imageUrls || [],
+    imageUrls: row.imageUrls || row.images || [],
     sentiment: row.sentiment,
   };
 }
@@ -243,7 +289,10 @@ async function init() {
         lat: +c.lat,
         lng: +c.lng,
         count: c.count ?? 0,
-        type: sentiToType(c.sentiment),
+        type:
+          sentiToType(c.sentiment) ||
+          (c.type === 'MUNHWA' ? 'pos' : c.type === 'MINWON' ? 'neg' : null) ||
+          'neg',
       }));
     } catch (e) {
       console.warn('clusters fail', e);
@@ -281,7 +330,12 @@ async function init() {
         ).catch(() => []), // 서버가 NEU 미구현이어도 안전
       ]);
 
-      POINTS = [].concat(neg || [], pos || [], neu || []).map(normalizeItem);
+      // fetchPinsInView 안에서 각 응답에 sentiment를 주입
+      POINTS = [
+        ...(neg || []).map((r) => ({ ...r, sentiment: SENTI.NEG })),
+        ...(pos || []).map((r) => ({ ...r, sentiment: SENTI.POS })),
+        ...(neu || []).map((r) => ({ ...r, sentiment: SENTI.NEU })),
+      ].map(normalizeItem);
 
       attachCatFromCache(POINTS);
     } catch (e) {
@@ -417,7 +471,10 @@ async function init() {
 
   function makeMoodOverlay(p) {
     const el = document.createElement('div');
-    el.className = `mood-pin ${p.type}`;
+    // p.type 기준으로 안전 타입 결정
+    const safeType = p.type === 'pos' || p.type === 'neg' ? p.type : 'neg';
+    // 핀은 mood-pin 클래스로! (클러스터는 cluster-bubble 유지)
+    el.className = `mood-pin ${safeType}`;
     el.innerHTML = `<img src="${p.type === 'pos' ? POS_URL : NEG_URL}" alt="${
       p.type
     }">`;
@@ -449,11 +506,12 @@ async function init() {
     el.addEventListener('touchcancel', clearTouchHover);
 
     // 클릭시 토글 + 패널 열기
+    // 클릭시 토글 + 패널 열기
     el.addEventListener('click', (e) => {
       e.preventDefault();
       const turnedOn = setStickyMoodPin(el, key);
 
-      // 토글 OFF면 패널/그림자도 함께 닫고 종료
+      // 토글 OFF면 강조만 해제
       if (!turnedOn) {
         try {
           const card = findCardByLatLng(latKey, lngKey);
@@ -462,10 +520,19 @@ async function init() {
         return;
       }
 
-      // ON일 때만 패널 열기 + 카드 위로
-      const itemsOfType = POINTS.filter((it) => it.type === p.type);
-      openClusterPanel(itemsOfType, p.type);
-      requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+      // ✅ 클릭한 좌표와 타입이 정확히 같은 '그 글' 1건만 패널로
+      const theOne = POINTS.find(
+        (it) => it.type === p.type && eq6(it.lat, latKey) && eq6(it.lng, lngKey)
+      );
+
+      if (theOne) {
+        openClusterPanel([theOne], p.type); // 한 장만 렌더
+      } else {
+        // 혹시 못 찾으면 (안전장치) 기존 동작 유지
+        const itemsOfType = POINTS.filter((it) => it.type === p.type);
+        openClusterPanel(itemsOfType, p.type);
+        requestAnimationFrame(() => bumpCardToTop(latKey, lngKey));
+      }
     });
 
     const ov = new kakao.maps.CustomOverlay({
@@ -512,6 +579,17 @@ async function init() {
     _clusterOverlays.forEach((o) => o.setMap(null));
     _clusterOverlays = [];
   }
+  kakao.maps.event.addListener(map, 'zoom_changed', () => {
+    const lv = map.getLevel();
+    if (lv >= CLUSTER_LEVEL_THRESHOLD) {
+      // 줌아웃: 클러스터 모드 → PNG 핀 즉시 제거
+      clearMoodPins();
+    } else {
+      // 줌인: 핀 모드 → 클러스터 즉시 제거
+      clearClusters();
+    }
+  });
+
   function clusterPoints(points, map, radiusPx = 80) {
     const proj = map.getProjection();
     const buckets = [];
@@ -620,9 +698,13 @@ async function init() {
           : allItems.length
       ) {
         map.setBounds(bounds, 80, 80, 80, 80);
+        kakao.maps.event.addListener(map, 'idle', function once() {
+          kakao.maps.event.removeListener(map, 'idle', once);
+          map.setLevel(PIN_ZOOM_LEVEL); // ← bounds 맞춘 뒤 4로 고정
+        });
       } else {
         map.setCenter(posLatLng ?? new kakao.maps.LatLng(c.lat, c.lng));
-        map.setLevel(Math.max(4, CLUSTER_LEVEL_THRESHOLD - 1));
+        map.setLevel(PIN_ZOOM_LEVEL); // ← 고정 4
       }
 
       openClusterPanel(itemsOfType, type);
@@ -920,11 +1002,11 @@ async function init() {
 
     panelBadgeEl.hidden = true;
     const titleEl = document.querySelector('.cp-title');
-    if (titleEl) {
-      titleEl.innerHTML = `<span class="cp-dyn">${count}개의 ${
-        isPos ? '문화' : '소리'
-      }</span>`;
-    }
+    // if (titleEl) {
+    //   titleEl.innerHTML = `<span class="cp-dyn">${count}개의 ${
+    //     isPos ? '문화' : '소리'
+    //   }</span>`;
+    // }
 
     panelBadgeEl.textContent = isPos ? '문화' : '민원';
     panelBadgeEl.classList.remove('pos');
@@ -942,7 +1024,7 @@ async function init() {
         if (isPosType) {
           // === 문화 카드 ===
           const category = it.category || '';
-          const rawReview = (it.review ?? it.content ?? '').trim();
+          const rawReview = (it.review || it.content || '').trim();
           const review = escapeHTML(
             rawReview || '작성된 문화 후기/설명이 아직 없습니다.'
           );
@@ -992,7 +1074,7 @@ async function init() {
         }
 
         // === 민원(neg) 카드 ===
-        const raw = (it.content ?? it.snippet ?? '').trim();
+        const raw = (it.content || it.snippet || '').trim();
         const content = escapeHTML(raw || '작성된 민원 내용이 아직 없습니다.');
 
         return `
@@ -1307,12 +1389,7 @@ async function init() {
           3000,
           () => {
             map.setCenter(pos);
-            map.setLevel(Math.max(4, CLUSTER_LEVEL_THRESHOLD - 1));
-            const once = () => {
-              kakao.maps.event.removeListener(map, 'idle', once);
-              openPanelForType(c.type);
-            };
-            kakao.maps.event.addListener(map, 'idle', once);
+            map.setLevel(PIN_ZOOM_LEVEL); // ← 고정 4
           }
         );
 
@@ -2149,21 +2226,22 @@ async function init() {
       }
 
       try {
-  if (window.opener && !window.opener.closed) {
-    // onPlaceSelected가 있으면 그거 우선, 없으면 setLocation만이라도
-    const send = window.opener.onPlaceSelected || window.opener.setLocation;
-    if (typeof send === 'function') {
-      // address, lat, lng, kakaoPlaceId 모두 전달
-      send(
-        _selectedPlace.addr,
-        _selectedPlace.lat,
-        _selectedPlace.lng,
-        _selectedPlace.kakaoPlaceId
-      );
-   }
-    window.close(); // 팝업이라면 닫기
-  }
-} catch (_) {}
+        if (window.opener && !window.opener.closed) {
+          // onPlaceSelected가 있으면 그거 우선, 없으면 setLocation만이라도
+          const send =
+            window.opener.onPlaceSelected || window.opener.setLocation;
+          if (typeof send === 'function') {
+            // address, lat, lng, kakaoPlaceId 모두 전달
+            send(
+              _selectedPlace.addr,
+              _selectedPlace.lat,
+              _selectedPlace.lng,
+              _selectedPlace.kakaoPlaceId
+            );
+          }
+          window.close(); // 팝업이라면 닫기
+        }
+      } catch (_) {}
 
       const sheet = document.getElementById('placeSheet');
       const inputFull = document.getElementById('searchFull');

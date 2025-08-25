@@ -141,6 +141,10 @@ body {
   height: 18px;
 }
 
+.search-wrap {
+  margin-bottom: 5px;
+}
+
 /* 구분선 */
 .section-sep {
   height: 10px;

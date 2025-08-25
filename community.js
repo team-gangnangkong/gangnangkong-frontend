@@ -138,7 +138,7 @@ function renderFeeds(feeds) {
 // 전체 피드 조회 API
 async function loadAllFeeds(kakaoPlaceId = null) {
   try {
-    let url = "https://sorimap.it.com/api/feeds";
+    let url = 'https://sorimap.it.com/api/feeds';
     if (kakaoPlaceId) url += `?kakaoPlaceId=${kakaoPlaceId}`;
 
     const response = await fetch(url);

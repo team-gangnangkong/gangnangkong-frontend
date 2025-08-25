@@ -75,6 +75,9 @@ function setMunhwaSentimentColor(sentiment) {
 // === form 유효성 검사/상태제어 ===
 const titleInput = writeForm.querySelector('input[name="title"]');
 const locationInput = writeForm.querySelector('input[name="address"]');
+const contentInput = writeForm.querySelector(
+  'textarea[name="content"], #contentInput'
+);
 const photoInput = writeForm.querySelector('input[type="file"]');
 
 const photoUploadBox = document.querySelector('.photo-upload'); //사진 업로드 미리보기
@@ -222,8 +225,8 @@ writeForm.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
 
   const feedData = {
-    title: writeForm.title.value.trim(),
-    content: writeForm.content.value.trim(),
+    title: titleInput?.value.trim() || '',
+    content: contentInput?.value.trim() || '',
     type: selectedType, // "MINWON" | "MUNHWA"
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
@@ -244,6 +247,15 @@ writeForm.addEventListener('submit', async (e) => {
   try {
     // 🔁 멀티파트 한 방에 전송 (이미지 없으면 images 파트 없이 전송됨)
     const created = await createFeedMultipart(feedData, selectedImages);
+    try {
+      const map = JSON.parse(localStorage.getItem('myFeedTypeMap') || '{}');
+      if (created?.feedId) {
+        // 서버로 보낸 원본 값: "MINWON" | "MUNHWA"
+        map[String(created.feedId)] = feedData.type;
+        localStorage.setItem('myFeedTypeMap', JSON.stringify(map));
+      }
+    } catch {}
+
     alert('피드가 성공적으로 작성되었습니다!');
     location.replace('/home.html');
     console.log('작성 완료된 피드:', created);
