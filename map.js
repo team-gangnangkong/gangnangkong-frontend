@@ -144,11 +144,16 @@ const SENTI = { POS: 'POSITIVE', NEG: 'NEGATIVE', NEU: 'NEUTRAL' };
 
 const typeToSenti = (t) => (t === 'neg' ? SENTI.NEG : SENTI.POS);
 
-const sentiToType = (s) => {
-  if (s === 'NEGATIVE') return 'neg';
-  if (s === 'POSITIVE') return 'pos';
-  return null; // NEUTRAL or undefined → null로
-};
+function toType(v) {
+  if (v == null) return null;
+  const t = String(v).trim().toUpperCase(); // 공백/대소문자 방어
+  if (t === 'NEGATIVE' || t === 'NEG' || t === '-1' || t === 'MINWON')
+    return 'neg';
+  if (t === 'POSITIVE' || t === 'POS' || t === '1' || t === 'MUNHWA')
+    return 'pos';
+  if (t === 'NEUTRAL' || t === 'NEU' || t === '0') return null; // 중립은 패널에서만 쓰고 핀은 제외
+  return null;
+}
 
 // --- content/title 추출 유틸 ---
 function stripTags(html) {
@@ -174,9 +179,8 @@ function pickAddr(row) {
 
 function normalizeItem(row) {
   // 1) 타입 정규화
-  const typeFromSenti = sentiToType(row.sentiment);
-  const typeFromRow =
-    row.type === 'MINWON' ? 'neg' : row.type === 'MUNHWA' ? 'pos' : null;
+  const typeFromSenti = toType(row.sentiment);
+  const typeFromRow = toType(row.type);
   const type = typeFromSenti ?? typeFromRow ?? 'neg';
 
   // 2) id/주소/본문 등 필드 유연 추출
@@ -289,14 +293,18 @@ async function init() {
         lat: +c.lat,
         lng: +c.lng,
         count: c.count ?? 0,
-        type:
-          sentiToType(c.sentiment) ||
-          (c.type === 'MUNHWA' ? 'pos' : c.type === 'MINWON' ? 'neg' : null) ||
-          'neg',
+        type: toType(c.sentiment) ?? toType(c.type) ?? 'neg',
       }));
     } catch (e) {
       console.warn('clusters fail', e);
       SV_CLUSTERS = [];
+      console.debug(
+        '[CLUSTERS types]',
+        SV_CLUSTERS.reduce(
+          (a, c) => ((a[c.type] = (a[c.type] || 0) + 1), a),
+          {}
+        )
+      );
     } finally {
       _fetchingClusters = false;
     }
@@ -338,6 +346,10 @@ async function init() {
       ].map(normalizeItem);
 
       attachCatFromCache(POINTS);
+      console.debug(
+        '[POINTS types]',
+        POINTS.reduce((a, p) => ((a[p.type] = (a[p.type] || 0) + 1), a), {})
+      );
     } catch (e) {
       console.warn('panel fail', e);
       POINTS = [];
@@ -369,8 +381,8 @@ async function init() {
   const getAllPoints = () => POINTS;
 
   // ==== 아이콘 파일 경로 ====
-  const POS_URL = '/image/positive.png';
-  const NEG_URL = '/image/negative.png';
+  const POS_URL = new URL('/image/positive.png', location.origin).href;
+  const NEG_URL = new URL('/image/negative.png', location.origin).href;
 
   let _stickyMoodPin = null;
   let _stickyKey = null;
@@ -677,37 +689,40 @@ async function init() {
     el.addEventListener('click', (e) => {
       e.preventDefault();
 
+      // ✅ 클릭 즉시 화면에서 클러스터 제거 (한 프레임도 안 보이게)
+      clearClusters();
+
       if (typeof onClick === 'function') {
-        onClick();
-        return;
-      }
-
-      const allItems = c.items || [];
-      const itemsOfType = allItems.filter((p) =>
-        type === 'pos' ? p.type === 'pos' : p.type === 'neg'
-      );
-
-      const bounds = new kakao.maps.LatLngBounds();
-      allItems.forEach((p) =>
-        bounds.extend(new kakao.maps.LatLng(p.lat, p.lng))
-      );
-
-      if (
-        typeof bounds.isEmpty === 'function'
-          ? !bounds.isEmpty()
-          : allItems.length
-      ) {
-        map.setBounds(bounds, 80, 80, 80, 80);
-        kakao.maps.event.addListener(map, 'idle', function once() {
-          kakao.maps.event.removeListener(map, 'idle', once);
-          map.setLevel(PIN_ZOOM_LEVEL); // ← bounds 맞춘 뒤 4로 고정
-        });
+        onClick(); // onClick 쓴 곳(예: renderClustersOrPins)에서도 레벨 4로 강제되게 해 둠
       } else {
-        map.setCenter(posLatLng ?? new kakao.maps.LatLng(c.lat, c.lng));
-        map.setLevel(PIN_ZOOM_LEVEL); // ← 고정 4
-      }
+        const allItems = c.items || [];
+        const itemsOfType = allItems.filter((p) =>
+          type === 'pos' ? p.type === 'pos' : p.type === 'neg'
+        );
 
-      openClusterPanel(itemsOfType, type);
+        const bounds = new kakao.maps.LatLngBounds();
+        allItems.forEach((p) =>
+          bounds.extend(new kakao.maps.LatLng(p.lat, p.lng))
+        );
+
+        if (
+          typeof bounds.isEmpty === 'function'
+            ? !bounds.isEmpty()
+            : allItems.length
+        ) {
+          map.setBounds(bounds, 80, 80, 80, 80);
+          // bounds가 끝난 다음 꼭 임계치 아래(4)로 고정
+          kakao.maps.event.addListener(map, 'idle', function once() {
+            kakao.maps.event.removeListener(map, 'idle', once);
+            map.setLevel(PIN_ZOOM_LEVEL); // ✅ 4로 강제
+          });
+        } else {
+          map.setCenter(posLatLng ?? new kakao.maps.LatLng(c.lat, c.lng));
+          map.setLevel(PIN_ZOOM_LEVEL); // ✅ 4로 강제
+        }
+
+        openClusterPanel(itemsOfType, type);
+      }
     });
 
     return ov;
