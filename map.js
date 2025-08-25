@@ -314,12 +314,16 @@ async function init() {
           locationId: LOCATION_ID,
         })
       );
-      SV_CLUSTERS = (arr || []).map((c) => ({
-        lat: +c.lat,
-        lng: +c.lng,
-        count: c.count ?? 0,
-        type: toType(c.sentiment) ?? toType(c.type) ?? 'neg',
-      }));
+      SV_CLUSTERS = (arr || []).map((c) => {
+        const typeNorm = toType(c.sentiment) ?? toType(c.type);
+        return {
+          lat: +c.lat,
+          lng: +c.lng,
+          count: c.count ?? c.size ?? 0,
+          // pos/neg만 보장. 모호하면 일단 neg로(기본값 핑크 방지용)
+          type: typeNorm === 'pos' || typeNorm === 'neg' ? typeNorm : 'neg',
+        };
+      });
     } catch (e) {
       console.warn('clusters fail', e);
       SV_CLUSTERS = [];
@@ -508,13 +512,15 @@ async function init() {
 
   function makeMoodOverlay(p) {
     const el = document.createElement('div');
-    // p.type 기준으로 안전 타입 결정
-    const safeType = p.type === 'pos' || p.type === 'neg' ? p.type : 'neg';
-    // 핀은 mood-pin 클래스로! (클러스터는 cluster-bubble 유지)
+    // 어떤 값이 와도 pos/neg로 강제 정규화
+    const safeType =
+      p.type === 'pos' || p.type === 'neg'
+        ? p.type
+        : toType(p.type) || toType(p.sentiment) || 'neg';
     el.className = `mood-pin ${safeType}`;
-    el.innerHTML = `<img src="${p.type === 'pos' ? POS_URL : NEG_URL}" alt="${
-      p.type
-    }">`;
+    el.innerHTML = `<img src="${
+      safeType === 'pos' ? POS_URL : NEG_URL
+    }" alt="${safeType}">`;
 
     const latKey = p.origLat != null ? p.origLat : p.lat;
     const lngKey = p.origLng != null ? p.origLng : p.lng;
@@ -711,7 +717,8 @@ async function init() {
 
   function makeClusterOverlay(c, type, posLatLng, sizeOpt, zIndexOpt, onClick) {
     const el = document.createElement('div');
-    el.className = `cluster-bubble ${type}`;
+    const t = type === 'pos' || type === 'neg' ? type : toType(type) || 'neg';
+    el.className = `cluster-bubble ${t}`;
 
     const count =
       c && typeof c.count === 'number'
