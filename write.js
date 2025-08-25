@@ -124,7 +124,10 @@ function getAccessTokenFromCookie() {
 async function createFeedMultipart(feedData, files = []) {
   const fd = new FormData();
 
-  fd.append('feed', JSON.stringify(feedData));
+  fd.append(
+    'feed',
+    new Blob([JSON.stringify(feedData)], { type: 'application/json' })
+  );
 
   // 이미지 여러 장
   files.forEach((f) => fd.append('images', f, f.name));
