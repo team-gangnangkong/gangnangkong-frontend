@@ -176,7 +176,7 @@ function normalizeItem(row) {
   const typeFromSenti = sentiToType(row.sentiment);
   const typeFromRow =
     row.type === 'MINWON' ? 'neg' : row.type === 'MUNHWA' ? 'pos' : null;
-  const type = typeFromSenti ?? typeFromRow ?? 'pos';
+  const type = typeFromSenti ?? typeFromRow ?? 'neg';
 
   // 2) id/주소/본문 등 필드 유연 추출
   const id =
@@ -329,7 +329,11 @@ async function init() {
         ).catch(() => []), // 서버가 NEU 미구현이어도 안전
       ]);
 
-      POINTS = [].concat(neg || [], pos || [], neu || []).map(normalizeItem);
+      POINTS = [
+        ...(neg || []).map((r) => ({ ...r, sentiment: SENTI.NEG })),
+        ...(pos || []).map((r) => ({ ...r, sentiment: SENTI.POS })),
+        ...(neu || []).map((r) => ({ ...r, sentiment: SENTI.NEU })),
+      ].map(normalizeItem);
 
       attachCatFromCache(POINTS);
     } catch (e) {
@@ -573,6 +577,17 @@ async function init() {
     _clusterOverlays.forEach((o) => o.setMap(null));
     _clusterOverlays = [];
   }
+  kakao.maps.event.addListener(map, 'zoom_changed', () => {
+    const lv = map.getLevel();
+    if (lv >= CLUSTER_LEVEL_THRESHOLD) {
+      // 줌아웃: 클러스터 모드 → PNG 핀 즉시 제거
+      clearMoodPins();
+    } else {
+      // 줌인: 핀 모드 → 클러스터 즉시 제거
+      clearClusters();
+    }
+  });
+
   function clusterPoints(points, map, radiusPx = 80) {
     const proj = map.getProjection();
     const buckets = [];
@@ -683,7 +698,7 @@ async function init() {
         map.setBounds(bounds, 80, 80, 80, 80);
       } else {
         map.setCenter(posLatLng ?? new kakao.maps.LatLng(c.lat, c.lng));
-        map.setLevel(Math.max(4, CLUSTER_LEVEL_THRESHOLD - 1));
+        map.setLevel(4);
       }
 
       openClusterPanel(itemsOfType, type);
@@ -981,11 +996,11 @@ async function init() {
 
     panelBadgeEl.hidden = true;
     const titleEl = document.querySelector('.cp-title');
-    if (titleEl) {
-      titleEl.innerHTML = `<span class="cp-dyn">${count}개의 ${
-        isPos ? '문화' : '소리'
-      }</span>`;
-    }
+    // if (titleEl) {
+    //   titleEl.innerHTML = `<span class="cp-dyn">${count}개의 ${
+    //     isPos ? '문화' : '소리'
+    //   }</span>`;
+    // }
 
     panelBadgeEl.textContent = isPos ? '문화' : '민원';
     panelBadgeEl.classList.remove('pos');
