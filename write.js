@@ -247,6 +247,15 @@ writeForm.addEventListener('submit', async (e) => {
   try {
     // 🔁 멀티파트 한 방에 전송 (이미지 없으면 images 파트 없이 전송됨)
     const created = await createFeedMultipart(feedData, selectedImages);
+    try {
+      const map = JSON.parse(localStorage.getItem('myFeedTypeMap') || '{}');
+      if (created?.feedId) {
+        // 서버로 보낸 원본 값: "MINWON" | "MUNHWA"
+        map[String(created.feedId)] = feedData.type;
+        localStorage.setItem('myFeedTypeMap', JSON.stringify(map));
+      }
+    } catch {}
+
     alert('피드가 성공적으로 작성되었습니다!');
     location.replace('/home.html');
     console.log('작성 완료된 피드:', created);
