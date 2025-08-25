@@ -371,6 +371,10 @@ textarea {
   display: none;
 }
 
+.ai {
+  color: #6b7280;
+}
+
 /* 검색 카드 */
 .addr-panel {
   position: fixed;

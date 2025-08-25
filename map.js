@@ -198,13 +198,14 @@ function normalizeItem(row) {
   const content = pickContent(row);
 
   // 문화쪽에서 종종 review/comment에 본문이 들어오면 그쪽도 같이 받기
-  const review =
+  const reviewRaw =
     row.review ??
     row.comment ??
     row.note ??
     row.reviewText ??
     row.review_text ??
     '';
+  const review = reviewRaw || (type === 'pos' ? content : '');
 
   return {
     id,

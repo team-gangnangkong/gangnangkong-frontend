@@ -229,9 +229,11 @@ writeForm.addEventListener('submit', async (e) => {
 
   submitBtn.disabled = true;
 
+  const contentVal = (contentInput?.value ?? '').trim();
   const feedData = {
-    title: titleInput?.value.trim() || '',
-    content: contentInput?.value.trim() || '',
+    title: (titleInput?.value ?? '').trim(),
+    content: contentVal,
+    review: contentVal,
     // type: selectedType,   // ⬅⬅ 이 줄 삭제! (AI가 자동 분류)
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
