@@ -37,7 +37,7 @@ body {
 input[type='text'],
 textarea,
 .photo-upload {
-  background: #f4f4f5;
+  background: #fff;
 }
 
 .header {
@@ -45,6 +45,11 @@ textarea,
   grid-template-columns: 40px 1fr 40px; /* 좌 40, 가운데, 우 40 */
   align-items: center;
   margin-bottom: 24px;
+  margin-top: 23px;
+}
+
+#titleInput #addressInput #detailAddressInput #contentInput {
+  background-color: #fff;
 }
 
 /* 뒤로가기 버튼 */
@@ -86,7 +91,7 @@ textarea {
   padding: 14px 14px;
   font-size: 15px;
   margin-bottom: 13px;
-  background: #f4f4f5;
+  background: #fff;
   outline: none;
 }
 input[type='text']:focus,
@@ -100,19 +105,21 @@ textarea,
 .photo-upload {
   box-sizing: border-box;
 }
+
 .required {
   color: #f43f5e;
   margin-left: 2px;
 }
+
 .category-group {
   display: flex;
   gap: 12px;
   margin-bottom: 13px;
 }
+
 .category-btn {
   flex: 1;
   height: 44px;
-  /* padding: 0 12px; */
   border-radius: 12px;
   background: #ffffff; /* 비활성 배경 */
   color: #9ca3af; /* 비활성 글자색 */
@@ -127,18 +134,16 @@ textarea,
 }
 /* 민원 선택(핑크) */
 .category-btn[data-type='MINWON'].selected {
-  background: #fef2f2; /* 아주 연한 핑크 */
-  color: #f43f5e; /* 핑크 텍스트 */
+  background: #fef2f2;
+  color: #f43f5e;
   font-weight: 600;
 }
-
 /* 문화 선택(연두) */
 .category-btn[data-type='MUNHWA'].selected {
-  background: #dcfce7; /* 아주 연한 연두 */
-  color: #15803d; /* 그린 텍스트 */
+  background: #dcfce7;
+  color: #15803d;
   font-weight: 600;
 }
-
 /* 문화 카테고리 버튼 */
 .category-btn.selected.munhwa-positive {
   background: #22c55e;
@@ -163,11 +168,12 @@ textarea,
   align-items: center;
   aspect-ratio: 1/1;
 }
+
 .photo-upload {
-  background: #fafbfc;
+  background: #fff;
   border: none;
   border-radius: 12px;
-  height: 138px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,6 +192,82 @@ textarea,
   top: 0;
   cursor: pointer;
 }
+/* 사진을 선택한 상태에서 아이콘/텍스트 숨기고 내부 여백 주기 */
+.photo-upload.has-images {
+  height: 180px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 10px;
+  overflow-y: auto;
+}
+.photo-upload.has-images .upload-icon,
+.photo-upload.has-images .upload-text {
+  display: none;
+}
+
+/* 미리보기 그리드 */
+.photo-upload .photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-auto-rows: 100px;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 100%;
+  width: 100%;
+}
+.photo-upload .preview-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+.photo-upload .preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #eee;
+}
+.photo-upload .preview-del {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* + 추가 타일 */
+.photo-upload .add-tile {
+  width: 100px;
+  height: 100px;
+  border: 1.5px dashed #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+}
+.photo-upload .preview-item,
+.photo-upload .add-tile {
+  width: 100px;
+  height: 100px;
+}
+
+/* 썸네일을 클릭 가능하게 하려면 input을 숨겨둠(추가는 +타일로) */
+.photo-upload.has-images input[type='file'] {
+  display: none;
+}
+
 .upload-icon {
   font-size: 33px;
   color: #bebebe;
@@ -198,8 +280,20 @@ textarea,
   line-height: 22px;
 }
 textarea {
-  min-height: 76px;
+  min-height: 140px;
   resize: none;
+  font-family: '맑은고딕';
+}
+
+.search-ico {
+  flex: 0 0 auto;
+  color: #f87171;
+  margin-top: 6px;
+  gap: 5ps;
+}
+.search-ico circle,
+.search-ico line {
+  stroke-width: 3px;
 }
 
 /* 사진 미리보기 */
@@ -210,7 +304,6 @@ textarea {
   gap: 8px;
   margin: 8px 0;
 }
-
 .photo-preview img {
   width: 100px;
   height: 100px;
@@ -220,21 +313,34 @@ textarea {
 }
 
 .submit-btn {
-  width: 100%;
-  background: #fecaca;
-  color: #f43f5e;
+  width: 45%;
+  height: 41px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: 16px auto 0;
+  padding: 0 16px;
+  box-sizing: border-box;
   border: none;
-  border-radius: 10px;
-  font-size: 16px;
+  border-radius: 11px;
+  font-size: 15px;
   font-weight: 600;
-  padding: 13px 0;
-  margin-top: 13px;
-  transition: background 0.2s;
   cursor: pointer;
 }
-.submit-btn:active {
-  background: #f43f5e;
+/* 비활성(기본) */
+.submit-btn.is-disabled,
+.submit-btn:disabled {
+  background: #fef2f2;
+  color: #f87171;
+}
+/* 활성 */
+.submit-btn.is-enabled {
+  background: #f87171;
   color: #fff;
+}
+.submit-btn.is-enabled:hover {
+  filter: brightness(0.98);
 }
 
 .app-scroll {
@@ -243,11 +349,217 @@ textarea {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
 .app-scroll::-webkit-scrollbar {
   width: 0;
   height: 0;
   display: none;
+}
+
+/* ==== 검색 패널 스타일 ==== */
+#addrOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(248, 113, 113, 0.08);
+  z-index: 9999;
+  display: block;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding-bottom: 12px;
+}
+#addrOverlay[hidden] {
+  display: none;
+}
+
+/* 검색 카드 */
+.addr-panel {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(500px, calc(100% - 24px));
+  height: 700px !important;
+  overflow: auto;
+  background: #f9fafb;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.02);
+  padding: 18px 14px 14px;
+  z-index: 2;
+}
+
+.addr-map {
+  height: 42vh;
+  margin: 6px 10px 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f4f4f5;
+}
+.addr-sel-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+.addr-sel-addr {
+  color: #6b7280;
+  font-size: 14px;
+}
+.addr-pick {
+  height: 45px;
+  border: 0;
+  width: 100%;
+  margin-top: 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  background: #f87171;
+  color: #fff;
+}
+.addr-pick:disabled {
+  opacity: 0.5;
+}
+.addr-close {
+  position: absolute;
+  right: 10px;
+  top: 28px;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+.addr-searchbar {
+  position: relative;
+  margin: 8px 35px 8px 10px;
+}
+.addr-searchbar input {
+  width: 100%;
+  height: 48px;
+  padding: 0 44px;
+  border: 0;
+  outline: none;
+  background: #fff;
+  border-radius: 12px;
+  font-size: 16px;
+  color: #111827;
+}
+.addr-searchbar .ico {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #ef4444;
+}
+
+.addr-listwrap {
+  overflow: auto;
+  padding: 4px 8px 10px;
+}
+.addr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.addr-list li {
+  padding: 12px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.addr-list li:hover {
+  background: #fafafa;
+}
+.addr-list .name {
+  font-weight: 600;
+}
+.addr-list .addr {
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.addr-hint {
+  color: #6b7280;
+  text-align: center;
+  margin-top: 48px;
+}
+
+.addr-modal {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 24px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  background: #f9fafb;
+}
+
+/* 기본은 숨김 */
+#addrMap,
+#addrSheet {
+  display: none;
+}
+
+/* ===== 전환 상태 ===== */
+/* 검색→지도 전환: 패널은 프레임으로 남김(불투명) */
+#addrOverlay.picked .addr-panel {
+  /* 중앙에 고정해서 지도 주변의 프레임처럼 보이게 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(500px, calc(100% - 24px));
+  height: 560px;
+  opacity: 1; /* ← 투명 아님 */
+  pointer-events: none; /* 프레임은 클릭 불가 */
+  z-index: 1; /* 지도(2)보다 뒤에 두어 프레임 효과 */
+}
+
+/* 프레임 속 실제 UI(검색창/목록/닫기)는 숨김 */
+#addrOverlay.picked .addr-panel .addr-searchbar,
+#addrOverlay.picked .addr-panel .addr-listwrap,
+#addrOverlay.picked .addr-panel .addr-close {
+  display: none;
+}
+
+/* 지도/시트 보이기 */
+#addrOverlay.picked #addrMap {
+  display: block;
+}
+#addrOverlay.picked #addrSheet {
+  display: block;
+}
+
+/* 지도: 화면 정중앙 + 프레임보다 약간 작게 */
+#addrOverlay.picked #addrMap {
+  position: fixed;
+  top: 16vh;
+
+  margin: auto; /* 완전 중앙 */
+  width: min(450px, calc(100% - 24px));
+  height: 500px;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+  z-index: 2; /* 프레임 위, 시트 아래 */
+}
+
+/* 하단 선택 시트 */
+#addrSheet {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 15vh;
+  width: min(450px, calc(100% - 24px));
+  background: #fff;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
+  z-index: 3;
+}
+
+#addrOverlay.picked {
+  align-items: stretch;
 }
 
 /* 바깥 */
@@ -269,7 +581,7 @@ textarea {
   display: flex;
   flex-direction: column;
   position: relative;
-  min-height: 100dvh;
+  height: 100dvh;
 }
 @media (max-width: 600px) {
   .app {

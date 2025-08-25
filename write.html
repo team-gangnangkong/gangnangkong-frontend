@@ -21,7 +21,6 @@
                 fill="none"
                 class="back-arrow"
               >
-                >
                 <path
                   d="M18.75 22.5L11.25 15L18.75 7.5"
                   stroke="black"
@@ -32,7 +31,7 @@
               </svg>
               <div class="header-title">글쓰기</div>
             </div>
-            <form id="feedForm" style="margin: 8px">
+            <form id="feedForm" style="margin: 8px" novalidate>
               <label for="titleInput"
                 >제목<span class="required">*</span></label
               >
@@ -79,24 +78,21 @@
                 type="text"
                 placeholder="건물, 지번 또는 도로명 검색"
                 required
+                readonly
               />
+              <input id="kakaoPlaceIdInput" name="kakaoPlaceId" type="hidden" />
+
               <!-- 위도 -->
               <input id="latInput" name="lat" type="hidden" />
               <!-- 경도 -->
               <input id="lngInput" name="lng" type="hidden" />
+
               <label for="detailAddressInput"></label>
               <input
                 id="detailAddressInput"
                 name="detailAddress"
                 type="text"
                 placeholder="상세주소"
-              />
-
-              <input
-                id="locationIdInput"
-                name="locationId"
-                type="hidden"
-                value="1"
               />
 
               <label>사진<span class="required">*</span></label>
@@ -111,14 +107,9 @@
                   type="file"
                   accept=".jpg,.jpeg,.png"
                   multiple
-                  required
                 />
               </div>
 
-              <!-- 사진 미리보기 -->
-              <div class="photo-preview"></div>
-
-              <label for="contentInput">내용</label>
               <textarea
                 id="contentInput"
                 name="content"
@@ -133,6 +124,77 @@
         </main>
       </div>
     </div>
+
+    <!-- 주소 검색 오버레이 -->
+    <div id="addrOverlay" hidden>
+      <div class="addr-panel">
+        <button
+          type="button"
+          id="addrBack"
+          class="addr-close"
+          aria-label="닫기"
+        >
+          ✕
+        </button>
+
+        <div class="addr-searchbar">
+          <span class="ico" aria-hidden="true"
+            ><svg
+              class="search-ico"
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="16.65"
+                y1="16.65"
+                x2="21"
+                y2="21"
+                stroke="currentColor"
+                stroke-width="2"
+                fill="#87171"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+          <input
+            id="addrQuery"
+            placeholder="위치를 검색해 보세요"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="addr-listwrap">
+          <ul id="addrList" class="addr-list"></ul>
+          <p id="addrHint" class="addr-hint">
+            구체적인 단어로 위치를 찾아보세요.
+          </p>
+        </div>
+      </div>
+
+      <div id="addrMap" class="addr-map"></div>
+
+      <!-- 하단 선택 시트 -->
+      <div id="addrSheet" class="addr-sheet" hidden>
+        <div class="addr-sel-title" id="as-name"></div>
+        <div class="addr-sel-addr" id="as-addr"></div>
+        <button type="button" id="as-pickBtn" class="addr-pick">
+          선택하기
+        </button>
+      </div>
+    </div>
+
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=31f2a998f3401f3977505d440b37a84c&libraries=services&autoload=false"></script>
+
     <script src="write.js"></script>
   </body>
 </html>

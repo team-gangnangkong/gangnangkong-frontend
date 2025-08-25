@@ -1,6 +1,5 @@
 // 뒤로가기 버튼 기능
-
-document.querySelector(".header svg").addEventListener("click", () => {
+document.querySelector(".header").addEventListener("click", () => {
   window.history.back();
 });
 
@@ -9,7 +8,18 @@ document.getElementById("writeBtn").addEventListener("click", function () {
   window.location.href = "write.html";
 });
 
-//토큰 쿠키
+// 카드 클릭 이벤트. 해당 게시물 상세로 이동.
+document.querySelectorAll(".card").forEach((card) => {
+  card.addEventListener("click", () => {
+    const feedId = card.getAttribute("data-feed-id");
+    if (feedId) {
+      window.location.href = `community-detail.html?id=${feedId}`;
+    }
+    console.log("클릭된 피드 ID:", feedId);
+  });
+});
+
+//토큰 쿠키. community-detail.js와 동일
 function getAccessTokenFromCookie() {
   const cookies = document.cookie.split("; ");
   for (const c of cookies) {
@@ -197,10 +207,13 @@ categoryButtons.forEach((btn) => {
 
     if (selected === "전체".toUpperCase()) {
       currentCategory = "ALL";
+      console.log("전체 카테고리 선택");
     } else if (selected === "민원".toUpperCase()) {
       currentCategory = "MINWON";
+      console.log("민원 카테고리 선택");
     } else if (selected === "문화".toUpperCase()) {
       currentCategory = "MUNHWA";
+      console.log("문화 카테고리 선택");
     } else {
       currentCategory = "ALL"; // 기본값 fallback
     }

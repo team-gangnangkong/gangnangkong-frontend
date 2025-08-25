@@ -25,6 +25,8 @@ window.addEventListener('unhandledrejection', (e) =>
         ? API_BASE + u
         : u
       : u;
+  const isDefaultMarker = (u) =>
+    typeof u === 'string' && u.trim().toUpperCase() === 'DEFAULT';
 
   const isServerDefaultProfile = (u = '') =>
     typeof u === 'string' &&
@@ -66,16 +68,22 @@ window.addEventListener('unhandledrejection', (e) =>
   // ── 닉네임/프로필 ─────────────────────────────────────────────
   function hydrateProfile(data) {
     const name =
-      data?.nickname ||
-      data?.name ||
-      data?.username ||
-      data?.profile?.nickname ||
+      (data?.nickname && data.nickname.trim()) ||
+      (data?.name && data.name.trim()) ||
+      (data?.username && data.username.trim()) ||
+      (data?.profile?.nickname && data.profile.nickname.trim()) ||
+      (data?.profile?.name && data.profile.name.trim()) ||
+      (data?.kakaoNickname && data.kakaoNickname.trim()) ||
+      (data?.kakao?.profile?.nickname && data.kakao.profile.nickname.trim()) ||
+      (data?.kakao_account?.profile?.nickname &&
+        data.kakao_account.profile.nickname.trim()) ||
+      (data?.properties?.nickname && data.properties.nickname.trim()) ||
       '사용자';
-
     const nameEl = document.querySelector('.profile-name');
     if (nameEl) nameEl.textContent = name;
 
     const raw =
+      data?.imageUrl ||
       data?.profileImageUrl ||
       data?.profile_image_url ||
       data?.profile_image ||
@@ -85,28 +93,23 @@ window.addEventListener('unhandledrejection', (e) =>
 
     const avatarUrl = toHttps(raw);
 
+    // ← 여기서 플래그를 먼저 계산하고
     const isDefaultFlag =
       data?.isDefaultImage ??
       data?.is_default_image ??
       data?.profile?.is_default_image ??
       null;
 
-    const kakaoDefaultPatterns = [
-      /kakaocdn\.net\/.*default_profile/i,
-      /kakaocdn\.net\/account_images\/default_/i,
-    ];
-    const isKakaoDefaultUrl =
-      typeof avatarUrl === 'string' &&
-      kakaoDefaultPatterns.some((re) => re.test(avatarUrl));
+    // 그리고 폴백 조건을 계산할 때 'isKakaoDefault' 를 사용
+    const shouldUseFallback =
+      !avatarUrl ||
+      isDefaultMarker(raw) ||
+      isDefaultFlag === true ||
+      isKakaoDefault(avatarUrl) || // ✅ 이름 통일 (상단 정의 사용)
+      isServerDefaultProfile(avatarUrl);
 
     // ✅ 네가 말한 기본 이미지 파일명 사용
     const FALLBACK = './image/profile_default.png'; // 경로가 다르면 'img/profile_default.png'처럼 수정
-
-    const shouldUseFallback =
-      !avatarUrl ||
-      isDefaultFlag === true ||
-      isKakaoDefaultUrl ||
-      isServerDefaultProfile(avatarUrl);
 
     const avatarEl = document.querySelector('.profile-avatar');
     if (!avatarEl) return;
@@ -246,13 +249,24 @@ window.addEventListener('unhandledrejection', (e) =>
       sessionStorage.getItem('profileAvatarIsFallback') === '1';
     const avatarEl = document.querySelector('.profile-avatar');
     if (avatarEl && url) {
-      const safe = toHttps(url);
+      if (isDefaultMarker(url)) {
+        // ★ 추가
+        sessionStorage.setItem(
+          'profileAvatarUrl',
+          './image/profile_default.png'
+        );
+        sessionStorage.setItem('profileAvatarIsFallback', '1');
+      }
+      const safe = toHttps(sessionStorage.getItem('profileAvatarUrl'));
       const bust = (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
       avatarEl.style.backgroundImage = `url('${safe + bust}')`;
       avatarEl.style.backgroundSize = 'cover';
       avatarEl.style.backgroundPosition = 'center';
       avatarEl.style.borderRadius = '50%';
-      avatarEl.classList.toggle('is-fallback', isFallback);
+      avatarEl.classList.toggle(
+        'is-fallback',
+        sessionStorage.getItem('profileAvatarIsFallback') === '1'
+      );
     }
   }
 
@@ -305,66 +319,19 @@ window.addEventListener('unhandledrejection', (e) =>
   // ──  초기 로드 ─────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     guard();
-    const just = sessionStorage.getItem('profileImageJustUpdated');
-    if (just) {
-      const safeJust = toHttps(just);
 
-      // ✅ 기본이미지(서버/카카오)면 폴백으로 전환하고 'just'를 비워줌
-      if (isServerDefaultProfile(safeJust) || isKakaoDefault(safeJust)) {
-        const FALLBACK = './image/profile_default.png';
-        const bustFb = FALLBACK + '?t=' + Date.now();
-
-        document
-          .querySelectorAll('.profile-img')
-          .forEach((img) => (img.src = bustFb));
-
-        const avatar = document.querySelector('.profile-avatar');
-        if (avatar) {
-          avatar.style.backgroundImage = `url('${bustFb}')`;
-          avatar.style.backgroundSize = 'cover';
-          avatar.style.backgroundPosition = 'center';
-          avatar.style.borderRadius = '50%';
-          avatar.classList.add('is-fallback');
-        }
-
-        sessionStorage.setItem('profileAvatarUrl', FALLBACK);
-        sessionStorage.setItem('profileAvatarIsFallback', '1');
-        sessionStorage.removeItem('profileImageJustUpdated'); // 🔑 더는 기본이미지로 시도하지 않게
-      } else {
-        // 기존 로직 (업로드 성공한 커스텀 이미지일 때)
-        const bust =
-          safeJust + (safeJust.includes('?') ? '&' : '?') + 't=' + Date.now();
-
-        document
-          .querySelectorAll('.profile-img')
-          .forEach((img) => (img.src = bust));
-
-        const avatar = document.querySelector('.profile-avatar');
-        if (avatar) {
-          avatar.style.backgroundImage = `url('${bust}')`;
-          avatar.style.backgroundSize = 'cover';
-          avatar.style.backgroundPosition = 'center';
-          avatar.style.borderRadius = '50%';
-          avatar.classList.remove('is-fallback');
-        }
-
-        sessionStorage.setItem('profileAvatarUrl', safeJust);
-        sessionStorage.setItem('profileAvatarIsFallback', '0');
-        sessionStorage.removeItem('profileImageJustUpdated');
-      }
-    }
-
+    // 세션값(닉네임/아바타) 먼저 반영
     applyOptimisticFromSession();
 
-    // 로그아웃 버튼 위임 리스너 (기존)
+    // 로그아웃 버튼 위임 리스너
     document.addEventListener('click', (e) => {
-      const btn = e.target.closest('#logout-button');
+      const btn = e.target.closest(LOGOUT_BTN_SELECTOR); // '#logout-button'
       if (!btn) return;
       e.preventDefault();
       doLogout();
     });
 
-    // ✅ 프로필 행 클릭: 보이는 이미지를 저장하고 이동
+    // 프로필 행 클릭: 현재 보이는 아바타 주소 저장 후 편집 페이지로 이동
     const row = document.querySelector('.profile-row');
     if (row) {
       row.addEventListener('click', (e) => {
@@ -375,7 +342,7 @@ window.addEventListener('unhandledrejection', (e) =>
           avatarEl?.classList.contains('is-fallback') ||
           /profile_default\.png/i.test(url || '');
 
-        // fetch 저장이 아직 안 된 경우 대비
+        // 아직 BG가 없으면 세션값 or 로컬 폴백 사용
         if (!url) {
           url =
             sessionStorage.getItem('profileAvatarUrl') ||
@@ -387,11 +354,11 @@ window.addEventListener('unhandledrejection', (e) =>
           'profileAvatarIsFallback',
           isFallback ? '1' : '0'
         );
-
         location.href = 'profile-edit.html';
       });
     }
 
+    // 서버 데이터로 최종 동기화
     fetchMyPage();
     fetchMyFeeds();
   });

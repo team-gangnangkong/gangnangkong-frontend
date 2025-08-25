@@ -6,6 +6,8 @@
     profileImage: '/api/users/me/profile-image',
   };
   const FALLBACK = './image/profile_default.png';
+  const isDefaultMarker = (u) =>
+    typeof u === 'string' && u.trim().toUpperCase() === 'DEFAULT';
 
   const toHttps = (u) => {
     if (typeof u !== 'string') return u;
@@ -66,25 +68,32 @@
   }
 
   async function uploadProfileImageWithFallback(theFile) {
-    // 1차: profileImage
-    let fd = new FormData();
-    fd.append('profileImage', theFile);
+    const tryUpload = async (fieldName) => {
+      const fd = new FormData();
+      fd.append(fieldName, theFile, theFile.name || 'profile.jpg');
 
-    let res = await fetch(API_BASE + EP.profileImage, {
-      method: 'PATCH',
-      credentials: 'include',
-      body: fd,
-    });
+      // 디버깅: 실제 들어가는 내용
+      for (const [k, v] of fd.entries()) {
+        console.log(
+          '[formdata]',
+          k,
+          v instanceof File ? { name: v.name, type: v.type, size: v.size } : v
+        );
+      }
 
-    // 필드명 문제로 400/415 나올 수 있어 재시도
-    if (!res.ok && (res.status === 400 || res.status === 415)) {
-      fd = new FormData();
-      fd.append('file', theFile);
-      res = await fetch(API_BASE + EP.profileImage, {
+      return fetch(API_BASE + EP.profileImage, {
         method: 'PATCH',
         credentials: 'include',
         body: fd,
       });
+    };
+
+    let res = await tryUpload('image');
+    if (!res.ok && [400, 415, 422].includes(res.status)) {
+      res = await tryUpload('profileImage');
+    }
+    if (!res.ok && [400, 415, 422].includes(res.status)) {
+      res = await tryUpload('file');
     }
     return res;
   }
@@ -113,13 +122,12 @@
   }
 
   function setProfileImage(url, isFallback = false) {
-    const safe = absolutize(url); // ✅ 절대경로화
+    const isDefault = isDefaultMarker(url);
+    const safe = isDefault ? '' : absolutize(url);
     state.els.profileImgs?.forEach((img) => {
       if (!img) return;
       img.classList.toggle('is-fallback', isFallback || !safe);
-      // ✅ 기본이미지(폴백)일 땐 확대 금지, 실제 사진은 꽉 채우기
       img.style.objectFit = isFallback || !safe ? 'contain' : 'cover';
-
       img.onerror = () => {
         img.onerror = null;
         img.src = FALLBACK;
@@ -143,8 +151,8 @@
       });
       if (!res.ok) throw new Error('unauthorized');
       const me = await res.json();
-
       const raw =
+        me?.imageUrl ||
         me?.profileImageUrl ||
         me?.profile_image_url ||
         me?.profile_image ||
@@ -152,17 +160,14 @@
         me?.picture ||
         '';
 
-      const imgUrl = absolutize(raw); // ✅ 절대경로화
-      const isDefault =
-        me?.isDefaultImage ??
-        me?.is_default_image ??
-        me?.profile?.is_default_image ??
-        null;
-
-      // ✅ 서버/카카오 기본이미지까지 폴백 처리
+      const imgUrl = absolutize(raw);
       const useFallback =
         !imgUrl ||
-        isDefault === true ||
+        isDefaultMarker(raw) || // ★ 추가
+        (me?.isDefaultImage ??
+          me?.is_default_image ??
+          me?.profile?.is_default_image ??
+          null) === true ||
         isKakaoDefaultUrl(imgUrl) ||
         isServerDefaultProfile(imgUrl);
 
@@ -173,7 +178,18 @@
         setProfileImage(imgUrl + bust, false);
       }
 
-      const initialName = me?.nickname || me?.name || me?.username || '';
+      const initialName =
+        (me?.nickname && me.nickname.trim()) ||
+        (me?.name && me.name.trim()) ||
+        (me?.username && me.username.trim()) ||
+        (me?.profile?.nickname && me.profile.nickname.trim()) ||
+        (me?.profile?.name && me.profile.name.trim()) ||
+        (me?.kakaoNickname && me.kakaoNickname.trim()) ||
+        (me?.kakao?.profile?.nickname && me.kakao.profile.nickname.trim()) ||
+        (me?.kakao_account?.profile?.nickname &&
+          me.kakao_account.profile.nickname.trim()) ||
+        (me?.properties?.nickname && me.properties.nickname.trim()) ||
+        '';
       if (state.els.nicknameInput && initialName) {
         state.els.nicknameInput.value = initialName;
         updateNicknameState();
@@ -278,16 +294,20 @@
         res.headers.get('Location') ||
         res.headers.get('location');
 
-      const safe = absolutize(urlCandidate || '');
-      if (!safe) throw new Error('이미지 URL을 받지 못했어요.');
-
-      const bustPreview =
-        safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
-      setProfileImage(bustPreview, false);
-
-      sessionStorage.setItem('profileImageJustUpdated', safe);
-      sessionStorage.setItem('profileAvatarUrl', safe);
-      sessionStorage.setItem('profileAvatarIsFallback', '0');
+      if (!urlCandidate || String(urlCandidate).toUpperCase() === 'DEFAULT') {
+        setProfileImage(FALLBACK, true);
+        sessionStorage.setItem('profileAvatarUrl', FALLBACK);
+        sessionStorage.setItem('profileAvatarIsFallback', '1');
+        sessionStorage.setItem('profileImageJustUpdated', FALLBACK);
+      } else {
+        const safe = absolutize(urlCandidate);
+        const bustPreview =
+          safe + (safe.includes('?') ? '&' : '?') + 't=' + Date.now();
+        setProfileImage(bustPreview, false);
+        sessionStorage.setItem('profileAvatarUrl', safe);
+        sessionStorage.setItem('profileAvatarIsFallback', '0');
+        sessionStorage.setItem('profileImageJustUpdated', safe);
+      }
 
       closeSheet();
       state.els.albumInput.value = '';
