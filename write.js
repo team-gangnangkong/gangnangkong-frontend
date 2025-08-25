@@ -119,34 +119,30 @@ function getAccessTokenFromCookie() {
   return null;
 }
 
-async function createFeed(feedData) {
+// ✅ feed(JSON) + images(0~N) 한 번에 전송
+async function createFeedMultipart(feedData, files = []) {
+  const fd = new FormData();
+
+  // feed 파트를 application/json 으로
+  fd.append(
+    'feed',
+    new Blob([JSON.stringify(feedData)], { type: 'application/json' }),
+    'feed.json'
+  );
+
+  // 이미지 여러 장
+  files.forEach((f) => fd.append('images', f, f.name));
+
   const res = await fetch('https://sorimap.it.com/api/feeds', {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(feedData),
+    body: fd, // Content-Type은 브라우저가 boundary 포함 자동 설정
   });
   if (!res.ok) {
     const msg = await res.text().catch(() => '');
-    throw new Error(`피드 작성 실패: ${res.status} ${msg}`);
+    throw new Error(`피드(멀티파트) 작성 실패: ${res.status} ${msg}`);
   }
-  return res.json();
-}
-
-async function uploadImages(files) {
-  const fd = new FormData();
-  files.forEach((f) => fd.append('files', f, f.name)); // 백엔드 요구 key가 files 라고 가정
-
-  const res = await fetch('https://sorimap.it.com/api/uploads', {
-    method: 'POST',
-    credentials: 'include',
-    body: fd, // Content-Type 직접 지정 ❌ (브라우저가 boundary 포함해서 자동 설정)
-  });
-  if (!res.ok) {
-    const msg = await res.text().catch(() => '');
-    throw new Error(`이미지 업로드 실패: ${res.status} ${msg}`);
-  }
-  return res.json(); // { imageUrls: [...] } 형태라고 가정
+  return res.json(); // 문서상 생성된 feed id 등 반환
 }
 
 // ==== 사진 선택/누적/미리보기 ====
@@ -230,8 +226,9 @@ writeForm.addEventListener('submit', async (e) => {
     lng: parseFloat(writeForm.lng?.value) || 0,
   };
 
+  // ✅ 카카오 장소 고유ID는 문자열 유지
   const kid = writeForm.kakaoPlaceId?.value?.trim();
-  if (kid) feedData.kakaoPlaceId = kid; // 문자열 유지
+  if (kid) feedData.kakaoPlaceId = kid;
 
   // (선택) locationId 계속 쓸 거면 유지
   if (writeForm.locationId?.value) {
@@ -239,25 +236,10 @@ writeForm.addEventListener('submit', async (e) => {
   }
 
   try {
-    // 1) 이미지가 있다면 먼저 업로드 → URL 목록 받기
-    let imageUrls = [];
-    if (selectedImages.length > 0) {
-      const up = await uploadImages(selectedImages);
-      // 백엔드 응답 키가 다를 수 있으니 안전하게 처리
-      imageUrls = up?.imageUrls || up?.urls || up?.data?.imageUrls || [];
-    }
-
-    // 2) 받은 URL을 JSON 바디에 포함
-    if (imageUrls.length > 0) {
-      feedData.imageUrls = imageUrls;
-    }
-
-    // 3) JSON으로 피드 생성
-    const created = await createFeed(feedData);
-
+    // 🔁 멀티파트 한 방에 전송 (이미지 없으면 images 파트 없이 전송됨)
+    const created = await createFeedMultipart(feedData, selectedImages);
     alert('피드가 성공적으로 작성되었습니다!');
     console.log('작성 완료된 피드:', created);
-    // TODO: 필요하면 페이지 이동/폼 초기화
   } catch (err) {
     alert('피드 작성 중 오류: ' + err.message);
   }
