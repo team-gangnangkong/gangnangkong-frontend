@@ -140,17 +140,25 @@ async function recordSelectedPlace({ id, kakaoPlaceId, name, addr, lat, lng }) {
 const CLUSTER_LEVEL_THRESHOLD = 7;
 const SENTI = { POS: 'POSITIVE', NEG: 'NEGATIVE', NEU: 'NEUTRAL' };
 
-const sentiToType = (s) => (s === 'NEGATIVE' ? 'neg' : 'pos');
 const typeToSenti = (t) => (t === 'neg' ? SENTI.NEG : SENTI.POS);
 
-const statusToProgress = (s) =>
-  s === 'RESOLVED' ? 100 : s === 'IN_PROGRESS' ? 60 : 10;
+const sentiToType = (s) => {
+  if (s === 'NEGATIVE') return 'neg';
+  if (s === 'POSITIVE') return 'pos';
+  return null; // NEUTRAL or undefined → null로
+};
 
-// 패널/피드 → 지도 핀 모델
 function normalizeItem(row) {
+  // 1순위: sentiment, 2순위: 서버 type(MINWON/MUNHWA)
+  const typeFromSenti = sentiToType(row.sentiment);
+  const typeFromRow =
+    row.type === 'MINWON' ? 'neg' : row.type === 'MUNHWA' ? 'pos' : null;
+
+  const type = typeFromSenti ?? typeFromRow ?? 'pos'; // 마지막 기본값 'pos'
+
   return {
     id: row.id,
-    type: sentiToType(row.sentiment),
+    type,
     lat: +row.lat,
     lng: +row.lng,
     title: row.title || (row.type === 'MINWON' ? '민원' : '문화'),
@@ -161,7 +169,11 @@ function normalizeItem(row) {
     status: row.status || 'OPEN',
     progress: Number.isFinite(row.progress)
       ? row.progress
-      : statusToProgress(row.status),
+      : row.status === 'RESOLVED'
+      ? 100
+      : row.status === 'IN_PROGRESS'
+      ? 60
+      : 10,
     imageUrls: row.imageUrls || [],
     sentiment: row.sentiment,
   };
@@ -245,7 +257,7 @@ async function init() {
     _fetchingPins = true;
     try {
       const bb = getViewportBounds(map);
-      const [neg, pos] = await Promise.all([
+      const [neg, pos, neu] = await Promise.all([
         api(
           ENDPOINTS.panel({
             ...bb,
@@ -260,8 +272,17 @@ async function init() {
             locationId: LOCATION_ID,
           })
         ),
+        api(
+          ENDPOINTS.panel({
+            ...bb,
+            sentiment: SENTI.NEU,
+            locationId: LOCATION_ID,
+          })
+        ).catch(() => []), // 서버가 NEU 미구현이어도 안전
       ]);
-      POINTS = [].concat(neg || [], pos || []).map(normalizeItem);
+
+      POINTS = [].concat(neg || [], pos || [], neu || []).map(normalizeItem);
+
       attachCatFromCache(POINTS);
     } catch (e) {
       console.warn('panel fail', e);
@@ -269,7 +290,8 @@ async function init() {
     } finally {
       _fetchingPins = false;
     }
-  } // 클러스터 클릭 → 해당 감정 타입으로 패널 채우기
+  }
+  // 클러스터 클릭 → 해당 감정 타입으로 패널 채우기
   async function openPanelForType(type /* 'pos'|'neg' */) {
     try {
       const bb = getViewportBounds(map);
@@ -2125,6 +2147,23 @@ async function init() {
         pickBtn.disabled = false;
         pickBtn.textContent = '선택하기';
       }
+
+      try {
+  if (window.opener && !window.opener.closed) {
+    // onPlaceSelected가 있으면 그거 우선, 없으면 setLocation만이라도
+    const send = window.opener.onPlaceSelected || window.opener.setLocation;
+    if (typeof send === 'function') {
+      // address, lat, lng, kakaoPlaceId 모두 전달
+      send(
+        _selectedPlace.addr,
+        _selectedPlace.lat,
+        _selectedPlace.lng,
+        _selectedPlace.kakaoPlaceId
+      );
+   }
+    window.close(); // 팝업이라면 닫기
+  }
+} catch (_) {}
 
       const sheet = document.getElementById('placeSheet');
       const inputFull = document.getElementById('searchFull');

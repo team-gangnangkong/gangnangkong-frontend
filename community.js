@@ -1,25 +1,16 @@
-// 뒤로가기 버튼 기능
+// API 불러오기 실패 시 더미데이터 출력
+
+// --- 뒤로가기 버튼 기능 ---
 document.querySelector(".header").addEventListener("click", () => {
   window.history.back();
 });
 
-// 글쓰기 버튼 클릭 시 write.html로 이동
-document.getElementById("writeBtn").addEventListener("click", function () {
+// --- 글쓰기 버튼 클릭 시 write.html로 이동 ---
+document.getElementById("writeBtn").addEventListener("click", () => {
   window.location.href = "write.html";
 });
 
-// 카드 클릭 이벤트. 해당 게시물 상세로 이동.
-document.querySelectorAll(".card").forEach((card) => {
-  card.addEventListener("click", () => {
-    const feedId = card.getAttribute("data-feed-id");
-    if (feedId) {
-      window.location.href = `community-detail.html?id=${feedId}`;
-    }
-    console.log("클릭된 피드 ID:", feedId);
-  });
-});
-
-//토큰 쿠키. community-detail.js와 동일
+// --- 토큰 쿠키 가져오기 (community-detail.js와 동일) ---
 function getAccessTokenFromCookie() {
   const cookies = document.cookie.split("; ");
   for (const c of cookies) {
@@ -30,197 +21,232 @@ function getAccessTokenFromCookie() {
   return null;
 }
 
+// --- 더미 데이터 준비 ---
+const dummyFeeds = [
+  {
+    id: "1",
+    title: "모란역 쓰레기 문제",
+    content: "쓰레기가 쌓여서 냄새가 심해요",
+    type: "MINWON",
+    address: "성남시 중원구 성남대로",
+    lat: 37.4321,
+    lng: 127.1299,
+    kakaoPlaceId: "1234567890",
+    likes: 5,
+    imageUrls: ["./image/crosswalk.jpg"],
+  },
+  {
+    id: "2",
+    title: "청년 문화 공연 안내",
+    content: "이번 주말에 청년밴드 공연이 있어요!",
+    type: "MUNHWA",
+    address: "성남시 수정구 신흥동 문화의 거리",
+    lat: 37.4456,
+    lng: 127.1567,
+    kakaoPlaceId: "2345678901",
+    likes: 10,
+    imageUrls: ["./image/dark.jpg"],
+  },
+  {
+    id: "3",
+    title: "도로 파손 신고",
+    content: "보행로가 꺼져서 위험합니다.",
+    type: "MINWON",
+    address: "성남시 분당구 판교로",
+    lat: 37.3957,
+    lng: 127.1103,
+    kakaoPlaceId: "3456789012",
+    likes: 3,
+    imageUrls: ["./image/drain.jpg"],
+  },
+];
+
+// --- 카드 리스트 컨테이너 선택 ---
 const feedListContainer = document.querySelector(".card-list");
 
-/**
- * 피드 데이터를 받아서 카드 리스트에 렌더링
- * @param {Array} feeds - 피드 배열
- */
+// --- 피드 데이터 받아서 카드 리스트 렌더링 ---
 function renderFeeds(feeds) {
   feedListContainer.innerHTML = ""; // 초기화
+
+  if (!feeds.length) {
+    feedListContainer.innerHTML = "<p>피드가 없습니다.</p>";
+    return;
+  }
 
   feeds.forEach((feed) => {
     const card = document.createElement("div");
     card.className = "card";
-
-    // 카드 클릭 시 피드 ID를 URL 쿼리 파라미터로 넘겨서 상세 페이지로 이동
-    // 단건 피드 이동
     card.setAttribute("data-feed-id", feed.id);
+    card.style.cursor = "pointer";
 
-    card.style.cursor = "pointer"; // 클릭 가능하다는 UX 표시
-    card.addEventListener("click", () => {
-      const feedId = card.getAttribute("data-feed-id");
-      if (feedId) {
-        window.location.href = `feed-detail.html?id=${feedId}`;
-      }
-    });
-
-    // 카드 내 HTML 내용 세팅 (이미지 등)
+    // 카드 내 HTML 내용 세팅 (이미지, 제목, 좋아요, 주소 등)
     const imageUrl =
       feed.imageUrls && feed.imageUrls.length > 0
         ? feed.imageUrls[0]
         : "./image/default.jpg";
 
-    // 지역구 불러오는 걸 어떻게 작업하는지 모르겠어서 일단 건너뜀
-    // <span class="badge">${feed.badge}</span>
     card.innerHTML = `
-  <div class="card-img-wrap">
-    <img src="${feed.imageUrl}" class="card-img" alt="피드 이미지" />
-    <span class="card-arrow">
-      <svg width="22" height="22" fill="none">
-        <use xlink:href="#icon-arrow"></use>
-      </svg>
-    </span>
-  </div>
-  <div class="card-content">
-    <div class="card-title-row">
-      <div class="card-title">${feed.title}</div>
-      <span class="card-like">
-        <svg width="19" height="18" fill="none">
-          <use xlink:href="#icon-like"></use>
-        </svg>
-        <span>${feed.likes}</span>
-      </span>
-    </div>
-    <div class="card-desc">
-      <svg width="16" height="16" fill="none">
-        <use xlink:href="#icon-location"></use>
-      </svg>
-      <span>${feed.address}</span>
-    </div>
-    <div class="card-preview">
-      ${feed.content}
-    </div>
-  </div>
-`;
+      <div class="card-img-wrap">
+        <img src="${imageUrl}" alt="피드 이미지" class="card-img" />
+        <span class="card-arrow">
+          <svg width="22" height="22" fill="none">
+            <use xlink:href="#icon-arrow"></use>
+          </svg>
+        </span>
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <div class="card-title">${feed.title}</div>
+          <span class="card-like">
+            <svg width="19" height="18" fill="none">
+              <use xlink:href="#icon-like"></use>
+            </svg>
+            <span>${feed.likes}</span>
+          </span>
+          <span class="card-comment">
+            <svg width="19" height="18" fill="none">
+              <use xlink:href="#icon-comment"></use>
+            </svg>
+            <span>0</span>
+          </span>
+        </div>
+        <div class="card-desc">
+          <svg width="16" height="16" fill="none">
+            <use xlink:href="#icon-location"></use>
+          </svg>
+          <span>${feed.address}</span>
+        </div>
+      </div>
+    `;
+
+    // 카드 클릭 이벤트: 상세 페이지로 feedId 넘김
+    card.addEventListener("click", () => {
+      const feedId = card.getAttribute("data-feed-id");
+      if (feedId) {
+        window.location.href = `community-detail.html?id=${feedId}`;
+      }
+      console.log("클릭된 피드 ID:", feedId);
+    });
 
     feedListContainer.appendChild(card);
   });
 }
 
-/**
- * 전체 피드 조회 API 호출 후 렌더링
- * @param {number|null} kakaoPlaceId - kakaoPlaceId 필터링 값 (없으면 null)
- */
-async function loadFeeds(kakaoPlaceId = null) {
+// 전체 피드 조회 API
+async function loadAllFeeds(kakaoPlaceId = null) {
   try {
     let url = "https://sorimap.it.com/api/feeds";
+    if (kakaoPlaceId) url += `?locationId=${kakaoPlaceId}`;
 
-    if (kakaoPlaceId) {
-      url += `?kakaoPlaceId=${kakaoPlaceId}`;
-    }
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("전체 피드 조회 실패: " + response.status);
-    }
+    if (!response.ok) throw new Error("전체 피드 조회 실패 " + response.status);
+
     const feeds = await response.json();
     renderFeeds(feeds);
   } catch (error) {
-    console.error("피드 불러오기 에러:", error);
-    feedListContainer.innerHTML =
-      "<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>";
+    console.error(error);
+    // feedListContainer.innerHTML =
+    //   "<p>전체 피드를 불러오는 중 오류가 발생했습니다.</p>";
+    renderFeeds(dummyFeeds); // 오류 시 더미데이터 렌더링
   }
 }
 
-// 특정 위치에 해당하는 피드만 필터링
-async function loadFeedsByLocation(kakaoPlaceId) {
+// 상태별 조회 API
+async function loadAllFeeds(status, kakaoPlaceId = null) {
   try {
-    const response = await fetch(
-      `https://sorimap.it.com/api/feeds?kakaoPlaceId=${kakaoPlaceId}`
-    );
-    if (!response.ok) {
-      throw new Error("위치별 피드 조회 실패: " + response.status);
-    }
-    const feeds = await response.json();
-    renderFeeds(feeds);
-  } catch (error) {
-    console.error("위치별 피드 불러오기 에러:", error);
-    feedListContainer.innerHTML =
-      "<p>위치별 피드를 불러오는 중 오류가 발생했습니다.</p>";
-  }
-}
+    let url = `https://sorimap.it.com/api/feeds/status/${status.toUpperCase()}`;
+    if (kakaoPlaceId) url += `?kakaoPlaceId=${kakaoPlaceId}`;
 
-// 상태별 조회
-async function loadFeedsByStatus(status, kakaoPlaceId = null) {
-  try {
-    let url = `https://sorimap.it.com/api/feeds/status/${status}`;
-    if (kakaoPlaceId) {
-      url += `?kakaoPlaceId=${kakaoPlaceId}`;
-    }
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("상태별 피드 조회 실패: " + response.status);
-    }
+    if (!response.ok)
+      throw new Error("상태별 피드 조회 실패 " + response.status);
+
     const feeds = await response.json();
     renderFeeds(feeds);
   } catch (error) {
-    console.error("상태별 피드 불러오기 에러:", error);
+    console.error(error);
     feedListContainer.innerHTML =
-      "<p>피드 상태를 불러오는 중 오류가 발생했습니다.</p>";
+      "<p>상태별 피드를 불러오는 중 오류가 발생했습니다.</p>";
   }
 }
 
-// 전체 / 민원 / 문화 버튼 필터링 기능
+// 게시물 상세 조회 API
+async function loadFeedDetail(id) {
+  try {
+    const url = `https://sorimap.it.com/api/feeds/${id}`;
+    const response = await fetch(url);
+    if (!response.ok)
+      throw new Error("게시물 상세 조회 실패 " + response.status);
 
-const categoryButtons = document.querySelectorAll(
-  ".community-btns .category-btn"
-);
+    const feed = await response.json();
+    renderFeedDetail(feed);
+  } catch (error) {
+    console.error(error);
+    // 기본 더미 데이터 렌더링 등의 대체 처리 가능
+  }
+}
 
-let currentCategory = "ALL"; // 초기값: 전체
-
-// 카테고리 버튼 클릭 시 필터링 실행 함수
+// --- API 통신 + 더미 데이터 fallback 통합 필터 함수 ---
 async function filterFeedsByCategory(category) {
   try {
     let url = "https://sorimap.it.com/api/feeds";
-
     if (category === "MINWON" || category === "MUNHWA") {
-      // 지역구(badge)는 address로 불러오는건가?
       url += `?type=${category}`;
     }
-    // 전체(ALL)는 필터 없이 모든 피드 조회
 
     const response = await fetch(url);
-    if (!response.ok) {
+
+    if (!response.ok)
       throw new Error("필터링 피드 조회 실패: " + response.status);
-    }
+
     const feeds = await response.json();
 
-    renderFeeds(feeds);
+    if (feeds && feeds.length > 0) {
+      renderFeeds(feeds);
+    } else {
+      renderDummyFilteredFeeds(category);
+    }
   } catch (error) {
     console.error("피드 필터링 오류:", error);
-    feedListContainer.innerHTML =
-      "<p>피드 필터링을 불러오는 중 오류가 발생했습니다.</p>";
+    renderDummyFilteredFeeds(category);
   }
 }
 
-// 카테고리 버튼 클릭 이벤트 핸들러
+// --- 더미 데이터에서 카테고리 필터링 후 렌더링 ---
+function renderDummyFilteredFeeds(category) {
+  let filteredFeeds = [];
+  if (category === "ALL") {
+    filteredFeeds = dummyFeeds;
+  } else {
+    filteredFeeds = dummyFeeds.filter((feed) => feed.type === category);
+  }
+  renderFeeds(filteredFeeds);
+}
+
+// --- 카테고리 버튼 이벤트 처리 ---
+const categoryButtons = document.querySelectorAll(
+  ".community-btns .category-btn"
+);
+let currentCategory = "ALL";
+
 categoryButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    // 기존 선택된 버튼 active 해제
     categoryButtons.forEach((b) => b.classList.remove("active"));
-
-    // 클릭한 버튼 active 추가
     btn.classList.add("active");
 
-    // 버튼 텍스트로 카테고리 결정
-    let selected = btn.textContent.trim().toUpperCase();
+    const selected = btn.textContent.trim().toUpperCase();
 
-    if (selected === "전체".toUpperCase()) {
-      currentCategory = "ALL";
-      console.log("전체 카테고리 선택");
-    } else if (selected === "민원".toUpperCase()) {
-      currentCategory = "MINWON";
-      console.log("민원 카테고리 선택");
-    } else if (selected === "문화".toUpperCase()) {
-      currentCategory = "MUNHWA";
-      console.log("문화 카테고리 선택");
-    } else {
-      currentCategory = "ALL"; // 기본값 fallback
-    }
+    if (selected === "전체".toUpperCase()) currentCategory = "ALL";
+    else if (selected === "민원".toUpperCase()) currentCategory = "MINWON";
+    else if (selected === "문화".toUpperCase()) currentCategory = "MUNHWA";
+    else currentCategory = "ALL";
 
     filterFeedsByCategory(currentCategory);
   });
 });
 
-// 초기 실행, 전체 피드 불러오기
-loadFeeds("ALL");
+// --- 초기 렌더링은 더미 데이터 기반 전체 목록 ---
+renderFeeds(dummyFeeds);
+
+// 초기 렌더링
+// loadAllFeeds();

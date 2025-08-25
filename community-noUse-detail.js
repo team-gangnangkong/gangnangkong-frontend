@@ -6,12 +6,12 @@
   지역구 badge도 이 기능 이용해서 하면 되는지?
 */
 
-// 뒤로가기 버튼 기능
-document.querySelector(".header svg").addEventListener("click", () => {
+// (완료) 뒤로가기 버튼 기능
+document.querySelector(".header").addEventListener("click", () => {
   window.history.back();
 });
 
-//토큰 쿠키. community.js와 동일
+// (완료) 토큰 쿠키. community.js와 동일
 function getAccessTokenFromCookie() {
   const cookies = document.cookie.split("; ");
   for (const c of cookies) {
@@ -22,7 +22,7 @@ function getAccessTokenFromCookie() {
   return null;
 }
 
-// community 피드에서 보낸 피드 id 가져옴
+// (완료) community 피드에서 보낸 피드 id 가져옴
 // 상세 페이지(community-detail.html)에서 URL 쿼리에서 id 파라미터 추출
 function getQueryParam(param) {
   const urlParams = new URLSearchParams(window.location.search);
@@ -31,7 +31,7 @@ function getQueryParam(param) {
 
 const feedId = getQueryParam("id");
 
-// 단건 조회 API
+// (완료) 단건 조회 API
 async function loadFeedDetail(feedId) {
   try {
     const response = await fetch(`https://sorimap.it.com/api/feeds/${feedId}`);
@@ -40,7 +40,7 @@ async function loadFeedDetail(feedId) {
     renderFeedDetail(feed); // 화면에 데이터 렌더링 함수 호출
   } catch (error) {
     console.error(error);
-    // 적절한 에러 처리 UI
+    renderFeeds(dummyFeeds); // 더미데이터 출력
   }
 }
 
@@ -48,7 +48,7 @@ if (feedId) {
   loadFeedDetail(feedId);
 }
 
-// 피드 상세 데이터 화면 렌더링
+// (완료) 피드 상세 데이터 화면 렌더링
 function renderFeedDetail(feed) {
   document.querySelector(".post-title").textContent = feed.title;
   document.querySelector(".post-desc").textContent = feed.content;
@@ -132,7 +132,7 @@ function updateCommentCountUI(count) {
   }
 }
 
-// 공감 누르기 API 호출 함수
+// (완료) 공감 누르기 API 호출 함수
 async function postLike(feedId) {
   try {
     const response = await fetch(
@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return diff <= 0 ? "방금 전" : `${diff}분 전`;
   }
 
-  // 댓글 목록 렌더링
+  // (완료) 댓글 목록 렌더링
   function renderComments(commentsArray) {
     if (!commentsArray || commentsArray.length === 0) {
       commentList.style.display = "none";
@@ -209,14 +209,14 @@ document.addEventListener("DOMContentLoaded", () => {
     updateCommentCountUI(commentsArray.length);
   }
 
-  // 댓글 개수 UI 업데이트 함수 (.card-comment span 등)
+  // (완료) 댓글 개수 UI 업데이트 함수 (.card-comment span 등)
   function updateCommentCountUI(count) {
     document.querySelectorAll(".card-comment span").forEach((elem) => {
       elem.textContent = count;
     });
   }
 
-  // 댓글 API 조회
+  // (완료) 댓글 API 조회
   async function fetchCommentsAndCount(feedId) {
     try {
       const response = await fetch(
@@ -243,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 댓글 등록 API
+  // (완료) 댓글 등록 API
   async function postComment(feedId, body) {
     try {
       const response = await fetch("https://sorimap.it.com/api/comments", {
@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 댓글 내용 입력 시 버튼 색 및 커서 상태 업데이트
+  // (완료) 댓글 내용 입력 시 버튼 색 및 커서 상태 업데이트
   function updateSendBtnState() {
     if (commentInput.value.trim().length > 0) {
       sendSvgPath.style.fill = "#F87171";
@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 댓글 추가 처리
+  // (완료) 댓글 추가 처리
   async function addComment() {
     const val = commentInput.value.trim();
     if (val.length === 0) return;
@@ -297,7 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 공감 버튼 처리
+  // (완료) 공감 버튼 처리
   likeBtn.addEventListener("click", async () => {
     likeBtn.disabled = true;
     const resultMsg = await postLike(feedId);
@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 이벤트 바인딩
+  // (완료) 이벤트 바인딩
   sendBtn.addEventListener("click", addComment);
   commentInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -330,6 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateSendBtnState();
 });
 
+// (완료)
 function renderFeedDetail(feed) {
   document.querySelector(".post-title").textContent = feed.title;
   document.querySelector(".post-desc").textContent = feed.content;

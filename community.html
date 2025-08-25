@@ -195,15 +195,15 @@
       </div>
     </div>
 
-    <!-- <script src="community.js"></script> -->
+    <script src="community.js"></script>
 
-    <script>
-      // 뒤로가기 버튼 기능
+    <!-- <script>
+      // 뒤로가기 버튼 기능 완료
       document.querySelector(".header").addEventListener("click", () => {
         window.history.back();
       });
 
-      // 1. 더미 데이터 준비
+      // 1. 더미 데이터 준비 완료
       const dummyFeeds = [
         {
           id: "1",
@@ -243,7 +243,7 @@
         },
       ];
 
-      // 2. 카드 렌더링 함수 작성
+      // 2. 카드 렌더링 함수 작성 완료
       const feedListContainer = document.querySelector(".card-list");
 
       function renderFeeds(feeds) {
@@ -291,7 +291,7 @@
           )
           .join("");
 
-        // <!-- 카드 클릭 이벤트. 해당 게시물 상세로 이동. -->
+        //  카드 클릭 이벤트. 해당 게시물 상세로 이동. 
         document.querySelectorAll(".card").forEach((card) => {
           card.addEventListener("click", () => {
             const feedId = card.getAttribute("data-feed-id");
@@ -353,6 +353,6 @@
           filterFeedsByCategory(currentCategory);
         });
       });
-    </script>
+    </script> -->
   </body>
 </html>

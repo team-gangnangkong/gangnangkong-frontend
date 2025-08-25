@@ -2,6 +2,26 @@
   const API_BASE = 'https://sorimap.it.com';
   let _allFeeds = [];
 
+  const absolutize = (u) => {
+    if (!u) return u;
+    if (u.startsWith('//')) return 'https:' + u;
+    if (u.startsWith('http://')) return u.replace(/^http:\/\//, 'https://');
+    if (u.startsWith('/')) return API_BASE + u;
+    return u;
+  };
+
+  // 어떤 키로 오든 첫 번째 이미지 뽑기
+  const firstImageUrl = (feed) => {
+    const cand =
+      feed?.imageUrl ??
+      feed?.imageUrls?.[0] ?? // ["..."]
+      feed?.images?.[0]?.url ?? // [{url:"..."}]
+      feed?.images?.[0] ?? // ["..."]
+      feed?.files?.[0]?.url ?? // [{url:"..."}]
+      feed?.files?.[0]; // ["..."]
+    return cand ? absolutize(cand) : null;
+  };
+
   // 공통 GET
   async function apiGet(path) {
     const res = await fetch(API_BASE + path, {
@@ -53,71 +73,74 @@
       location = '',
       likeCount = 0,
       commentCount = 0,
-      imageUrl = '',
     } = feed;
 
     const badge = extractDistrict(location) || '지역';
-    const img = imageUrl || './image/trash.jpg'; // 이미지 없으면 기본 이미지
+
+    // ✅ 여기만 바꾸면 됨
+    const imgSrc = firstImageUrl(feed) || './image/trash.jpg';
 
     return `
-      <div class="card" data-feedid="${feedId}">
-        <div class="card-img-wrap">
-          <img src="${img}" class="card-img" alt="${escapeHtml(title)}" />
-          <span class="badge">${badge}</span>
-        <a class="card-arrow"
-   href="feed-detail.html?feedId=${feedId}"
-   aria-label="상세보기">
-  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
-    <path d="M11 21C16.523 21 21 16.523 21 11C21 5.477 16.523 1 11 1C5.477 1 1 5.477 1 11C1 16.523 5.477 21 11 21Z" stroke="white" stroke-linejoin="round"/>
-    <path d="M9.5 15.5L14 11L9.5 6.5" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+    <div class="card" data-feedid="${feedId}">
+      <div class="card-img-wrap">
+        <img src="${imgSrc}" class="card-img" alt="${escapeHtml(
+      title
+    )}" loading="lazy"
+             onerror="this.src='./image/trash.jpg'"/>
+        <span class="badge">${badge}</span>
+        <a class="card-arrow" href="feed-detail.html?feedId=${feedId}" aria-label="상세보기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path d="M11 21C16.523 21 21 16.523 21 11C21 5.477 16.523 1 11 1C5.477 1 1 5.477 1 11C1 16.523 5.477 21 11 21Z" stroke="white" stroke-linejoin="round"/>
+            <path d="M9.5 15.5L14 11L9.5 6.5" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+      <div class="card-content">
+        <div class="card-title-row">
+          <div class="card-title">${escapeHtml(title)}</div>
+          <span class="card-like">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <!-- 손바닥 부분(안쪽 사각형) -->
+    <path
+      d="M9 11v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+    <!-- 엄지/바깥 라인 -->
+    <path
+      d="M9 11l4.2-7.2a2 2 0 0 1 3.7.9v5.3h3a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 1.5H9V11Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
   </svg>
-</a>
+            <span>${likeCount}</span>
+          </span>
+          <span class="card-comment">
+            <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+          <path d="M12 3c5 0 9 3.7 9 8.2S17 19.5 12 19.5c-1.4 0-2.8-.3-4.1-.8L4 20l.8-3.1C4 15.4 3 13.9 3 11.2 3 6.7 7 3 12 3Z"
+                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="7.5" y1="10" x2="16.5" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="7.5" y1="13" x2="14.5" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+            <span>${commentCount}</span>
+          </span>
         </div>
-        <div class="card-content">
-          <div class="card-title-row">
-            <div class="card-title">${escapeHtml(title)}</div>
-
-            <span class="card-like">
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-  <!-- 손바닥 부분(안쪽 사각형) -->
-  <path
-    d="M9 11v10H6a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h3Z"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.8"
-    stroke-linejoin="round"
-    stroke-linecap="round"
-  />
-  <!-- 엄지/바깥 라인 -->
-  <path
-    d="M9 11l4.2-7.2a2 2 0 0 1 3.7.9v5.3h3a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 1.5H9V11Z"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.8"
-    stroke-linejoin="round"
-    stroke-linecap="round"
-  />
-</svg>
-              <span>${likeCount}</span>
-            </span>
-
-            <span class="card-comment">
-              <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
-                <path d="M9.49968 1.58301C13.8721 1.58301 17.4163 5.1273 17.4163 9.49967C17.4163 13.872 13.8721 17.4163 9.49968 17.4163C8.23617 17.4181 6.99075 17.1162 5.86831 16.536L2.83939 17.3807..." fill="#F87171"/>
-              </svg>
-              <span>${commentCount}</span>
-            </span>
-          </div>
-
-          <div class="card-desc">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
-              <path d="M12.2427 3.09087C13.3443 4.19229 13.9743 5.67894 13.9995 7.23648..." fill="#9CA3AF"/>
-            </svg>
-            <span>${escapeHtml(location || '위치 정보 없음')}</span>
-          </div>
+        <div class="card-desc">
+         <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16">
+          <path fill="#9CA3AF"
+            d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5z"/>
+        </svg>
+          <span>${escapeHtml(location || '위치 정보 없음')}</span>
         </div>
       </div>
-    `;
+    </div>
+  `;
   }
 
   // 위치 문자열에서 "○○구" 뱃지 뽑기

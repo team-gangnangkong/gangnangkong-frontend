@@ -22,12 +22,6 @@ body {
   height: calc(100dvh - (var(--nav-h) + env(safe-area-inset-bottom, 0px)));
 }
 
-:root {
-  --accent: #ff5b61;
-  --muted: #9ca3af;
-  --nav-h: 95px;
-}
-
 /* 지도 위 UI 컨테이너 */
 .map-ui {
   position: absolute;
@@ -388,13 +382,13 @@ body {
 }
 .cluster-bubble.pos {
   /* 문화(긍정) */
-  border: 2px solid #22c55e;
-  background: rgba(187, 247, 207, 0.65);
+  border: 2px solid var(--cp-color-pos); /* #22c55e */
+  background: var(--cp-fill-pos);
 }
 .cluster-bubble.neg {
   /* 민원(부정) */
-  border: 2px solid #f87171;
-  background: rgba(254, 226, 226, 0.65);
+  border: 2px solid var(--cp-color-neg); /* #f87171 */
+  background: var(--cp-fill-neg); /* #fef2f2 */
 }
 .cluster-bubble.pos .cluster-count {
   color: #22c55e; /* 문화 → 초록 */
@@ -418,6 +412,11 @@ body {
   --cp-fill-pos: #dcfce7;
   --cp-color-neg: #f87171; /* 민원 */
   --cp-fill-neg: #fef2f2;
+  --accent: #ff5b61;
+  --muted: #9ca3af;
+  --nav-h: 95px;
+  --accent-pos: #22c55e; /* 초록(원하면 색 바꿔도 됨) */
+  --accent-neg: #f87171; /* 기존 민원 빨강 */
 }
 
 .cluster-panel {
@@ -746,11 +745,6 @@ body {
 }
 
 /* === 민원 본문 버블 === */
-
-:root {
-  --accent-pos: #22c55e; /* 초록(원하면 색 바꿔도 됨) */
-  --accent-neg: #f87171; /* 기존 민원 빨강 */
-}
 
 /* 문화 카드 말풍선 아이콘을 초록으로 */
 .cp-card.pos .cp-bubble-ico {

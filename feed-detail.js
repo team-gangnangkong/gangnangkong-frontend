@@ -1,5 +1,25 @@
 const API_BASE = 'https://sorimap.it.com';
 
+const absolutize = (u) => {
+  if (!u) return u;
+  if (u.startsWith('//')) return 'https:' + u;
+  if (u.startsWith('http://')) return u.replace(/^http:\/\//, 'https://');
+  if (u.startsWith('/')) return API_BASE + u;
+  return u;
+};
+
+// 어떤 키로 오든 첫 이미지 뽑기
+const firstImageUrl = (feed) => {
+  const cand =
+    feed?.imageUrl ??
+    feed?.imageUrls?.[0] ?? // ["..."]
+    feed?.images?.[0]?.url ?? // [{url:"..."}]
+    feed?.images?.[0] ?? // ["..."]
+    feed?.files?.[0]?.url ?? // [{url:"..."}]
+    feed?.files?.[0]; // ["..."]
+  return cand ? absolutize(cand) : null;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const feedId = new URLSearchParams(location.search).get('feedId');
   if (!feedId)
@@ -16,6 +36,7 @@ async function fetchFeedDetail(feedId) {
     });
     if (!res.ok) throw new Error('상세 조회 실패');
     const feed = await res.json();
+    // console.log('[detail feed]', feed); // 필요시 확인
     renderFeedDetail(feed);
   } catch (e) {
     console.error(e);
@@ -26,6 +47,8 @@ async function fetchFeedDetail(feedId) {
 
 function renderFeedDetail(feed) {
   const created = feed.createdAt || '';
+
+  const imgSrc = firstImageUrl(feed) || './image/trash.jpg';
   const html = `
     <div class="meta">
       <span>${escapeHtml(feed.authorNickname || '작성자')}</span>

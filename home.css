@@ -19,7 +19,7 @@ body {
   min-height: 100px;
   position: relative;
   gap: 12px;
-  padding-top: 50px;
+  padding-top: 30px;
 }
 .hot-topic > p,
 .hot-topic .feed-error {
@@ -37,9 +37,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 25px 20px 20px;
 }
 .hot-topic .headlineWrap {
-  margin: -60px 20px 20px;
+  margin: 40px 20px;
 }
 
 .headlineText {
@@ -121,7 +122,7 @@ body {
 .article-container {
   background: #f8f4f5;
   border-radius: 22px 22px 0 0;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  /* box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04); */
   position: relative;
   margin-bottom: 16px;
   width: 100%;
