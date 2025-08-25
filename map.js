@@ -1081,6 +1081,7 @@ async function init() {
     panelBadgeEl.textContent = isPos ? '문화' : '민원';
     panelBadgeEl.classList.remove('pos');
     panelBadgeEl.classList.toggle('pos', isPos);
+    panelBadgeEl.hidden = false;
 
     panelCountEl.textContent = String(items.length);
 
