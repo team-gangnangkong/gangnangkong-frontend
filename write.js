@@ -17,6 +17,14 @@ const minwonBtn = document.getElementById('minwonBtn');
 const munhwaBtn = document.getElementById('munhwaBtn');
 const categoryBtns = [minwonBtn, munhwaBtn];
 
+categoryBtns.forEach((btn) => {
+  if (!btn) return;
+  btn.classList.remove('selected', 'munhwa-positive', 'munhwa-negative');
+  btn.setAttribute('disabled', 'true');
+  btn.style.pointerEvents = 'none';
+  btn.style.opacity = '0.5';
+});
+
 let selectedType = 'MINWON';
 let selectedImages = [];
 const selectedImageKeys = new Set(); // ⬅️ (추가) 원본파일 중복 방지용 키
@@ -85,16 +93,13 @@ const submitBtn = writeForm.querySelector('.submit-btn');
 
 function isFormValid() {
   const isTitle = titleInput.value.trim() !== '';
-  const isCategory = categoryBtns.some((btn) =>
-    btn.classList.contains('selected')
-  );
   const addrVal = locationInput.value.trim();
   const isAddressFilled = !!addrVal && /\d/.test(addrVal);
   const hasLatLng = !!latInput.value && !!lngInput.value;
-  const hasKid = /^\d+$/.test(kidInput.value.trim());
+  const hasKid = /^\d+$/.test(kidInput.value.trim()); // 카카오 장소 ID 필수 유지
 
-  // ⛳️ 사진 필수(isPhoto) 조건 제거
-  return isTitle && isCategory && isAddressFilled && hasLatLng && hasKid;
+  // ⬇ 카테고리 선택 체크 삭제
+  return isTitle && isAddressFilled && hasLatLng && hasKid;
 }
 
 function updateButtonColor() {
@@ -227,13 +232,15 @@ writeForm.addEventListener('submit', async (e) => {
   const feedData = {
     title: titleInput?.value.trim() || '',
     content: contentInput?.value.trim() || '',
-    type: selectedType, // "MINWON" | "MUNHWA"
+    // type: selectedType,   // ⬅⬅ 이 줄 삭제! (AI가 자동 분류)
     address: writeForm.address.value.trim(),
     lat: parseFloat(writeForm.lat?.value) || 0,
     lng: parseFloat(writeForm.lng?.value) || 0,
     kakaoPlaceId: Number(writeForm.kakaoPlaceId?.value?.trim() || 0),
   };
   delete feedData.locationId;
+  // (안전용) 혹시라도 남아있으면 제거
+  delete feedData.type;
 
   const kidRaw = writeForm.kakaoPlaceId?.value?.trim();
   const kidNum = Number(kidRaw);
